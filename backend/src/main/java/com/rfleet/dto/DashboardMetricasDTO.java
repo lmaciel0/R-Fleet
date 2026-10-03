@@ -17,9 +17,10 @@ public class DashboardMetricasDTO {
 
     private long totalVeiculosPatio;
     private long veiculosEmAtraso;
-    private double tempoMedioPatioDias;
 
     private BigDecimal faturamentoMesAtual;
+    private BigDecimal comissaoPercentual;
+    private BigDecimal comissaoMesAtual;
     private BigDecimal totalOrcadoPatio;
     private BigDecimal totalFaturadoGeral;
 
