@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginView } from './components/LoginView';
 import { Navbar } from './components/Navbar';
@@ -40,9 +40,13 @@ const AppContent: React.FC = () => {
 
   // Notificações Toast
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const proximoIdToast = useRef(0);
 
   const adicionarToast = (texto: string, tipo: 'sucesso' | 'erro' | 'info' = 'sucesso') => {
-    const id = crypto.randomUUID();
+    // Contador: crypto.randomUUID só existe em contexto seguro (HTTPS/localhost), e o app
+    // também é aberto por http no IP da rede (celular no pátio)
+    proximoIdToast.current += 1;
+    const id = String(proximoIdToast.current);
     setToasts((prev) => [...prev, { id, texto, tipo }]);
   };
 

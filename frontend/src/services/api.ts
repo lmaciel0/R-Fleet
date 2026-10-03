@@ -37,9 +37,12 @@ function getToken(): string | null {
   return localStorage.getItem('rfleet_token');
 }
 
-/** Lança o erro de uma resposta não-OK (401 encerra a sessão), igual para JSON e downloads. */
-async function lancarErroDaResposta(response: Response): Promise<never> {
-  if (response.status === 401) {
+/**
+ * Lança o erro de uma resposta não-OK, igual para JSON e downloads. Um 401 só encerra a sessão
+ * quando havia uma sessão; no login, 401 é "e-mail ou senha inválidos" e a mensagem do backend vale.
+ */
+async function lancarErroDaResposta(response: Response, sessaoAtiva: boolean): Promise<never> {
+  if (response.status === 401 && sessaoAtiva) {
     localStorage.removeItem('rfleet_token');
     localStorage.removeItem('rfleet_user');
     window.dispatchEvent(new Event('auth:unauthorized'));
@@ -82,7 +85,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   }
 
   if (!response.ok) {
-    await lancarErroDaResposta(response);
+    await lancarErroDaResposta(response, Boolean(token) && endpoint !== '/auth/login');
   }
 
   return response.json();
@@ -113,7 +116,7 @@ async function baixarArquivo(endpoint: string, nomePadrao: string): Promise<void
 
   const response = await fetch(`${API_BASE}${endpoint}`, { headers });
   if (!response.ok) {
-    await lancarErroDaResposta(response);
+    await lancarErroDaResposta(response, Boolean(token));
   }
 
   const blob = await response.blob();
