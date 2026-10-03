@@ -84,7 +84,7 @@ docker compose up -d
 ### 3. Iniciar o Backend (Spring Boot)
 No diretório `backend/`:
 ```bash
-# Executar suíte de testes (57 testes unitários e de integração)
+# Executar suíte de testes (60 testes unitários e de integração)
 ./mvnw test
 
 # Iniciar o servidor backend (Porta 8081)
@@ -144,7 +144,7 @@ R-Fleet/
 
 ## 🧪 Suíte de Testes Automatizados
 
-O backend conta com 57 testes cobrindo todos os fluxos críticos:
+O backend conta com 60 testes cobrindo todos os fluxos críticos:
 - Autenticação e geração de token JWT
 - Bloqueio de senhas incorretas e validação de token expirado
 - Validação estrita de formato de placas antigas e Mercosul
