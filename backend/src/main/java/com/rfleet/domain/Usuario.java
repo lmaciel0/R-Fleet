@@ -18,6 +18,9 @@ import java.util.UUID;
 @EqualsAndHashCode(of = "id")
 public class Usuario {
 
+    /** Marcador de senha revogada: não é um hash BCrypt, então nenhuma senha confere com ele. */
+    public static final String SENHA_INVALIDADA = "!SENHA-INVALIDADA";
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
