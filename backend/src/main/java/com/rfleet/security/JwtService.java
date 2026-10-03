@@ -33,7 +33,10 @@ public class JwtService {
     private static SecretKey criarChave(String secretKey) {
         byte[] bytes;
         try {
-            bytes = secretKey == null || secretKey.isBlank() ? new byte[0] : Decoders.BASE64.decode(secretKey.trim());
+            // Ignora espaços e quebras de linha: o openssl gera a chave em duas linhas (\r\n no Windows)
+            bytes = secretKey == null || secretKey.isBlank()
+                    ? new byte[0]
+                    : Decoders.BASE64.decode(secretKey.replaceAll("\\s", ""));
         } catch (RuntimeException e) {
             bytes = new byte[0];
         }

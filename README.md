@@ -50,7 +50,7 @@
 O repositório não traz senhas nem chaves. Antes de subir o backend:
 
 1. Copie o modelo: `cp .env.example .env` (o `.env` não vai para o git).
-2. Gere a chave dos tokens e cole em `JWT_SECRET`: `openssl rand -base64 64`
+2. Gere a chave dos tokens e cole em `JWT_SECRET` (uma linha só): `openssl rand -base64 64 | tr -d '\r\n'`
 3. Preencha `RFLEET_GESTOR_NOME`, `RFLEET_GESTOR_EMAIL` e `RFLEET_GESTOR_SENHA` (mínimo 10 caracteres, sem aspas).
 
 Na primeira inicialização o backend cria a conta do gestor com esses dados. Depois disso, a senha não é mais alterada pelo `.env`.
