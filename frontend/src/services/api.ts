@@ -99,7 +99,7 @@ const CARACTERES_DA_BUSCA =
 /** Busca reconstruída só com caracteres da lista acima (cada um copiado da constante), até 100. */
 function termoDeBusca(valor: unknown): string {
   let termo = '';
-  for (const caractere of String(valor ?? '')) {
+  for (const caractere of typeof valor === 'string' ? valor : '') {
     const posicao = CARACTERES_DA_BUSCA.indexOf(caractere);
     if (posicao >= 0) termo += CARACTERES_DA_BUSCA.charAt(posicao);
     if (termo.length >= 100) break;
