@@ -32,10 +32,17 @@ class SegurancaHttpTest {
         String token = gestorDeTeste.obterToken(mockMvc);
 
         mockMvc.perform(get("/api/auth/me").param("token", token))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Token inválido ou expirado responde 401, para o frontend encerrar a sessão")
+    void tokenInvalidoResponde401() throws Exception {
+        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer token-invalido-ou-expirado"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
