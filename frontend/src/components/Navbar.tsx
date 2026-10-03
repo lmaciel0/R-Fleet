@@ -9,12 +9,13 @@ import {
   FileSpreadsheet,
   LogOut,
   AlertTriangle,
+  History,
 } from 'lucide-react';
-import { DashboardMetricas } from '../types';
+import { AbaApp, DashboardMetricas } from '../types';
 
 interface NavbarProps {
-  abaAtiva: 'kanban' | 'tabela' | 'dashboard';
-  setAbaAtiva: (aba: 'kanban' | 'tabela' | 'dashboard') => void;
+  abaAtiva: AbaApp;
+  setAbaAtiva: (aba: AbaApp) => void;
   onAbrirNovaEntrada: () => void;
   onAbrirImportar: () => void;
   metricas?: DashboardMetricas | null;
@@ -88,6 +89,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <BarChart3 className="w-4 h-4" />
               <span>Dashboard Executivo</span>
+            </button>
+
+            <button
+              onClick={() => setAbaAtiva('historico')}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                abaAtiva === 'historico'
+                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              <History className="w-4 h-4" />
+              <span>Histórico</span>
             </button>
           </nav>
         </div>
@@ -186,6 +199,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <BarChart3 className="w-4 h-4" />
           <span>Métricas</span>
+        </button>
+        <button
+          onClick={() => setAbaAtiva('historico')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${
+            abaAtiva === 'historico' ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
+          }`}
+        >
+          <History className="w-4 h-4" />
+          <span>Histórico</span>
         </button>
       </div>
     </header>
