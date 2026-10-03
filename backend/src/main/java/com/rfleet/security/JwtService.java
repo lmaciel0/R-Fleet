@@ -17,11 +17,31 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    @Value("${app.jwt.secret}")
-    private String secretKey;
+    private static final int TAMANHO_MINIMO_CHAVE_BYTES = 32;
 
-    @Value("${app.jwt.expiration-ms}")
-    private long jwtExpirationMs;
+    private final SecretKey chaveAssinatura;
+    private final long jwtExpirationMs;
+
+    public JwtService(
+            @Value("${app.jwt.secret:}") String secretKey,
+            @Value("${app.jwt.expiration-ms}") long jwtExpirationMs
+    ) {
+        this.chaveAssinatura = criarChave(secretKey);
+        this.jwtExpirationMs = jwtExpirationMs;
+    }
+
+    private static SecretKey criarChave(String secretKey) {
+        byte[] bytes;
+        try {
+            bytes = secretKey == null || secretKey.isBlank() ? new byte[0] : Decoders.BASE64.decode(secretKey.trim());
+        } catch (RuntimeException e) {
+            bytes = new byte[0];
+        }
+        if (bytes.length < TAMANHO_MINIMO_CHAVE_BYTES) {
+            throw new IllegalStateException("JWT_SECRET ausente ou fraco: gere com \"openssl rand -base64 64\" (veja .env.example).");
+        }
+        return Keys.hmacShaKeyFor(bytes);
+    }
 
     public String generateToken(String email, Map<String, Object> extraClaims) {
         return Jwts.builder()
@@ -68,7 +88,6 @@ public class JwtService {
     }
 
     private SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return chaveAssinatura;
     }
 }

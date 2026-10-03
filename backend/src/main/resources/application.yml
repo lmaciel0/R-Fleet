@@ -6,6 +6,9 @@ server:
 spring:
   application:
     name: rfleet-backend
+  config:
+    # Lê o .env da raiz (rodando a partir de backend/) ou da pasta atual, se existir
+    import: optional:file:../.env[.properties],optional:file:.env[.properties]
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:rfleet}}
     username: ${SPRING_DATASOURCE_USERNAME:rfleet}
@@ -32,7 +35,7 @@ spring:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    secret: ${JWT_SECRET:}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000} # 24 horas
   storage:
     upload-dir: ${STORAGE_UPLOAD_DIR:./uploads}
