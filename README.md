@@ -45,12 +45,19 @@
 
 ---
 
-## 🔐 Acesso e Credenciais
+## 🔐 Configuração Inicial (obrigatória)
 
-O sistema opera com perfil de gestor único:
+O repositório não traz senhas nem chaves. Antes de subir o backend:
 
-- **E-mail:** `rodrigoaffalcao@gmail.com`
-- **Senha:** `rfleet99`
+1. Copie o modelo: `cp .env.example .env` (o `.env` não vai para o git).
+2. Gere a chave dos tokens e cole em `JWT_SECRET`: `openssl rand -base64 64`
+3. Preencha `RFLEET_GESTOR_NOME`, `RFLEET_GESTOR_EMAIL` e `RFLEET_GESTOR_SENHA` (mínimo 10 caracteres, sem aspas).
+
+Na primeira inicialização o backend cria a conta do gestor com esses dados. Depois disso, a senha não é mais alterada pelo `.env`.
+
+> **Atualizando um banco antigo:** a senha da conta padrão antiga foi revogada (migration V5). Defina as variáveis com o **mesmo e-mail** dessa conta para cadastrar a senha nova e manter o histórico ligado a ela.
+
+Sem `JWT_SECRET` válido, ou sem nenhum gestor que consiga entrar, o backend não sobe e explica no log o que falta.
 
 ---
 
@@ -71,7 +78,7 @@ docker compose up -d
 ### 3. Iniciar o Backend (Spring Boot)
 No diretório `backend/`:
 ```bash
-# Executar suíte de testes (37 testes unitários e de integração)
+# Executar suíte de testes (57 testes unitários e de integração)
 ./mvnw test
 
 # Iniciar o servidor backend (Porta 8081)
@@ -131,7 +138,7 @@ R-Fleet/
 
 ## 🧪 Suíte de Testes Automatizados
 
-O backend conta com 37 testes cobrindo todos os fluxos críticos:
+O backend conta com 57 testes cobrindo todos os fluxos críticos:
 - Autenticação e geração de token JWT
 - Bloqueio de senhas incorretas e validação de token expirado
 - Validação estrita de formato de placas antigas e Mercosul
@@ -142,6 +149,7 @@ O backend conta com 37 testes cobrindo todos os fluxos críticos:
 - Cálculo das métricas consolidadas do dashboard, incluindo a comissão mensal
 - Histórico mensal de entregues e ocultação dos entregues de meses anteriores na operação
 - Importação da planilha legada via CSV e exportação em `.xlsx` e `.csv`
+- Segurança: senha padrão revogada, conta do gestor por variáveis de ambiente, chave JWT obrigatória, token só no cabeçalho, CORS restrito e limite de upload
 
 Para rodar todos os testes:
 ```bash
