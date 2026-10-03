@@ -6,8 +6,7 @@ import com.rfleet.domain.Configuracao;
 import com.rfleet.domain.EtapaOrdemServico;
 import com.rfleet.domain.OrdemServico;
 import com.rfleet.dto.AtualizarFaturamentoRequest;
-import com.rfleet.dto.LoginRequest;
-import com.rfleet.dto.LoginResponse;
+import com.rfleet.support.GestorDeTeste;
 import com.rfleet.dto.RegistrarEntradaRequest;
 import com.rfleet.repository.ConfiguracaoRepository;
 import com.rfleet.repository.OrdemServicoRepository;
@@ -44,6 +43,9 @@ class DashboardControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private GestorDeTeste gestorDeTeste;
 
     @Autowired
     private ConfiguracaoRepository configuracaoRepository;
@@ -100,22 +102,7 @@ class DashboardControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        LoginRequest loginRequest = LoginRequest.builder()
-                .email("rodrigoaffalcao@gmail.com")
-                .senha("rfleet99")
-                .build();
-
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        LoginResponse loginResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(),
-                LoginResponse.class
-        );
-        this.tokenJwt = loginResponse.getToken();
+        this.tokenJwt = gestorDeTeste.obterToken(mockMvc);
 
         // Cadastrar uma OS no pátio com entrada há 10 dias para testar atraso
         RegistrarEntradaRequest osAtrasada = RegistrarEntradaRequest.builder()

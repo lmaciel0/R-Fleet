@@ -2,7 +2,7 @@ package com.rfleet.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rfleet.dto.LoginRequest;
-import com.rfleet.dto.LoginResponse;
+import com.rfleet.support.GestorDeTeste;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,9 +10,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.util.UUID;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -20,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class AuthControllerTest {
 
     @Autowired
@@ -28,12 +30,17 @@ class AuthControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private GestorDeTeste gestorDeTeste;
+
     @Test
     @DisplayName("Deve autenticar com sucesso o gestor usando email e senha corretos")
     void deveAutenticarComSucessoComCredenciaisCorretas() throws Exception {
+        gestorDeTeste.obterToken(mockMvc);
+
         LoginRequest request = LoginRequest.builder()
-                .email("rodrigoaffalcao@gmail.com")
-                .senha("rfleet99")
+                .email(gestorDeTeste.getEmail())
+                .senha(gestorDeTeste.getSenha())
                 .build();
 
         mockMvc.perform(post("/api/auth/login")
@@ -42,17 +49,19 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isString())
                 .andExpect(jsonPath("$.tipo").value("Bearer"))
-                .andExpect(jsonPath("$.usuario.email").value("rodrigoaffalcao@gmail.com"))
-                .andExpect(jsonPath("$.usuario.nome").value("Rodrigo Falcão"))
+                .andExpect(jsonPath("$.usuario.email").value(gestorDeTeste.getEmail()))
+                .andExpect(jsonPath("$.usuario.nome").value(GestorDeTeste.NOME))
                 .andExpect(jsonPath("$.usuario.ativo").value(true));
     }
 
     @Test
     @DisplayName("Deve rejeitar login com senha incorreta retornando 401")
     void deveRejeitarLoginComSenhaIncorreta() throws Exception {
+        gestorDeTeste.obterToken(mockMvc);
+
         LoginRequest request = LoginRequest.builder()
-                .email("rodrigoaffalcao@gmail.com")
-                .senha("senha_errada_123")
+                .email(gestorDeTeste.getEmail())
+                .senha("errada-" + UUID.randomUUID())
                 .build();
 
         mockMvc.perform(post("/api/auth/login")
@@ -67,8 +76,8 @@ class AuthControllerTest {
     @DisplayName("Deve rejeitar login com email não cadastrado retornando 401")
     void deveRejeitarLoginComUsuarioInexistente() throws Exception {
         LoginRequest request = LoginRequest.builder()
-                .email("desconhecido@oficina.com")
-                .senha("rfleet99")
+                .email("desconhecido." + UUID.randomUUID() + "@oficina.com")
+                .senha(UUID.randomUUID().toString())
                 .build();
 
         mockMvc.perform(post("/api/auth/login")
@@ -87,31 +96,13 @@ class AuthControllerTest {
     @Test
     @DisplayName("Deve retornar dados do usuário autenticado no /api/auth/me com token válido")
     void deveRetornarDadosDoUsuarioAutenticadoComTokenValido() throws Exception {
-        // 1. Fazer login para obter o token
-        LoginRequest loginRequest = LoginRequest.builder()
-                .email("rodrigoaffalcao@gmail.com")
-                .senha("rfleet99")
-                .build();
+        String token = gestorDeTeste.obterToken(mockMvc);
 
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        LoginResponse loginResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(),
-                LoginResponse.class
-        );
-        String token = loginResponse.getToken();
-        assertNotNull(token);
-
-        // 2. Chamar /api/auth/me com o Bearer token
         mockMvc.perform(get("/api/auth/me")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("rodrigoaffalcao@gmail.com"))
-                .andExpect(jsonPath("$.nome").value("Rodrigo Falcão"))
+                .andExpect(jsonPath("$.email").value(gestorDeTeste.getEmail()))
+                .andExpect(jsonPath("$.nome").value(GestorDeTeste.NOME))
                 .andExpect(jsonPath("$.ativo").value(true));
     }
 }

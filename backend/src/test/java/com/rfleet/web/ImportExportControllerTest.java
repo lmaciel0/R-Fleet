@@ -1,8 +1,7 @@
 package com.rfleet.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rfleet.dto.LoginRequest;
-import com.rfleet.dto.LoginResponse;
+import com.rfleet.support.GestorDeTeste;
 import com.rfleet.dto.RegistrarEntradaRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,26 +32,14 @@ class ImportExportControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private GestorDeTeste gestorDeTeste;
+
     private String tokenJwt;
 
     @BeforeEach
     void setUp() throws Exception {
-        LoginRequest loginRequest = LoginRequest.builder()
-                .email("rodrigoaffalcao@gmail.com")
-                .senha("rfleet99")
-                .build();
-
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        LoginResponse loginResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(),
-                LoginResponse.class
-        );
-        this.tokenJwt = loginResponse.getToken();
+        this.tokenJwt = gestorDeTeste.obterToken(mockMvc);
 
         RegistrarEntradaRequest osExemplo = RegistrarEntradaRequest.builder()
                 .placa("EXP1A01")
