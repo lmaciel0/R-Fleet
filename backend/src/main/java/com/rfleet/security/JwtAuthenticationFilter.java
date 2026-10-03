@@ -33,11 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
+        // O token só é aceito no cabeçalho: na URL ele ficaria no histórico do navegador e em logs
         String jwt = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-        } else if (request.getParameter("token") != null && !request.getParameter("token").isBlank()) {
-            jwt = request.getParameter("token");
         }
 
         if (jwt == null) {
