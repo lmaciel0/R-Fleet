@@ -83,6 +83,8 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
       tipoServicoId: tipoServicoFiltro || undefined,
       faturado: faturadoFiltro !== '' ? faturadoFiltro === 'true' : undefined,
       emAtraso: somenteAtrasados ? true : undefined,
+      // Mesma lista da tela: entregues de meses anteriores ficam no Histórico
+      ocultarEntreguesAnteriores: true,
     };
 
     const url = api.exportarOrdensUrl(formato, filtros);
