@@ -32,9 +32,6 @@ public class AnexoOs {
     @Column(name = "tamanho_bytes", nullable = false)
     private Long tamanhoBytes;
 
-    @Column(name = "caminho_storage", nullable = false, length = 500)
-    private String caminhoStorage;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
