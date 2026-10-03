@@ -3,7 +3,9 @@ package com.rfleet.service;
 import com.rfleet.domain.EtapaOrdemServico;
 import com.rfleet.domain.OrdemServico;
 import com.rfleet.dto.DashboardMetricasDTO;
+import com.rfleet.repository.ConfiguracaoRepository;
 import com.rfleet.repository.OrdemServicoRepository;
+import com.rfleet.util.DataOficina;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,20 +20,28 @@ import java.util.stream.Collectors;
 @Service
 public class DashboardService {
 
+    private static final String CHAVE_COMISSAO_PERCENTUAL = "COMISSAO_PERCENTUAL";
+    private static final BigDecimal PERCENTUAL_COMISSAO_PADRAO = new BigDecimal("2");
+    private static final BigDecimal CEM = new BigDecimal("100");
+
     private final OrdemServicoRepository ordemServicoRepository;
     private final OrdemServicoService ordemServicoService;
+    private final ConfiguracaoRepository configuracaoRepository;
 
     public DashboardService(
             OrdemServicoRepository ordemServicoRepository,
-            OrdemServicoService ordemServicoService
+            OrdemServicoService ordemServicoService,
+            ConfiguracaoRepository configuracaoRepository
     ) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.ordemServicoService = ordemServicoService;
+        this.configuracaoRepository = configuracaoRepository;
     }
 
     @Transactional(readOnly = true)
     public DashboardMetricasDTO obterMetricas(LocalDate dataReferencia) {
-        LocalDate hoje = dataReferencia != null ? dataReferencia : LocalDate.now();
+        LocalDate hoje = dataReferencia != null ? dataReferencia : DataOficina.hoje();
+        LocalDate inicioMes = hoje.withDayOfMonth(1);
 
         long limiteSla = ordemServicoService.obterLimiteDiasSla();
 
@@ -47,17 +57,6 @@ public class DashboardService {
         long emAtraso = patio.stream()
                 .filter(os -> "VERMELHO".equals(os.calcularStatusSla(limiteSla, hoje)))
                 .count();
-
-        double tempoMedioPatio = patio.isEmpty() ? 0.0 :
-                patio.stream()
-                        .mapToLong(os -> os.calcularDiasNoPatio(hoje))
-                        .average()
-                        .orElse(0.0);
-
-        // Arredondar para 1 casa decimal
-        tempoMedioPatio = BigDecimal.valueOf(tempoMedioPatio)
-                .setScale(1, RoundingMode.HALF_UP)
-                .doubleValue();
 
         BigDecimal totalOrcadoPatio = patio.stream()
                 .map(os -> os.getValorOrcamento() != null ? os.getValorOrcamento() : BigDecimal.ZERO)
@@ -75,6 +74,12 @@ public class DashboardService {
                 .map(os -> os.getValorOrcamento() != null ? os.getValorOrcamento() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        // Comissão mensal sobre o faturado no mês
+        BigDecimal comissaoPercentual = obterPercentualComissao();
+        BigDecimal comissaoMesAtual = faturamentoMesAtual
+                .multiply(comissaoPercentual)
+                .divide(CEM, 2, RoundingMode.HALF_UP);
+
         BigDecimal totalFaturadoGeral = todasAtivas.stream()
                 .filter(os -> Boolean.TRUE.equals(os.getFaturado()))
                 .map(os -> os.getValorOrcamento() != null ? os.getValorOrcamento() : BigDecimal.ZERO)
@@ -86,13 +91,13 @@ public class DashboardService {
 
         long totalNaoFaturadas = todasAtivas.size() - totalFaturadas;
 
-        // Distribuição por Etapa (garantindo todas as 7 etapas inicializadas)
+        // Distribuição por Etapa (todas as 7 etapas inicializadas; Entregue só do mês corrente, como no Kanban)
         Map<EtapaOrdemServico, Long> distribuicaoEtapas = new EnumMap<>(EtapaOrdemServico.class);
         for (EtapaOrdemServico etapa : EtapaOrdemServico.values()) {
             distribuicaoEtapas.put(etapa, 0L);
         }
         for (OrdemServico os : todasAtivas) {
-            if (os.getEtapa() != null) {
+            if (os.getEtapa() != null && !entregueEmMesAnterior(os, inicioMes)) {
                 distribuicaoEtapas.put(os.getEtapa(), distribuicaoEtapas.get(os.getEtapa()) + 1L);
             }
         }
@@ -109,8 +114,9 @@ public class DashboardService {
         return DashboardMetricasDTO.builder()
                 .totalVeiculosPatio(totalPatio)
                 .veiculosEmAtraso(emAtraso)
-                .tempoMedioPatioDias(tempoMedioPatio)
                 .faturamentoMesAtual(faturamentoMesAtual)
+                .comissaoPercentual(comissaoPercentual)
+                .comissaoMesAtual(comissaoMesAtual)
                 .totalOrcadoPatio(totalOrcadoPatio)
                 .totalFaturadoGeral(totalFaturadoGeral)
                 .totalFaturadas(totalFaturadas)
@@ -119,5 +125,27 @@ public class DashboardService {
                 .distribuicaoPorEtapa(distribuicaoEtapas)
                 .distribuicaoPorOrigem(distribuicaoOrigem)
                 .build();
+    }
+
+    /**
+     * Mesmo critério do filtro ocultarEntreguesAnteriores: entregue com saída antes do mês corrente.
+     */
+    private static boolean entregueEmMesAnterior(OrdemServico os, LocalDate inicioMes) {
+        return os.getEtapa() == EtapaOrdemServico.ENTREGUE
+                && os.getDataSaida() != null
+                && os.getDataSaida().isBefore(inicioMes);
+    }
+
+    private BigDecimal obterPercentualComissao() {
+        return configuracaoRepository.findById(CHAVE_COMISSAO_PERCENTUAL)
+                .map(c -> {
+                    try {
+                        return new BigDecimal(c.getValor().trim());
+                    } catch (RuntimeException e) {
+                        return null;
+                    }
+                })
+                .filter(p -> p.signum() >= 0)
+                .orElse(PERCENTUAL_COMISSAO_PADRAO);
     }
 }
