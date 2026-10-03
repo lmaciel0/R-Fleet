@@ -21,6 +21,18 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Converte um id (que pode vir de uma resposta da API) num segmento de URL seguro:
+ * só aceita inteiro positivo, o que impede que um valor adulterado mude o caminho da requisição.
+ */
+function idNaUrl(id: number): string {
+  const numero = Number(id);
+  if (!Number.isSafeInteger(numero) || numero <= 0) {
+    throw new ApiError('Identificador inválido.', 400);
+  }
+  return encodeURIComponent(String(numero));
+}
+
 function getToken(): string | null {
   return localStorage.getItem('rfleet_token');
 }
@@ -115,7 +127,7 @@ export const api = {
   },
 
   async obterOrdem(id: number): Promise<OrdemServico> {
-    return request(`/ordens-servico/${id}`);
+    return request(`/ordens-servico/${idNaUrl(id)}`);
   },
 
   async listarMesesHistorico(): Promise<HistoricoMes[]> {
@@ -139,14 +151,14 @@ export const api = {
   },
 
   async transicionarEtapa(id: number, novaEtapa: string, observacao?: string): Promise<OrdemServico> {
-    return request(`/ordens-servico/${id}/etapa`, {
+    return request(`/ordens-servico/${idNaUrl(id)}/etapa`, {
       method: 'PATCH',
       body: JSON.stringify({ novaEtapa, observacao }),
     });
   },
 
   async atualizarOrcamento(id: number, valor: number, justificativa?: string): Promise<OrdemServico> {
-    return request(`/ordens-servico/${id}/orcamento`, {
+    return request(`/ordens-servico/${idNaUrl(id)}/orcamento`, {
       method: 'PATCH',
       body: JSON.stringify({ valor, justificativa }),
     });
@@ -158,50 +170,50 @@ export const api = {
     dataFaturamento?: string,
     numeroNf?: string
   ): Promise<OrdemServico> {
-    return request(`/ordens-servico/${id}/faturamento`, {
+    return request(`/ordens-servico/${idNaUrl(id)}/faturamento`, {
       method: 'PATCH',
       body: JSON.stringify({ faturado, dataFaturamento, numeroNf }),
     });
   },
 
   async obterHistorico(id: number): Promise<HistoricoEtapa[]> {
-    return request(`/ordens-servico/${id}/historico`);
+    return request(`/ordens-servico/${idNaUrl(id)}/historico`);
   },
 
   async arquivarOrdem(id: number): Promise<void> {
-    return request(`/ordens-servico/${id}`, {
+    return request(`/ordens-servico/${idNaUrl(id)}`, {
       method: 'DELETE',
     });
   },
 
   // Anexos
   async listarAnexos(ordemServicoId: number): Promise<AnexoOs[]> {
-    return request(`/ordens-servico/${ordemServicoId}/anexos`);
+    return request(`/ordens-servico/${idNaUrl(ordemServicoId)}/anexos`);
   },
 
   async uploadAnexo(ordemServicoId: number, arquivo: File): Promise<AnexoOs> {
     const formData = new FormData();
     formData.append('arquivo', arquivo);
-    return request(`/ordens-servico/${ordemServicoId}/anexos`, {
+    return request(`/ordens-servico/${idNaUrl(ordemServicoId)}/anexos`, {
       method: 'POST',
       body: formData,
     });
   },
 
   async excluirAnexo(id: number): Promise<void> {
-    return request(`/anexos/${id}`, {
+    return request(`/anexos/${idNaUrl(id)}`, {
       method: 'DELETE',
     });
   },
 
   downloadAnexoUrl(id: number): string {
     const token = getToken();
-    return `${API_BASE}/anexos/${id}/download${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+    return `${API_BASE}/anexos/${idNaUrl(id)}/download${token ? `?token=${encodeURIComponent(token)}` : ''}`;
   },
 
   // Dashboard
   async obterMetricas(dataReferencia?: string): Promise<DashboardMetricas> {
-    const qs = dataReferencia ? `?dataReferencia=${dataReferencia}` : '';
+    const qs = dataReferencia ? `?dataReferencia=${encodeURIComponent(dataReferencia)}` : '';
     return request(`/dashboard/metricas${qs}`);
   },
 
