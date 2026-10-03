@@ -92,6 +92,21 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   return response.json();
 }
 
+// Caracteres aceitos na busca por placa/modelo (inclui acentos do português)
+const CARACTERES_DA_BUSCA =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÀÂÃÉÊÍÓÔÕÚÇáàâãéêíóôõúç0123456789 .-/';
+
+/** Busca reconstruída só com caracteres da lista acima (cada um copiado da constante), até 100. */
+function termoDeBusca(valor: unknown): string {
+  let termo = '';
+  for (const caractere of String(valor ?? '')) {
+    const posicao = CARACTERES_DA_BUSCA.indexOf(caractere);
+    if (posicao >= 0) termo += CARACTERES_DA_BUSCA.charAt(posicao);
+    if (termo.length >= 100) break;
+  }
+  return termo.trim();
+}
+
 const ETAPAS_VALIDAS: EtapaOrdemServico[] = [
   'AGUARDANDO_ORCAMENTO',
   'ORCAMENTO',
@@ -137,8 +152,7 @@ function queryDeExportacao(formato: 'xlsx' | 'csv', filtros: Record<string, any>
     }
   }
 
-  // Placa/modelo: letras, números, espaço, ponto, hífen e barra; no máximo 100 caracteres
-  const termo = String(filtros.termo ?? '').replace(/[^\p{L}\p{N} .\-/]/gu, '').slice(0, 100).trim();
+  const termo = termoDeBusca(filtros.termo);
   if (termo) adicionar('termo', termo);
 
   return partes.join('&');
