@@ -90,7 +90,7 @@ class AuthControllerTest {
     @DisplayName("Deve rejeitar acesso ao /api/auth/me sem token JWT")
     void deveRejeitarAcessoSemToken() throws Exception {
         mockMvc.perform(get("/api/auth/me"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
