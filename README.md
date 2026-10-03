@@ -59,6 +59,12 @@ Na primeira inicialização o backend cria a conta do gestor com esses dados. De
 
 Sem `JWT_SECRET` válido, ou sem nenhum gestor que consiga entrar, o backend não sobe e explica no log o que falta.
 
+**Esqueceu ou errou a senha do gestor?** Como o `.env` não sobrescreve uma senha que já funciona, revogue a atual e reinicie o backend com a senha nova no `.env`:
+
+```bash
+docker exec rfleet-postgres psql -U rfleet -d rfleet -c "UPDATE usuarios SET senha_hash = '!SENHA-INVALIDADA' WHERE lower(email) = lower('seu-email@oficina.com.br');"
+```
+
 ---
 
 ## ⚙️ Como Executar Localmente
