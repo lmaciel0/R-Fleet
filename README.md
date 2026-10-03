@@ -9,6 +9,9 @@
 - **Quadro Kanban Dinâmico (7 Etapas):**
   - *Aguardando Orçamento* &rarr; *Orçamento* &rarr; *Aprovado* &rarr; *Em Serviço* &rarr; *Finalizado* &rarr; *Aguardando Retirada* &rarr; *Entregue*.
   - Arraste de cartões (*Drag and Drop*) ou botão de avanço rápido de etapa.
+- **Histórico Mensal de Entregues:**
+  - Na virada do mês, os veículos entregues nos meses anteriores saem do Kanban e da Tabela Operacional automaticamente (horário de Brasília).
+  - A aba *Histórico* mostra uma tabela por mês (pela data de saída), com total de veículos e valor, e exporta o mês em `.xlsx` ou `.csv`.
 - **Entrada Rápida de Veículos (< 30s):**
   - Validação estrita de placas brasileiras (padrão Mercosul `BRA2E19` e tradicional `ABC-1234`).
   - Busca automática com *debounce*: se o veículo já passou pela oficina, modelo e locadora/origem são preenchidos instantaneamente.
@@ -27,7 +30,7 @@
 - **Exportação de Relatórios:**
   - Exportação instantânea dos dados filtrados para Excel `.xlsx` estilizado ou `.csv` com BOM UTF-8.
 - **Dashboard Executivo:**
-  - Indicadores em tempo real: veículos no pátio, taxa de atraso SLA, tempo médio de permanência, faturamento do mês e valor orçado em produção.
+  - Indicadores em tempo real: veículos no pátio, taxa de atraso SLA, comissão mensal (2% sobre o faturado no mês, configurável em `COMISSAO_PERCENTUAL`), faturamento do mês e valor orçado em produção.
 
 ---
 
@@ -68,7 +71,7 @@ docker compose up -d
 ### 3. Iniciar o Backend (Spring Boot)
 No diretório `backend/`:
 ```bash
-# Executar suíte de testes (27 testes unitários e de integração)
+# Executar suíte de testes (37 testes unitários e de integração)
 ./mvnw test
 
 # Iniciar o servidor backend (Porta 8081)
@@ -128,7 +131,7 @@ R-Fleet/
 
 ## 🧪 Suíte de Testes Automatizados
 
-O backend conta com 27 testes cobrindo todos os fluxos críticos:
+O backend conta com 37 testes cobrindo todos os fluxos críticos:
 - Autenticação e geração de token JWT
 - Bloqueio de senhas incorretas e validação de token expirado
 - Validação estrita de formato de placas antigas e Mercosul
@@ -136,7 +139,8 @@ O backend conta com 27 testes cobrindo todos os fluxos críticos:
 - Auditoria automática de transição de etapas e preenchimento de data de saída ao marcar como entregue
 - Ajuste de orçamento com justificativa gravada na linha do tempo
 - Upload, listagem, download e exclusão de anexos (laudos, fotos, PDFs)
-- Cálculo das métricas consolidadas do dashboard
+- Cálculo das métricas consolidadas do dashboard, incluindo a comissão mensal
+- Histórico mensal de entregues e ocultação dos entregues de meses anteriores na operação
 - Importação da planilha legada via CSV e exportação em `.xlsx` e `.csv`
 
 Para rodar todos os testes:
