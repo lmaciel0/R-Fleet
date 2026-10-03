@@ -2,6 +2,7 @@ import {
   AnexoOs,
   BuscarPlacaResultado,
   DashboardMetricas,
+  EtapaOrdemServico,
   HistoricoEtapa,
   HistoricoMes,
   ImportacaoResultado,
@@ -89,6 +90,58 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   }
 
   return response.json();
+}
+
+const ETAPAS_VALIDAS: EtapaOrdemServico[] = [
+  'AGUARDANDO_ORCAMENTO',
+  'ORCAMENTO',
+  'APROVADO',
+  'EM_SERVICO',
+  'FINALIZADO',
+  'AGUARDANDO_RETIRADA',
+  'ENTREGUE',
+];
+
+/**
+ * Query da exportação montada só com valores validados: etapas da lista conhecida, ids inteiros,
+ * sim/não, datas remontadas a partir de números e busca com caracteres permitidos.
+ * Nada vindo da tela vai cru para a URL da requisição.
+ */
+function queryDeExportacao(formato: 'xlsx' | 'csv', filtros: Record<string, any>): string {
+  const partes: string[] = [`formato=${formato === 'csv' ? 'csv' : 'xlsx'}`];
+  const adicionar = (chave: string, valor: string) => partes.push(`${chave}=${encodeURIComponent(valor)}`);
+
+  const etapas: unknown[] = Array.isArray(filtros.etapas) ? filtros.etapas : [];
+  etapas.forEach((valor) => {
+    const etapa = ETAPAS_VALIDAS.find((conhecida) => conhecida === valor);
+    if (etapa) adicionar('etapas', etapa);
+  });
+
+  for (const chave of ['origemId', 'tipoServicoId']) {
+    const numero = Number(filtros[chave]);
+    if (filtros[chave] !== undefined && filtros[chave] !== '' && Number.isSafeInteger(numero) && numero > 0) {
+      adicionar(chave, String(numero));
+    }
+  }
+
+  for (const chave of ['faturado', 'concluido', 'emAtraso', 'ocultarEntreguesAnteriores', 'ativo']) {
+    if (filtros[chave] === true || filtros[chave] === 'true') adicionar(chave, 'true');
+    else if (filtros[chave] === false || filtros[chave] === 'false') adicionar(chave, 'false');
+  }
+
+  for (const chave of ['dataEntradaInicio', 'dataEntradaFim', 'dataSaidaInicio', 'dataSaidaFim']) {
+    const data = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(filtros[chave] ?? ''));
+    if (data) {
+      const [ano, mes, dia] = [Number(data[1]), Number(data[2]), Number(data[3])];
+      adicionar(chave, `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`);
+    }
+  }
+
+  // Placa/modelo: letras, números, espaço, ponto, hífen e barra; no máximo 100 caracteres
+  const termo = String(filtros.termo ?? '').replace(/[^\p{L}\p{N} .\-/]/gu, '').slice(0, 100).trim();
+  if (termo) adicionar('termo', termo);
+
+  return partes.join('&');
 }
 
 /** Nome do arquivo do Content-Disposition (filename* em UTF-8 tem prioridade). */
@@ -274,17 +327,9 @@ export const api = {
   },
 
   async exportarOrdens(formato: 'xlsx' | 'csv', filtros: Record<string, any> = {}): Promise<void> {
-    const params = new URLSearchParams();
-    params.set('formato', formato);
-    Object.entries(filtros).forEach(([key, val]) => {
-      if (val !== undefined && val !== null && val !== '') {
-        if (Array.isArray(val)) {
-          val.forEach((item) => params.append(key, item));
-        } else {
-          params.append(key, String(val));
-        }
-      }
-    });
-    return baixarArquivo(`/exportacao/ordens-servico?${params.toString()}`, `rfleet_ordens.${formato}`);
+    return baixarArquivo(
+      `/exportacao/ordens-servico?${queryDeExportacao(formato, filtros)}`,
+      `rfleet_ordens.${formato === 'csv' ? 'csv' : 'xlsx'}`
+    );
   },
 };
