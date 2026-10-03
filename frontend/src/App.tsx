@@ -5,11 +5,13 @@ import { Navbar } from './components/Navbar';
 import { KanbanBoard } from './components/KanbanBoard';
 import { TabelaOrdens } from './components/TabelaOrdens';
 import { DashboardView } from './components/DashboardView';
+import { HistoricoView } from './components/HistoricoView';
 import { ModalEntrada } from './components/ModalEntrada';
 import { ModalDetalhes } from './components/ModalDetalhes';
 import { ModalImportar } from './components/ModalImportar';
 import { Toast, ToastMessage } from './components/Toast';
 import {
+  AbaApp,
   OrdemServico,
   DashboardMetricas,
   Origem,
@@ -21,7 +23,7 @@ import { api } from './services/api';
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
-  const [abaAtiva, setAbaAtiva] = useState<'kanban' | 'tabela' | 'dashboard'>('kanban');
+  const [abaAtiva, setAbaAtiva] = useState<AbaApp>('kanban');
   const [ordens, setOrdens] = useState<OrdemServico[]>([]);
   const [metricas, setMetricas] = useState<DashboardMetricas | null>(null);
   const [origens, setOrigens] = useState<Origem[]>([]);
@@ -163,6 +165,13 @@ const AppContent: React.FC = () => {
                 onFiltrarEtapa={() => {
                   setAbaAtiva('tabela');
                 }}
+              />
+            )}
+
+            {abaAtiva === 'historico' && (
+              <HistoricoView
+                onSelecionarOrdem={(o) => setOrdemSelecionadaId(o.id)}
+                onErro={(mensagem) => adicionarToast(mensagem, 'erro')}
               />
             )}
           </>
