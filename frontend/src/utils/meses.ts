@@ -13,14 +13,23 @@ export function rotuloMesCurto(ano: number, mes: number): string {
   return `${NOMES_MESES[mes - 1].slice(0, 3)}/${ano}`;
 }
 
-/** Primeiro e último dia do mês em ISO (aaaa-mm-dd), para os filtros da API. */
+/**
+ * Primeiro e último dia do mês em ISO (aaaa-mm-dd), para os filtros da API.
+ * `ano` e `mes` vêm da resposta da API, então só valores inteiros e válidos são aceitos.
+ */
 export function intervaloDoMes(ano: number, mes: number): { inicio: string; fim: string } {
+  const a = Number(ano);
+  const m = Number(mes);
+  if (!Number.isInteger(a) || a < 1900 || a > 9999 || !Number.isInteger(m) || m < 1 || m > 12) {
+    throw new Error('Mês inválido.');
+  }
   // Dia 0 do mês seguinte = último dia deste mês (funciona também em dezembro)
-  const ultimoDia = new Date(ano, mes, 0).getDate();
-  const mm = String(mes).padStart(2, '0');
+  const ultimoDia = new Date(a, m, 0).getDate();
+  const aaaa = String(a);
+  const mm = String(m).padStart(2, '0');
   return {
-    inicio: `${ano}-${mm}-01`,
-    fim: `${ano}-${mm}-${String(ultimoDia).padStart(2, '0')}`,
+    inicio: `${aaaa}-${mm}-01`,
+    fim: `${aaaa}-${mm}-${String(ultimoDia).padStart(2, '0')}`,
   };
 }
 
