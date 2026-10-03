@@ -134,6 +134,6 @@ class HistoricoControllerTest {
     @DisplayName("Deve exigir autenticação para consultar o histórico")
     void deveExigirAutenticacao() throws Exception {
         mockMvc.perform(get("/api/historico/meses"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }
