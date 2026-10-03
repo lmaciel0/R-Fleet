@@ -53,19 +53,11 @@ public class OrdemServicoController {
             @RequestParam(required = false) Boolean emAtraso,
             @RequestParam(required = false, defaultValue = "true") Boolean ativo
     ) {
-        List<OrdemServicoDTO> ordens = ordemServicoService.listar(
-                termo,
-                etapas,
-                origemId,
-                tipoServicoId,
-                faturado,
-                concluido,
-                dataEntradaInicio,
-                dataEntradaFim,
-                emAtraso,
-                ativo
+        FiltroOrdensServico filtro = new FiltroOrdensServico(
+                termo, etapas, origemId, tipoServicoId, faturado, concluido,
+                dataEntradaInicio, dataEntradaFim, emAtraso, ativo
         );
-        return ResponseEntity.ok(ordens);
+        return ResponseEntity.ok(ordemServicoService.listar(filtro));
     }
 
     @GetMapping("/{id}")

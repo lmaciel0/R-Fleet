@@ -1,6 +1,7 @@
 package com.rfleet.web;
 
 import com.rfleet.domain.EtapaOrdemServico;
+import com.rfleet.dto.FiltroOrdensServico;
 import com.rfleet.dto.ImportacaoResultadoDTO;
 import com.rfleet.dto.OrdemServicoDTO;
 import com.rfleet.service.ExportadorService;
@@ -62,10 +63,11 @@ public class ImportExportController {
             @RequestParam(required = false) Boolean emAtraso,
             @RequestParam(required = false, defaultValue = "true") Boolean ativo
     ) throws IOException {
-        List<OrdemServicoDTO> ordens = ordemServicoService.listar(
+        FiltroOrdensServico filtro = new FiltroOrdensServico(
                 termo, etapas, origemId, tipoServicoId, faturado, concluido,
                 dataEntradaInicio, dataEntradaFim, emAtraso, ativo
         );
+        List<OrdemServicoDTO> ordens = ordemServicoService.listar(filtro);
 
         String timestamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
