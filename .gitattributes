@@ -1,0 +1,4 @@
+# O mvnw é executado no Linux (CI e Docker do Render): com CRLF ele quebra ("/bin/sh^M").
+backend/mvnw text eol=lf
+backend/Dockerfile text eol=lf
+*.cmd text eol=crlf

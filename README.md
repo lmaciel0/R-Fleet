@@ -84,7 +84,7 @@ docker compose up -d
 ### 3. Iniciar o Backend (Spring Boot)
 No diretório `backend/`:
 ```bash
-# Executar suíte de testes (60 testes unitários e de integração)
+# Executar suíte de testes (67 testes unitários e de integração)
 ./mvnw test
 
 # Iniciar o servidor backend (Porta 8081)
@@ -106,6 +106,46 @@ Acesse o sistema no navegador: `http://localhost:5174`
 
 ---
 
+## ☁️ Deploy (Render + Neon, custo zero)
+
+```text
+navegador ──► rfleet-web (site estático no Render) ──/api/*──► rfleet-api (Docker no Render) ──► PostgreSQL (Neon)
+```
+
+- **Site estático (`rfleet-web`):** o Vite gera os arquivos e o Render serve. Não dorme. Um rewrite encaminha `/api/*` para a API, como o proxy do Vite faz no desenvolvimento, então o frontend continua chamando `/api`.
+- **API (`rfleet-api`):** a imagem de `backend/Dockerfile`, ajustada para o plano grátis (512 MB, 0,1 CPU) com CDS e flags de JVM.
+- **Banco:** Neon, região AWS us-east-1 (Virginia), a mesma da API. Os anexos ficam no próprio banco (tabela `anexos_conteudo`), porque o disco do Render grátis é apagado a cada deploy.
+- Toda a infraestrutura está em [`render.yaml`](render.yaml) (Render Blueprint). Segredos e URLs nunca vão para o git: são digitados no painel.
+
+### Passo a passo
+
+1. **Neon:** crie um projeto (ou um database novo) chamado `rfleet` na região **AWS us-east-1** e copie host, usuário e senha.
+2. **Render:** New → Blueprint → este repositório. O Render lê o `render.yaml` e pede as variáveis abaixo.
+3. Depois do primeiro deploy, confira o endereço que o Render deu à API. Se não for `https://rfleet-api.onrender.com`, atualize o `destination` do rewrite no `render.yaml`.
+4. Coloque o endereço do site em `CORS_ALLOWED_ORIGINS` e faça redeploy da API.
+
+O deploy só roda depois que o CI do GitHub passa (`autoDeployTrigger: checksPass`).
+
+### Variáveis da API
+
+| Variável | De onde vem | Exemplo (sem segredo) |
+|---|---|---|
+| `SPRING_DATASOURCE_URL` | Neon (host + database) | `jdbc:postgresql://ep-xxx.us-east-1.aws.neon.tech/rfleet?sslmode=require` |
+| `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` | Neon | — |
+| `JWT_SECRET` | gerada pelo Render (`generateValue`: Base64 de 256 bits) | — |
+| `RFLEET_GESTOR_NOME` / `RFLEET_GESTOR_EMAIL` / `RFLEET_GESTOR_SENHA` | você escolhe (senha com 10+ caracteres) | — |
+| `CORS_ALLOWED_ORIGINS` | endereço do `rfleet-web` | `https://rfleet-web.onrender.com` |
+| `PORT` | definida pelo Render | `10000` |
+
+### Trade-offs do plano grátis
+
+- **A API dorme depois de 15 minutos sem acesso.** O primeiro acesso depois disso espera a API subir de novo: cerca de **52 s**, medidos com a imagem limitada a 512 MB e 0,1 CPU (`docker run --memory=512m --cpus=0.1`), usando ~183 MiB. O site estático não dorme.
+- **O Neon suspende o banco depois de 5 minutos parado.** A primeira consulta leva alguns segundos a mais. O pool de conexões (`minimum-idle: 0`) não segura conexões abertas, para o banco poder suspender.
+- **Anexos ocupam a cota de 0,5 GB do Neon.** Com o limite de 8 MB por arquivo, sobra espaço para uma demonstração.
+- **As 750 horas por mês do Render grátis valem para o workspace inteiro**, e não por serviço.
+
+---
+
 ## 📁 Estrutura do Repositório
 
 ```text
@@ -121,9 +161,10 @@ R-Fleet/
 │   │   ├── util/                # Formatadores e utilitários de placa
 │   │   ├── validation/          # Validador personalizado @ValidPlaca
 │   │   └── web/                 # Controllers REST
-│   └── src/main/resources/
-│       ├── application.yml      # Configurações de porta (8081), banco (5433) e JWT
-│       └── db/migration/        # Migrações Flyway (V1 Schema, V2 Padrão, V3 Seed Demo)
+│   ├── src/main/resources/
+│   │   ├── application.yml      # Configurações de porta (8081), banco (5433) e JWT
+│   │   └── db/migration/        # Migrações Flyway (V1 Schema, V2 Padrão, V3 Seed Demo, ..., V6 Anexos no banco)
+│   └── Dockerfile               # Imagem da API para o Render (CDS, 512 MB / 0,1 CPU)
 ├── frontend/
 │   ├── src/
 │   │   ├── components/          # KanbanBoard, TabelaOrdens, DashboardView, Modais
@@ -137,6 +178,7 @@ R-Fleet/
 │   ├── SPEC-DESIGN.md           # Especificação arquitetural completa
 │   └── PLANO-IMPLEMENTACAO.md   # Plano mestre de implementação
 ├── docker-compose.yml           # Definição do banco PostgreSQL 16
+├── render.yaml                  # Render Blueprint: API, site estático e variáveis do deploy
 └── README.md                    # Documentação do projeto
 ```
 
@@ -144,14 +186,14 @@ R-Fleet/
 
 ## 🧪 Suíte de Testes Automatizados
 
-O backend conta com 60 testes cobrindo todos os fluxos críticos:
+O backend conta com 67 testes cobrindo todos os fluxos críticos:
 - Autenticação e geração de token JWT
 - Bloqueio de senhas incorretas e validação de token expirado
 - Validação estrita de formato de placas antigas e Mercosul
 - Prevenção de concorrência com rejeição de 2ª OS ativa para o mesmo veículo (HTTP 409 Conflict)
 - Auditoria automática de transição de etapas e preenchimento de data de saída ao marcar como entregue
 - Ajuste de orçamento com justificativa gravada na linha do tempo
-- Upload, listagem, download e exclusão de anexos (laudos, fotos, PDFs)
+- Upload, listagem, download (mesmos bytes) e exclusão de anexos (laudos, fotos, PDFs), guardados no PostgreSQL
 - Cálculo das métricas consolidadas do dashboard, incluindo a comissão mensal
 - Histórico mensal de entregues e ocultação dos entregues de meses anteriores na operação
 - Importação da planilha legada via CSV e exportação em `.xlsx` e `.csv`
