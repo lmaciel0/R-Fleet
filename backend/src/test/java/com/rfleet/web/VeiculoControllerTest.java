@@ -1,8 +1,7 @@
 package com.rfleet.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rfleet.dto.LoginRequest;
-import com.rfleet.dto.LoginResponse;
+import com.rfleet.support.GestorDeTeste;
 import com.rfleet.dto.SalvarVeiculoRequest;
 import com.rfleet.repository.VeiculoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,28 +33,16 @@ class VeiculoControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
+    private GestorDeTeste gestorDeTeste;
+
+    @Autowired
     private VeiculoRepository veiculoRepository;
 
     private String tokenJwt;
 
     @BeforeEach
     void setUp() throws Exception {
-        LoginRequest loginRequest = LoginRequest.builder()
-                .email("gestor@exemplo.com")
-                .senha("senha-de-teste")
-                .build();
-
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        LoginResponse loginResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(),
-                LoginResponse.class
-        );
-        this.tokenJwt = loginResponse.getToken();
+        this.tokenJwt = gestorDeTeste.obterToken(mockMvc);
     }
 
     @Test

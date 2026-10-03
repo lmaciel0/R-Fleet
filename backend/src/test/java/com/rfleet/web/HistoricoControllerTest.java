@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rfleet.domain.EtapaOrdemServico;
 import com.rfleet.domain.OrdemServico;
-import com.rfleet.dto.LoginRequest;
-import com.rfleet.dto.LoginResponse;
+import com.rfleet.support.GestorDeTeste;
 import com.rfleet.dto.RegistrarEntradaRequest;
 import com.rfleet.repository.OrdemServicoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,28 +37,16 @@ class HistoricoControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
+    private GestorDeTeste gestorDeTeste;
+
+    @Autowired
     private OrdemServicoRepository ordemServicoRepository;
 
     private String tokenJwt;
 
     @BeforeEach
     void setUp() throws Exception {
-        LoginRequest loginRequest = LoginRequest.builder()
-                .email("gestor@exemplo.com")
-                .senha("senha-de-teste")
-                .build();
-
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        LoginResponse loginResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(),
-                LoginResponse.class
-        );
-        this.tokenJwt = loginResponse.getToken();
+        this.tokenJwt = gestorDeTeste.obterToken(mockMvc);
     }
 
     private Long criarEntregue(String placa, String valor, LocalDate dataSaida) throws Exception {

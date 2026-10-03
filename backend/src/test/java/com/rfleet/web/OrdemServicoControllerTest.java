@@ -1,5 +1,7 @@
 package com.rfleet.web;
 
+import com.rfleet.support.GestorDeTeste;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rfleet.domain.EtapaOrdemServico;
 import com.rfleet.dto.*;
@@ -34,26 +36,14 @@ class OrdemServicoControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private GestorDeTeste gestorDeTeste;
+
     private String tokenJwt;
 
     @BeforeEach
     void setUp() throws Exception {
-        LoginRequest loginRequest = LoginRequest.builder()
-                .email("gestor@exemplo.com")
-                .senha("senha-de-teste")
-                .build();
-
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        LoginResponse loginResponse = objectMapper.readValue(
-                result.getResponse().getContentAsString(),
-                LoginResponse.class
-        );
-        this.tokenJwt = loginResponse.getToken();
+        this.tokenJwt = gestorDeTeste.obterToken(mockMvc);
     }
 
     @Test
@@ -92,7 +82,7 @@ class OrdemServicoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[0].etapaNova").value("AGUARDANDO_ORCAMENTO"))
-                .andExpect(jsonPath("$[0].usuarioEmail").value("gestor@exemplo.com"));
+                .andExpect(jsonPath("$[0].usuarioEmail").value(gestorDeTeste.getEmail()));
     }
 
     @Test
