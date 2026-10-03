@@ -23,6 +23,9 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
+// Mesmo limite do backend (spring.servlet.multipart.max-file-size)
+const TAMANHO_MAXIMO_ANEXO = 8 * 1024 * 1024;
+
 interface ModalDetalhesProps {
   ordemId: number;
   onFechar: () => void;
@@ -180,6 +183,11 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   const handleUploadArquivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!ordem || !e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
+    if (file.size > TAMANHO_MAXIMO_ANEXO) {
+      setErro('O arquivo excede o tamanho máximo permitido de 8 MB.');
+      e.target.value = '';
+      return;
+    }
     setEnviandoAnexo(true);
     try {
       await api.uploadAnexo(ordem.id, file);
@@ -670,7 +678,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       Clique para enviar um arquivo
                     </span>
                     <span className="text-xs text-slate-400 block mt-0.5">
-                      Fotos de avarias, ordens assinadas, PDFs de vistoria (até 20MB)
+                      Fotos de avarias, ordens assinadas, PDFs de vistoria (até 8MB)
                     </span>
                   </div>
                 </label>
