@@ -37,6 +37,29 @@ function getToken(): string | null {
   return localStorage.getItem('rfleet_token');
 }
 
+/** Lança o erro de uma resposta não-OK (401 encerra a sessão), igual para JSON e downloads. */
+async function lancarErroDaResposta(response: Response): Promise<never> {
+  if (response.status === 401) {
+    localStorage.removeItem('rfleet_token');
+    localStorage.removeItem('rfleet_user');
+    window.dispatchEvent(new Event('auth:unauthorized'));
+    throw new ApiError('Sessão expirada. Faça login novamente.', 401);
+  }
+
+  let errorMsg = `Erro na requisição (${response.status})`;
+  try {
+    const errorData = await response.json();
+    if (errorData.mensagem) {
+      errorMsg = errorData.mensagem;
+    } else if (errorData.errors && Array.isArray(errorData.errors)) {
+      errorMsg = errorData.errors.map((e: any) => e.mensagem || e).join(', ');
+    }
+  } catch {
+    // Ignora erro de parse de JSON
+  }
+  throw new ApiError(errorMsg, response.status);
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers = new Headers(options.headers || {});
@@ -54,33 +77,54 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers,
   });
 
-  if (response.status === 401) {
-    localStorage.removeItem('rfleet_token');
-    localStorage.removeItem('rfleet_user');
-    window.dispatchEvent(new Event('auth:unauthorized'));
-    throw new ApiError('Sessão expirada. Faça login novamente.', 401);
-  }
-
   if (response.status === 204) {
     return {} as T;
   }
 
   if (!response.ok) {
-    let errorMsg = `Erro na requisição (${response.status})`;
-    try {
-      const errorData = await response.json();
-      if (errorData.mensagem) {
-        errorMsg = errorData.mensagem;
-      } else if (errorData.errors && Array.isArray(errorData.errors)) {
-        errorMsg = errorData.errors.map((e: any) => e.mensagem || e).join(', ');
-      }
-    } catch {
-      // Ignora erro de parse de JSON
-    }
-    throw new ApiError(errorMsg, response.status);
+    await lancarErroDaResposta(response);
   }
 
   return response.json();
+}
+
+/** Nome do arquivo do Content-Disposition (filename* em UTF-8 tem prioridade). */
+function nomeDoArquivo(contentDisposition: string | null, nomePadrao: string): string {
+  if (!contentDisposition) return nomePadrao;
+  const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(contentDisposition);
+  if (utf8) {
+    try {
+      return decodeURIComponent(utf8[1].trim());
+    } catch {
+      // segue para o filename simples
+    }
+  }
+  const simples = /filename="([^"]+)"/i.exec(contentDisposition);
+  return simples ? simples[1] : nomePadrao;
+}
+
+/** Baixa um arquivo autenticado pelo cabeçalho (o token nunca vai na URL). */
+async function baixarArquivo(endpoint: string, nomePadrao: string): Promise<void> {
+  const token = getToken();
+  const headers = new Headers();
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_BASE}${endpoint}`, { headers });
+  if (!response.ok) {
+    await lancarErroDaResposta(response);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = nomeDoArquivo(response.headers.get('Content-Disposition'), nomePadrao);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 export const api = {
@@ -206,9 +250,8 @@ export const api = {
     });
   },
 
-  downloadAnexoUrl(id: number): string {
-    const token = getToken();
-    return `${API_BASE}/anexos/${idNaUrl(id)}/download${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+  async baixarAnexo(id: number, nomeArquivo: string): Promise<void> {
+    return baixarArquivo(`/anexos/${idNaUrl(id)}/download`, nomeArquivo);
   },
 
   // Dashboard
@@ -227,13 +270,9 @@ export const api = {
     });
   },
 
-  exportarOrdensUrl(formato: 'xlsx' | 'csv', filtros: Record<string, any> = {}): string {
-    const token = getToken();
+  async exportarOrdens(formato: 'xlsx' | 'csv', filtros: Record<string, any> = {}): Promise<void> {
     const params = new URLSearchParams();
     params.set('formato', formato);
-    if (token) {
-      params.set('token', token);
-    }
     Object.entries(filtros).forEach(([key, val]) => {
       if (val !== undefined && val !== null && val !== '') {
         if (Array.isArray(val)) {
@@ -243,6 +282,6 @@ export const api = {
         }
       }
     });
-    return `${API_BASE}/exportacao/ordens-servico?${params.toString()}`;
+    return baixarArquivo(`/exportacao/ordens-servico?${params.toString()}`, `rfleet_ordens.${formato}`);
   },
 };

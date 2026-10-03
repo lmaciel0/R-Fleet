@@ -42,7 +42,7 @@ const AppContent: React.FC = () => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const adicionarToast = (texto: string, tipo: 'sucesso' | 'erro' | 'info' = 'sucesso') => {
-    const id = Math.random().toString(36).substring(2, 9);
+    const id = crypto.randomUUID();
     setToasts((prev) => [...prev, { id, texto, tipo }]);
   };
 
@@ -162,6 +162,7 @@ const AppContent: React.FC = () => {
                 tiposServico={tiposServico}
                 onSelecionarOrdem={(o) => setOrdemSelecionadaId(o.id)}
                 onTransicionarEtapa={handleTransicionarEtapa}
+                onErro={(mensagem) => adicionarToast(mensagem, 'erro')}
               />
             )}
 

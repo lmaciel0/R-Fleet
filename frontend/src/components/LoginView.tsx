@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Car, Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Car, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
   const { login } = useAuth();
-  const [email, setEmail] = useState('rodrigoaffalcao@gmail.com');
-  const [senha, setSenha] = useState('rfleet99');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -69,6 +69,7 @@ export const LoginView: React.FC = () => {
                 </div>
                 <input
                   type="email"
+                  autoComplete="username"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -88,6 +89,7 @@ export const LoginView: React.FC = () => {
                 </div>
                 <input
                   type="password"
+                  autoComplete="current-password"
                   required
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
@@ -112,17 +114,6 @@ export const LoginView: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Dica de credenciais para facilitar teste */}
-          <div className="mt-6 pt-5 border-t border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              Gestor Único Configurado
-            </span>
-            <span className="font-mono text-slate-300 bg-slate-800 px-2 py-0.5 rounded">
-              rodrigoaffalcao@...
-            </span>
-          </div>
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-6">
