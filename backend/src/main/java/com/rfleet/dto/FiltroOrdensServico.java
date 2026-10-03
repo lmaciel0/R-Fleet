@@ -17,7 +17,10 @@ public record FiltroOrdensServico(
         Boolean concluido,
         LocalDate dataEntradaInicio,
         LocalDate dataEntradaFim,
+        LocalDate dataSaidaInicio,
+        LocalDate dataSaidaFim,
         Boolean emAtraso,
+        Boolean ocultarEntreguesAnteriores,
         Boolean ativo
 ) {
 }
