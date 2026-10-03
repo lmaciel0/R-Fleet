@@ -1,10 +1,8 @@
 package com.rfleet.service;
 
-import com.rfleet.domain.Configuracao;
 import com.rfleet.domain.EtapaOrdemServico;
 import com.rfleet.domain.OrdemServico;
 import com.rfleet.dto.DashboardMetricasDTO;
-import com.rfleet.repository.ConfiguracaoRepository;
 import com.rfleet.repository.OrdemServicoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,23 +19,21 @@ import java.util.stream.Collectors;
 public class DashboardService {
 
     private final OrdemServicoRepository ordemServicoRepository;
-    private final ConfiguracaoRepository configuracaoRepository;
+    private final OrdemServicoService ordemServicoService;
 
     public DashboardService(
             OrdemServicoRepository ordemServicoRepository,
-            ConfiguracaoRepository configuracaoRepository
+            OrdemServicoService ordemServicoService
     ) {
         this.ordemServicoRepository = ordemServicoRepository;
-        this.configuracaoRepository = configuracaoRepository;
+        this.ordemServicoService = ordemServicoService;
     }
 
     @Transactional(readOnly = true)
     public DashboardMetricasDTO obterMetricas(LocalDate dataReferencia) {
         LocalDate hoje = dataReferencia != null ? dataReferencia : LocalDate.now();
 
-        long limiteSla = configuracaoRepository.findById("SLA_PADRAO_DIAS")
-                .map(Configuracao::getValorComoLong)
-                .orElse(5L);
+        long limiteSla = ordemServicoService.obterLimiteDiasSla();
 
         List<OrdemServico> todasAtivas = ordemServicoRepository.findByAtivoTrue();
 
@@ -49,7 +45,7 @@ public class DashboardService {
         long totalPatio = patio.size();
 
         long emAtraso = patio.stream()
-                .filter(os -> os.calcularDiasNoPatio(hoje) > limiteSla)
+                .filter(os -> "VERMELHO".equals(os.calcularStatusSla(limiteSla, hoje)))
                 .count();
 
         double tempoMedioPatio = patio.isEmpty() ? 0.0 :
