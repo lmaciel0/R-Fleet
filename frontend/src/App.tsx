@@ -30,6 +30,8 @@ const AppContent: React.FC = () => {
   const [tiposServico, setTiposServico] = useState<TipoServico[]>([]);
 
   const [carregandoDados, setCarregandoDados] = useState<boolean>(false);
+  // Incrementado a cada OS alterada, para o Histórico recarregar seus dados
+  const [versaoDados, setVersaoDados] = useState(0);
 
   // Modais
   const [modalEntradaAberto, setModalEntradaAberto] = useState(false);
@@ -104,6 +106,10 @@ const AppContent: React.FC = () => {
     setOrdens((prev) =>
       prev.map((o) => (o.id === atualizada.id ? atualizada : o))
     );
+    // A OS pode ter vindo do Histórico (ex.: reaberta) e agora pertencer à operação, ou o
+    // contrário: recarrega a operação e avisa o Histórico para buscar de novo
+    api.listarOrdens({ ativo: true, ocultarEntreguesAnteriores: true }).then(setOrdens).catch(() => {});
+    setVersaoDados((v) => v + 1);
     api.obterMetricas().then(setMetricas).catch(() => {});
     adicionarToast(`Ordem de Serviço #${String(atualizada.id).padStart(5, '0')} atualizada.`);
   };
@@ -170,6 +176,7 @@ const AppContent: React.FC = () => {
 
             {abaAtiva === 'historico' && (
               <HistoricoView
+                versaoDados={versaoDados}
                 onSelecionarOrdem={(o) => setOrdemSelecionadaId(o.id)}
                 onErro={(mensagem) => adicionarToast(mensagem, 'erro')}
               />

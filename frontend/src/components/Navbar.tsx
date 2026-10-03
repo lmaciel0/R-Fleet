@@ -175,7 +175,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="md:hidden flex items-center justify-around border-t border-slate-800/80 bg-slate-950/80 px-2 py-1.5">
         <button
           onClick={() => setAbaAtiva('kanban')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${
+          className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
             abaAtiva === 'kanban' ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
           }`}
         >
@@ -184,7 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
         <button
           onClick={() => setAbaAtiva('tabela')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${
+          className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
             abaAtiva === 'tabela' ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
           }`}
         >
@@ -193,7 +193,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
         <button
           onClick={() => setAbaAtiva('dashboard')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${
+          className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
             abaAtiva === 'dashboard' ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
           }`}
         >
@@ -202,7 +202,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
         <button
           onClick={() => setAbaAtiva('historico')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${
+          className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
             abaAtiva === 'historico' ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
           }`}
         >
