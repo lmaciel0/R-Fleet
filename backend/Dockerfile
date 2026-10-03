@@ -16,7 +16,7 @@ COPY --from=build /app/target/*.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --destination application
 WORKDIR /app/application
 # Mesmas flags da imagem final, para o arquivo ser aceito na subida.
-ENV JAVA_TOOL_OPTIONS="-XX:TieredStopAtLevel=1 -XX:+UseSerialGC -Xss512k"
+ENV JAVA_TOOL_OPTIONS="-XX:TieredStopAtLevel=1 -XX:+UseSerialGC -Xss512k -Duser.timezone=America/Sao_Paulo"
 # O JwtService recusa subir sem chave: o treino usa uma chave descartável, gerada aqui e que não
 # vai para a imagem final. O GestorInicial (ApplicationRunner) não roda, porque o treino sai no refresh.
 RUN JWT_SECRET="$(head -c 48 /dev/urandom | base64 -w0)" \
@@ -35,5 +35,7 @@ USER app
 EXPOSE 8081
 # Ajustado para o plano grátis (512 MB, 0,1 CPU): só o compilador C1 (subida mais rápida),
 # Serial GC (sem threads extras de GC), pilhas menores, heap até 75% da memória e o arquivo CDS.
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:TieredStopAtLevel=1 -XX:+UseSerialGC -Xss512k -XX:SharedArchiveFile=app.jsa"
+# O servidor do Render roda em UTC: sem o fuso da oficina, LocalDate.now() viraria o dia às 21h
+# (horário de Brasília) e datas de entrada, faturamento e SLA sairiam com o dia seguinte.
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:TieredStopAtLevel=1 -XX:+UseSerialGC -Xss512k -XX:SharedArchiveFile=app.jsa -Duser.timezone=America/Sao_Paulo"
 ENTRYPOINT ["java", "-jar", "app.jar"]
