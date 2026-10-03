@@ -29,4 +29,8 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
     List<OrdemServico> findByVeiculoIdOrderByDataEntradaDesc(Long veiculoId);
 
     List<OrdemServico> findByEtapaAndAtivoTrue(EtapaOrdemServico etapa);
+
+    List<OrdemServico> findByAtivoTrue();
+
+    boolean existsByVeiculoIdAndEtapaNotAndAtivoTrue(Long veiculoId, EtapaOrdemServico etapa);
 }

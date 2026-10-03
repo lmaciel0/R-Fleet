@@ -25,4 +25,12 @@ public class Configuracao {
 
     @Column(length = 255)
     private String descricao;
+
+    public long getValorComoLong() {
+        try {
+            return Long.parseLong(valor != null ? valor.trim() : "5");
+        } catch (NumberFormatException e) {
+            return 5L;
+        }
+    }
 }
