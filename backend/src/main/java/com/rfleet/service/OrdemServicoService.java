@@ -156,9 +156,10 @@ public class OrdemServicoService {
             return OrdemServicoDTO.fromEntity(os, obterLimiteDiasSla(), LocalDate.now());
         }
 
-        // Regra de data de saída automática
-        if (etapaNova == EtapaOrdemServico.ENTREGUE && os.getDataSaida() == null) {
-            os.setDataSaida(LocalDate.now());
+        // Data de saída automática: toda entrega (inclusive a de uma OS reaberta) sai com a data de hoje,
+        // senão uma saída antiga mandaria o veículo direto para um mês passado do histórico
+        if (etapaNova == EtapaOrdemServico.ENTREGUE) {
+            os.setDataSaida(DataOficina.hoje());
         }
 
         os.setEtapa(etapaNova);

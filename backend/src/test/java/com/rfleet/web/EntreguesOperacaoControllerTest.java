@@ -168,6 +168,31 @@ class EntreguesOperacaoControllerTest {
     }
 
     @Test
+    @DisplayName("OS reaberta e entregue de novo recebe a data de saída de hoje e continua na operação")
+    void deveRedefinirDataSaidaAoEntregarNovamente() throws Exception {
+        Long id = criarOs("HST1A10", EtapaOrdemServico.ENTREGUE);
+        definirDataSaida(id, DataOficina.inicioDoMesCorrente().minusMonths(2));
+
+        for (EtapaOrdemServico etapa : List.of(EtapaOrdemServico.EM_SERVICO, EtapaOrdemServico.ENTREGUE)) {
+            AtualizarEtapaRequest request = AtualizarEtapaRequest.builder().novaEtapa(etapa).build();
+            mockMvc.perform(patch("/api/ordens-servico/" + id + "/etapa")
+                            .header("Authorization", "Bearer " + tokenJwt)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk());
+        }
+
+        assertThat(ordemServicoRepository.findById(id).orElseThrow().getDataSaida())
+                .isEqualTo(DataOficina.hoje());
+
+        List<String> operacao = placasListadas(get("/api/ordens-servico")
+                .param("termo", "HST1A10")
+                .param("ocultarEntreguesAnteriores", "true"));
+
+        assertThat(operacao).containsExactly("HST1A10");
+    }
+
+    @Test
     @DisplayName("Deve filtrar entregues pelo período de saída")
     void deveFiltrarPorPeriodoDeSaida() throws Exception {
         Long janeiro = criarOs("HST1A06", EtapaOrdemServico.ENTREGUE);
