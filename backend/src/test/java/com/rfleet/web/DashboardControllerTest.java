@@ -1,6 +1,7 @@
 package com.rfleet.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rfleet.domain.EtapaOrdemServico;
 import com.rfleet.dto.LoginRequest;
 import com.rfleet.dto.LoginResponse;
 import com.rfleet.dto.RegistrarEntradaRequest;
@@ -68,6 +69,21 @@ class DashboardControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(osAtrasada)))
                 .andExpect(status().isCreated());
+
+        // OS já finalizada há 30 dias: semáforo verde, não deve contar como atraso
+        RegistrarEntradaRequest osFinalizada = RegistrarEntradaRequest.builder()
+                .placa("DSH1A02")
+                .modelo("Fiat Argo")
+                .etapa(EtapaOrdemServico.FINALIZADO)
+                .valorOrcamento(new BigDecimal("1200.00"))
+                .dataEntrada(LocalDate.now().minusDays(30))
+                .build();
+
+        mockMvc.perform(post("/api/ordens-servico")
+                        .header("Authorization", "Bearer " + tokenJwt)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(osFinalizada)))
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -84,6 +100,23 @@ class DashboardControllerTest {
                 .andExpect(jsonPath("$.distribuicaoPorEtapa.AGUARDANDO_ORCAMENTO").isNumber())
                 .andExpect(jsonPath("$.distribuicaoPorEtapa.EM_SERVICO").isNumber())
                 .andExpect(jsonPath("$.distribuicaoPorEtapa.ENTREGUE").isNumber())
-                .andExpect(jsonPath("$.limiteSlaDias").value(5));
+                .andExpect(jsonPath("$.limiteSlaDias").value(15));
+    }
+
+    @Test
+    @DisplayName("Deve contar em atraso exatamente as OS que a listagem filtra como atrasadas")
+    void deveContarAtrasoComMesmoCriterioDaListagem() throws Exception {
+        MvcResult listagem = mockMvc.perform(get("/api/ordens-servico")
+                        .param("emAtraso", "true")
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        int atrasadasNaListagem = objectMapper.readTree(listagem.getResponse().getContentAsString()).size();
+
+        mockMvc.perform(get("/api/dashboard/metricas")
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.veiculosEmAtraso").value(atrasadasNaListagem));
     }
 }

@@ -15,7 +15,7 @@
   - **Bloqueio de Duplicidade:** Constraint parcial única no banco (`idx_os_veiculo_ativo_unica`) e no backend que impede abertura de duas OS ativas para o mesmo carro.
 - **Controle de SLA e Prazos:**
   - Contador de dias de permanência no pátio em tempo real.
-  - Alerta visual no semáforo: **Verde** (Normal), **Amarelo** (Atenção), **Vermelho** (Em Atraso &gt; 5 dias com indicador pulsante no topo).
+  - Alerta visual no semáforo: **Verde** (Concluído), **Amarelo** (Em aberto no prazo), **Vermelho** (Em aberto há mais de 15 dias, limite configurável em `LIMITE_DIAS_ALERTA_PARADO`, com indicador pulsante no topo).
 - **Linha do Tempo e Auditoria Imutável:**
   - Todo avanço de etapa, ajuste de orçamento e anotação é gravado de forma imutável com data/hora, usuário responsável e observações.
 - **Gestão Financeira & Faturamento:**
