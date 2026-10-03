@@ -24,13 +24,13 @@ INSERT INTO configuracoes (chave, valor, descricao) VALUES
     ('LIMITE_DIAS_ALERTA_PARADO', '15', 'Limite de dias parado na oficina para disparo de alerta visual (vermelho)')
 ON CONFLICT (chave) DO NOTHING;
 
--- 4. Usuário Gestor Inicial Padrão (senha: admin123)
+-- 4. Usuário Gestor Inicial Padrão (email: rodrigoaffalcao@gmail.com / senha: rfleet99)
 INSERT INTO usuarios (id, nome, email, senha_hash, ativo) VALUES
     (
         'a0000000-0000-0000-0000-000000000001',
-        'Gestor da Oficina',
-        'gestor@rfleet.com.br',
-        '$2a$10$FeVd0gtoDE/NIkoiwJui1.8ZlJgB/unDnyAevcNoQ6bw/hg5oDbXO',
+        'Rodrigo Falcão',
+        'rodrigoaffalcao@gmail.com',
+        '$2a$10$h4OGKPRZOxJC6xR7qbZWHOMN4jWqv3RhOn53/8imy0jqzL4q64FZ6',
         true
     )
 ON CONFLICT (email) DO NOTHING;
