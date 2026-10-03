@@ -64,3 +64,8 @@ desktop.ini
 # App Uploads & Temp
 uploads/
 scratch/
+
+# Segredos locais (o modelo versionado é o .env.example)
+.env
+.env.*
+!.env.example
