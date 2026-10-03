@@ -6,6 +6,8 @@ import { PlacaBadge } from './PlacaBadge';
 import { intervaloDoMes, rotuloMesCurto, rotuloMesLongo } from '../utils/meses';
 
 interface HistoricoViewProps {
+  /** Muda quando alguma OS é alterada fora daqui; dispara uma nova busca. */
+  versaoDados: number;
   onSelecionarOrdem: (ordem: OrdemServico) => void;
   onErro: (mensagem: string) => void;
 }
@@ -13,13 +15,14 @@ interface HistoricoViewProps {
 const mesmoMes = (a: HistoricoMes | null, b: HistoricoMes) =>
   a !== null && a.ano === b.ano && a.mes === b.mes;
 
-export const HistoricoView: React.FC<HistoricoViewProps> = ({ onSelecionarOrdem, onErro }) => {
+export const HistoricoView: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecionarOrdem, onErro }) => {
   const [meses, setMeses] = useState<HistoricoMes[] | null>(null);
   const [mesSelecionado, setMesSelecionado] = useState<HistoricoMes | null>(null);
   const [ordens, setOrdens] = useState<OrdemServico[]>([]);
   const [carregandoOrdens, setCarregandoOrdens] = useState(false);
 
-  // Meses disponíveis (o mais recente vem primeiro e já fica selecionado)
+  // Meses disponíveis (o mais recente vem primeiro e já fica selecionado). Numa nova busca,
+  // mantém o mês escolhido se ele ainda existir; o objeto novo faz a tabela do mês recarregar.
   useEffect(() => {
     let cancelado = false;
     api
@@ -27,7 +30,7 @@ export const HistoricoView: React.FC<HistoricoViewProps> = ({ onSelecionarOrdem,
       .then((res) => {
         if (cancelado) return;
         setMeses(res);
-        setMesSelecionado(res[0] ?? null);
+        setMesSelecionado((atual) => res.find((m) => mesmoMes(atual, m)) ?? res[0] ?? null);
       })
       .catch((err: any) => {
         if (cancelado) return;
@@ -38,7 +41,7 @@ export const HistoricoView: React.FC<HistoricoViewProps> = ({ onSelecionarOrdem,
       cancelado = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [versaoDados]);
 
   // Veículos entregues no mês selecionado. O flag `cancelado` descarta respostas
   // atrasadas quando o usuário troca de mês rapidamente.
