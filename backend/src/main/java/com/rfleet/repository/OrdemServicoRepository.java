@@ -2,6 +2,7 @@ package com.rfleet.repository;
 
 import com.rfleet.domain.EtapaOrdemServico;
 import com.rfleet.domain.OrdemServico;
+import com.rfleet.dto.HistoricoMesDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -33,4 +34,12 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
     List<OrdemServico> findByAtivoTrue();
 
     boolean existsByVeiculoIdAndEtapaNotAndAtivoTrue(Long veiculoId, EtapaOrdemServico etapa);
+
+    @Query("SELECT new com.rfleet.dto.HistoricoMesDTO(" +
+           "  YEAR(os.dataSaida), MONTH(os.dataSaida), COUNT(os), SUM(os.valorOrcamento)) " +
+           "FROM OrdemServico os " +
+           "WHERE os.etapa = :etapa AND os.ativo = true AND os.dataSaida IS NOT NULL " +
+           "GROUP BY YEAR(os.dataSaida), MONTH(os.dataSaida) " +
+           "ORDER BY YEAR(os.dataSaida) DESC, MONTH(os.dataSaida) DESC")
+    List<HistoricoMesDTO> resumirPorMesDeSaida(@Param("etapa") EtapaOrdemServico etapa);
 }
