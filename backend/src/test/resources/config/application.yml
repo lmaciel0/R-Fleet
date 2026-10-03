@@ -3,6 +3,9 @@ app:
   jwt:
     # 3 × 32 caracteres hex aleatórios = 96 caracteres Base64 válidos → 72 bytes (gerado a cada execução)
     secret: ${random.value}${random.value}${random.value}
+  cors:
+    # Fixo nos testes: um CORS_ALLOWED_ORIGINS do .env ou do ambiente não pode mudar o resultado
+    allowed-origins: http://localhost:5173,http://localhost:5174
   gestor:
     email: ""
     senha: ""
