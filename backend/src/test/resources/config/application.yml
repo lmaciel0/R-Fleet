@@ -1,0 +1,9 @@
+# Configuração exclusiva dos testes: nada de .env, variáveis do CI ou gestor do banco local.
+app:
+  jwt:
+    # 3 × 32 caracteres hex aleatórios = 96 caracteres Base64 válidos → 72 bytes (gerado a cada execução)
+    secret: ${random.value}${random.value}${random.value}
+  gestor:
+    email: ""
+    senha: ""
+    exigir-gestor-valido: false
