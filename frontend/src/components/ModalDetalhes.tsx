@@ -202,6 +202,14 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
     }
   };
 
+  const handleBaixarAnexo = async (anexoId: number, nomeArquivo: string) => {
+    try {
+      await api.baixarAnexo(anexoId, nomeArquivo);
+    } catch (err: any) {
+      setErro(err.message || 'Falha ao baixar o arquivo.');
+    }
+  };
+
   const formatarMoeda = (val: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -696,16 +704,13 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       </div>
 
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <a
-                          href={api.downloadAnexoUrl(anexo.id)}
-                          download
-                          target="_blank"
-                          rel="noreferrer"
+                        <button
+                          onClick={() => handleBaixarAnexo(anexo.id, anexo.nomeArquivo)}
                           className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition-colors"
                           title="Baixar arquivo"
                         >
                           <Download className="w-4 h-4" />
-                        </a>
+                        </button>
                         <button
                           onClick={() => handleExcluirAnexo(anexo.id)}
                           className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"

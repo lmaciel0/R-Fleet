@@ -89,12 +89,13 @@ export const HistoricoView: React.FC<HistoricoViewProps> = ({ versaoDados, onSel
       return;
     }
     const { inicio, fim } = intervalo;
-    const url = api.exportarOrdensUrl(formato, {
-      etapas: ['ENTREGUE'],
-      dataSaidaInicio: inicio,
-      dataSaidaFim: fim,
-    });
-    window.open(url, '_blank');
+    api
+      .exportarOrdens(formato, {
+        etapas: ['ENTREGUE'],
+        dataSaidaInicio: inicio,
+        dataSaidaFim: fim,
+      })
+      .catch((err: any) => onErro(err.message || 'Falha ao exportar.'));
   };
 
   const formatarMoeda = (val: number) =>
