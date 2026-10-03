@@ -65,7 +65,7 @@
 - Banco local: `docker compose up -d`, na raiz. Container `rfleet-postgres`, porta 5433.
 - Testes backend: `cd backend && ./mvnw test`. Um teste: `./mvnw test -Dtest=NomeDaClasse`.
 - Build frontend: `cd frontend && npm run build` (roda `tsc` e `vite build`).
-- App: `cd backend && ./mvnw spring-boot:run` (porta 8081) e `cd frontend && npm run dev` (http://localhost:5174). Login `rodrigoaffalcao@gmail.com` / `rfleet99`.
+- App: `cd backend && ./mvnw spring-boot:run` (porta 8081) e `cd frontend && npm run dev` (http://localhost:5174). Login `gestor@exemplo.com` / `<senha-do-gestor>`.
 - Os testes de integração rodam contra o PostgreSQL local, que já tem os dados de demonstração da V3 (datas relativas a hoje). Cada teste é `@Transactional` e é desfeito ao final. Por isso os testes isolam os próprios dados com placas de prefixo único e datas em 2019/2020, ou comparam valores antes e depois.
 
 ---
@@ -303,8 +303,8 @@ class EntreguesOperacaoControllerTest {
     @BeforeEach
     void setUp() throws Exception {
         LoginRequest loginRequest = LoginRequest.builder()
-                .email("rodrigoaffalcao@gmail.com")
-                .senha("rfleet99")
+                .email("gestor@exemplo.com")
+                .senha("<senha-do-gestor>")
                 .build();
 
         MvcResult result = mockMvc.perform(post("/api/auth/login")
@@ -651,8 +651,8 @@ class HistoricoControllerTest {
     @BeforeEach
     void setUp() throws Exception {
         LoginRequest loginRequest = LoginRequest.builder()
-                .email("rodrigoaffalcao@gmail.com")
-                .senha("rfleet99")
+                .email("gestor@exemplo.com")
+                .senha("<senha-do-gestor>")
                 .build();
 
         MvcResult result = mockMvc.perform(post("/api/auth/login")

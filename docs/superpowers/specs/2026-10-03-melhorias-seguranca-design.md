@@ -131,7 +131,7 @@ Os chamadores (`TabelaOrdens`, `HistoricoView`, `ModalDetalhes`) mostram um toas
 ## 5. Tela de login
 
 - `email` e `senha` começam vazios.
-- O rodapé com "Gestor Único Configurado · rodrigoaffalcao@..." é removido.
+- O rodapé com "Gestor Único Configurado · <email-do-gestor-antigo>" é removido.
 - Os campos ganham `autoComplete="username"` e `autoComplete="current-password"`, para o navegador poder sugerir a senha salva.
 
 ## 6. Demais alertas do SonarCloud

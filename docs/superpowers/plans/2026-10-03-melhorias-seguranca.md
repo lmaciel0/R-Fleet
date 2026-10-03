@@ -346,12 +346,12 @@ for nome in arquivos:
 ```
 
 Depois, em `OrdemServicoControllerTest.java`, troque
-`.andExpect(jsonPath("$[0].usuarioEmail").value("rodrigoaffalcao@gmail.com"));` por
+`.andExpect(jsonPath("$[0].usuarioEmail").value("<email-do-gestor-antigo>"));` por
 `.andExpect(jsonPath("$[0].usuarioEmail").value(gestorDeTeste.getEmail()));`.
 
 Confira que não sobrou nada:
 
-Run: `grep -rn "rodrigoaffalcao\|rfleet99" backend/src/test`
+Run: `grep -rn "<email-do-gestor-antigo>\|<senha-antiga>" backend/src/test`
 Expected: nenhuma linha.
 
 - [ ] **Step 6: Suíte**
@@ -1271,12 +1271,12 @@ git commit -m "fix(backend): aceitar token so no cabecalho, restringir CORS e li
 - [ ] **Step 1: Login sem credenciais**
 
 Em `LoginView.tsx`:
-1. Troque `useState('rodrigoaffalcao@gmail.com')` por `useState('')` e `useState('rfleet99')` por `useState('')`.
+1. Troque `useState('<email-do-gestor-antigo>')` por `useState('')` e `useState('<senha-antiga>')` por `useState('')`.
 2. No `<input type="email"`, adicione `autoComplete="username"`. No `<input type="password"`, adicione `autoComplete="current-password"`.
 3. Apague o bloco inteiro, do comentário `{/* Dica de credenciais para facilitar teste */}` até o `</div>` que fecha o `<div className="mt-6 pt-5 border-t …">`.
 4. Remova `ShieldCheck` do import do `lucide-react`; ele só era usado nesse bloco.
 
-Run: `grep -n "rodrigoaffalcao\|rfleet99\|ShieldCheck" frontend/src/components/LoginView.tsx`
+Run: `grep -n "<email-do-gestor-antigo>\|<senha-antiga>\|ShieldCheck" frontend/src/components/LoginView.tsx`
 Expected: nenhuma linha.
 
 - [ ] **Step 2: Tratamento de erro compartilhado e download em `api.ts`**
@@ -1455,7 +1455,7 @@ Expected: FAIL com `Property 'exportarOrdensUrl' does not exist` (`TabelaOrdens`
 Run: `cd frontend && npm run build`
 Expected: sucesso, sem erros de tipo.
 
-Run: `grep -rn "token=\|exportarOrdensUrl\|downloadAnexoUrl\|Math.random\|rodrigoaffalcao\|rfleet99" frontend/src`
+Run: `grep -rn "token=\|exportarOrdensUrl\|downloadAnexoUrl\|Math.random\|<email-do-gestor-antigo>\|<senha-antiga>" frontend/src`
 Expected: nenhuma linha.
 
 - [ ] **Step 6: Commit**
@@ -1516,10 +1516,10 @@ Sem `JWT_SECRET` válido, ou sem nenhum gestor que consiga entrar, o backend nã
 - [ ] **Step 3: Plano antigo sem as credenciais**
 
 ```bash
-sed -i "s/rodrigoaffalcao@gmail.com/gestor@exemplo.com/g; s/rfleet99/<senha-do-gestor>/g" docs/superpowers/plans/2026-10-03-historico-mensal-comissao.md
+sed -i "s/<email-do-gestor-antigo>/gestor@exemplo.com/g; s/<senha-antiga>/<senha-do-gestor>/g" docs/superpowers/plans/2026-10-03-historico-mensal-comissao.md
 ```
 
-Run: `grep -rn "rodrigoaffalcao\|rfleet99" --exclude-dir=node_modules --exclude-dir=target --exclude-dir=.git . | grep -v "V2__dados_iniciais_padrao.sql"`
+Run: `grep -rn "<email-do-gestor-antigo>\|<senha-antiga>" --exclude-dir=node_modules --exclude-dir=target --exclude-dir=.git . | grep -v "V2__dados_iniciais_padrao.sql"`
 Expected: nenhuma linha. A V2 é a única exceção, e foi revogada pela V5.
 
 - [ ] **Step 4: Suíte, build e commit**
