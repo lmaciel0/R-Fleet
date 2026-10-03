@@ -1,0 +1,57 @@
+# Render Blueprint: o deploy inteiro descrito como código (https://render.com/docs/blueprint-spec).
+# Segredos e URLs marcados com "sync: false" são digitados no painel do Render, nunca versionados.
+services:
+  # API: Spring Boot em Docker. Plano Free: dorme depois de 15 min sem tráfego.
+  - type: web
+    name: rfleet-api
+    runtime: docker
+    plan: free
+    region: virginia
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: RFLEET_GESTOR_NOME
+        sync: false
+      - key: RFLEET_GESTOR_EMAIL
+        sync: false
+      - key: RFLEET_GESTOR_SENHA
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+
+  # Frontend: arquivos estáticos gerados pelo Vite. Sites estáticos não dormem.
+  - type: web
+    name: rfleet-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+    routes:
+      # O site encaminha /api/* para a API, como o proxy do Vite faz no desenvolvimento: o frontend
+      # continua chamando /api. Se o Render der outro endereço à API (com sufixo), atualize aqui.
+      - type: rewrite
+        source: /api/*
+        destination: https://rfleet-api.onrender.com/api/*
+      # Link direto ou F5 numa rota do app devolve o index.html, e não 404.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable

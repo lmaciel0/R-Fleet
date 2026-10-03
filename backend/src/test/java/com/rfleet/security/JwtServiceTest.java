@@ -62,4 +62,14 @@ class JwtServiceTest {
 
         assertThat(jwtService.extractUsername(token)).isEqualTo("gestor@rfleet.local");
     }
+
+    @Test
+    @DisplayName("Aceita chave de 32 bytes, o formato que o Render gera (generateValue: Base64 de 256 bits)")
+    void aceitaChaveGeradaPeloRender() {
+        JwtService jwtService = new JwtService(chaveAleatoria(32), 3_600_000);
+
+        String token = jwtService.generateToken("gestor@rfleet.local", Map.of());
+
+        assertThat(jwtService.extractUsername(token)).isEqualTo("gestor@rfleet.local");
+    }
 }
