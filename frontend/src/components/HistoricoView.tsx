@@ -50,8 +50,16 @@ export const HistoricoView: React.FC<HistoricoViewProps> = ({ versaoDados, onSel
       setOrdens([]);
       return;
     }
+    let intervalo: { inicio: string; fim: string };
+    try {
+      intervalo = intervaloDoMes(mesSelecionado.ano, mesSelecionado.mes);
+    } catch (err: any) {
+      setOrdens([]);
+      onErro(err.message);
+      return;
+    }
+    const { inicio, fim } = intervalo;
     let cancelado = false;
-    const { inicio, fim } = intervaloDoMes(mesSelecionado.ano, mesSelecionado.mes);
     setCarregandoOrdens(true);
     api
       .listarOrdens({ etapas: ['ENTREGUE'], dataSaidaInicio: inicio, dataSaidaFim: fim })
@@ -73,7 +81,14 @@ export const HistoricoView: React.FC<HistoricoViewProps> = ({ versaoDados, onSel
 
   const exportar = (formato: 'xlsx' | 'csv') => {
     if (!mesSelecionado) return;
-    const { inicio, fim } = intervaloDoMes(mesSelecionado.ano, mesSelecionado.mes);
+    let intervalo: { inicio: string; fim: string };
+    try {
+      intervalo = intervaloDoMes(mesSelecionado.ano, mesSelecionado.mes);
+    } catch (err: any) {
+      onErro(err.message);
+      return;
+    }
+    const { inicio, fim } = intervalo;
     const url = api.exportarOrdensUrl(formato, {
       etapas: ['ENTREGUE'],
       dataSaidaInicio: inicio,
