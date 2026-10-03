@@ -81,8 +81,9 @@ export interface AnexoOs {
 export interface DashboardMetricas {
   totalVeiculosPatio: number;
   veiculosEmAtraso: number;
-  tempoMedioPatioDias: number;
   faturamentoMesAtual: number;
+  comissaoPercentual: number;
+  comissaoMesAtual: number;
   totalOrcadoPatio: number;
   totalFaturadoGeral: number;
   totalFaturadas: number;
@@ -112,4 +113,13 @@ export interface ImportacaoResultado {
   totalIgnoradas: number;
   totalErros: number;
   mensagens: string[];
+}
+
+export type AbaApp = 'kanban' | 'tabela' | 'dashboard' | 'historico';
+
+export interface HistoricoMes {
+  ano: number;
+  mes: number; // 1 a 12
+  quantidade: number;
+  valorTotal: number;
 }

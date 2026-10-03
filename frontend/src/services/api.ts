@@ -3,6 +3,7 @@ import {
   BuscarPlacaResultado,
   DashboardMetricas,
   HistoricoEtapa,
+  HistoricoMes,
   ImportacaoResultado,
   OrdemServico,
   Origem,
@@ -115,6 +116,10 @@ export const api = {
 
   async obterOrdem(id: number): Promise<OrdemServico> {
     return request(`/ordens-servico/${id}`);
+  },
+
+  async listarMesesHistorico(): Promise<HistoricoMes[]> {
+    return request('/historico/meses');
   },
 
   async registrarEntrada(dados: {
