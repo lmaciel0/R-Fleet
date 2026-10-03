@@ -1,135 +1,209 @@
-import { Car, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginView } from './components/LoginView';
+import { Navbar } from './components/Navbar';
+import { KanbanBoard } from './components/KanbanBoard';
+import { TabelaOrdens } from './components/TabelaOrdens';
+import { DashboardView } from './components/DashboardView';
+import { ModalEntrada } from './components/ModalEntrada';
+import { ModalDetalhes } from './components/ModalDetalhes';
+import { ModalImportar } from './components/ModalImportar';
+import { Toast, ToastMessage } from './components/Toast';
+import {
+  OrdemServico,
+  DashboardMetricas,
+  Origem,
+  TipoServico,
+  EtapaOrdemServico,
+} from './types';
+import { api } from './services/api';
+
+const AppContent: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  const [abaAtiva, setAbaAtiva] = useState<'kanban' | 'tabela' | 'dashboard'>('kanban');
+  const [ordens, setOrdens] = useState<OrdemServico[]>([]);
+  const [metricas, setMetricas] = useState<DashboardMetricas | null>(null);
+  const [origens, setOrigens] = useState<Origem[]>([]);
+  const [tiposServico, setTiposServico] = useState<TipoServico[]>([]);
+
+  const [carregandoDados, setCarregandoDados] = useState<boolean>(false);
+
+  // Modais
+  const [modalEntradaAberto, setModalEntradaAberto] = useState(false);
+  const [modalImportarAberto, setModalImportarAberto] = useState(false);
+  const [ordemSelecionadaId, setOrdemSelecionadaId] = useState<number | null>(null);
+
+  // Notificações Toast
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const adicionarToast = (texto: string, tipo: 'sucesso' | 'erro' | 'info' = 'sucesso') => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts((prev) => [...prev, { id, texto, tipo }]);
+  };
+
+  const removerToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const carregarDadosIniciais = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setCarregandoDados(true);
+    try {
+      const [ordensRes, metricasRes, origensRes, tiposRes] = await Promise.all([
+        api.listarOrdens({ ativo: true }),
+        api.obterMetricas(),
+        api.listarOrigens(),
+        api.listarTiposServico(),
+      ]);
+
+      setOrdens(ordensRes);
+      setMetricas(metricasRes);
+      setOrigens(origensRes);
+      setTiposServico(tiposRes);
+    } catch (err: any) {
+      adicionarToast(err.message || 'Falha ao carregar dados do sistema.', 'erro');
+    } finally {
+      setCarregandoDados(false);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    carregarDadosIniciais();
+  }, [carregarDadosIniciais]);
+
+  const handleTransicionarEtapa = async (ordemId: number, novaEtapa: EtapaOrdemServico) => {
+    try {
+      const atualizada = await api.transicionarEtapa(ordemId, novaEtapa);
+      setOrdens((prev) =>
+        prev.map((o) => (o.id === ordemId ? atualizada : o))
+      );
+      // Recarregar métricas
+      api.obterMetricas().then(setMetricas).catch(() => {});
+      adicionarToast(`Veículo ${atualizada.placa} movido para ${atualizada.etapaDescricao}!`);
+    } catch (err: any) {
+      adicionarToast(err.message || 'Erro ao transicionar etapa.', 'erro');
+    }
+  };
+
+  const handleSucessoEntrada = (novaOrdem: OrdemServico) => {
+    setModalEntradaAberto(false);
+    setOrdens((prev) => [novaOrdem, ...prev]);
+    api.obterMetricas().then(setMetricas).catch(() => {});
+    adicionarToast(`Entrada do veículo ${novaOrdem.placa} registrada com sucesso!`);
+  };
+
+  const handleSucessoImportacao = () => {
+    carregarDadosIniciais();
+    adicionarToast('Planilha legada importada com sucesso!');
+  };
+
+  const handleOrdemAtualizada = (atualizada: OrdemServico) => {
+    setOrdens((prev) =>
+      prev.map((o) => (o.id === atualizada.id ? atualizada : o))
+    );
+    api.obterMetricas().then(setMetricas).catch(() => {});
+    adicionarToast(`Ordem de Serviço #${String(atualizada.id).padStart(5, '0')} atualizada.`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400">
+        <div className="w-10 h-10 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-sm font-medium">Iniciando R-Fleet...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginView />;
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      {/* Barra de Navegação */}
+      <Navbar
+        abaAtiva={abaAtiva}
+        setAbaAtiva={setAbaAtiva}
+        onAbrirNovaEntrada={() => setModalEntradaAberto(true)}
+        onAbrirImportar={() => setModalImportarAberto(true)}
+        metricas={metricas}
+      />
+
+      {/* Conteúdo Principal */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {carregandoDados && ordens.length === 0 ? (
+          <div className="py-20 text-center text-slate-400">
+            <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm">Sincronizando veículos e ordens de serviço...</p>
+          </div>
+        ) : (
+          <>
+            {abaAtiva === 'kanban' && (
+              <KanbanBoard
+                ordens={ordens}
+                onSelecionarOrdem={(o) => setOrdemSelecionadaId(o.id)}
+                onTransicionarEtapa={handleTransicionarEtapa}
+              />
+            )}
+
+            {abaAtiva === 'tabela' && (
+              <TabelaOrdens
+                ordens={ordens}
+                origens={origens}
+                tiposServico={tiposServico}
+                onSelecionarOrdem={(o) => setOrdemSelecionadaId(o.id)}
+                onTransicionarEtapa={handleTransicionarEtapa}
+              />
+            )}
+
+            {abaAtiva === 'dashboard' && (
+              <DashboardView
+                metricas={metricas}
+                onFiltrarEtapa={() => {
+                  setAbaAtiva('tabela');
+                }}
+              />
+            )}
+          </>
+        )}
+      </main>
+
+      {/* Modais Globais */}
+      {modalEntradaAberto && (
+        <ModalEntrada
+          origens={origens}
+          tiposServico={tiposServico}
+          onFechar={() => setModalEntradaAberto(false)}
+          onSucesso={handleSucessoEntrada}
+        />
+      )}
+
+      {modalImportarAberto && (
+        <ModalImportar
+          onFechar={() => setModalImportarAberto(false)}
+          onSucesso={handleSucessoImportacao}
+        />
+      )}
+
+      {ordemSelecionadaId !== null && (
+        <ModalDetalhes
+          ordemId={ordemSelecionadaId}
+          onFechar={() => setOrdemSelecionadaId(null)}
+          onAtualizada={handleOrdemAtualizada}
+        />
+      )}
+
+      {/* Toasts de Feedback */}
+      <Toast toasts={toasts} onDismiss={removerToast} />
+    </div>
+  );
+};
 
 export default function App() {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
-      <header
-        style={{
-          borderBottom: '1px solid var(--border-color)',
-          backgroundColor: 'var(--bg-secondary)',
-          padding: '16px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 'var(--shadow-glow-blue)',
-            }}
-          >
-            <Car size={24} color="#ffffff" />
-          </div>
-          <div>
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-              R-Fleet <span style={{ fontSize: '0.8rem', color: 'var(--brand-primary)', fontWeight: 600 }}>v1.0</span>
-            </h1>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-              Controle Operacional de Veículos na Oficina
-            </p>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span className="badge badge-concluido">
-            <CheckCircle2 size={14} /> Backend & DB Prontos
-          </span>
-          <span className="license-plate mercosul">RFL-1E26</span>
-        </div>
-      </header>
-
-      {/* Main Container */}
-      <main style={{ flex: 1, padding: '32px 24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-        <div
-          style={{
-            backgroundColor: 'var(--bg-secondary)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '32px',
-            marginBottom: '24px',
-            boxShadow: 'var(--shadow-md)',
-          }}
-        >
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
-            Ambiente Base Inicializado com Sucesso 🚀
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', maxWidth: '700px' }}>
-            A infraestrutura local com <strong>PostgreSQL 16</strong> no Docker Compose, o backend{' '}
-            <strong>Spring Boot 3</strong> (Java 21) e o frontend <strong>React 18 + Vite + TypeScript</strong> estão
-            configurados e prontos para o desenvolvimento das próximas fases.
-          </p>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '16px',
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)',
-                padding: '20px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <CheckCircle2 size={18} color="var(--status-green)" />
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>PostgreSQL 16 (Porta 5433)</h3>
-              </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Container Docker ativo e saudável. Isolado para não colidir com portas existentes.
-              </p>
-            </div>
-
-            <div
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)',
-                padding: '20px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <ShieldCheck size={18} color="var(--brand-primary)" />
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Backend Spring Boot 3</h3>
-              </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Java 21, Flyway, Spring Security + JWT, Apache POI e validações automáticas.
-              </p>
-            </div>
-
-            <div
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)',
-                padding: '20px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <Clock size={18} color="var(--status-yellow)" />
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Semáforo de Permanência</h3>
-              </div>
-              <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
-                <span className="badge badge-concluido">Verde</span>
-                <span className="badge badge-aberto">Amarelo</span>
-                <span className="badge badge-atrasado">Vermelho</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
