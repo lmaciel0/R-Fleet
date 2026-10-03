@@ -13,7 +13,11 @@ import java.util.List;
 
 public class OrdemServicoSpecification {
 
-    public static Specification<OrdemServico> comFiltros(FiltroOrdensServico filtro, long limiteDiasSla) {
+    public static Specification<OrdemServico> comFiltros(
+            FiltroOrdensServico filtro,
+            long limiteDiasSla,
+            LocalDate inicioMesCorrente
+    ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -93,6 +97,23 @@ public class OrdemServicoSpecification {
                 Predicate naoConcluido = cb.not(root.get("etapa").in(etapasConcluidas));
                 Predicate dataUltrapassada = cb.lessThan(root.get("dataEntrada"), dataLimite);
                 predicates.add(cb.and(naoConcluido, dataUltrapassada));
+            }
+
+            // 10. Período de Saída
+            if (filtro.dataSaidaInicio() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("dataSaida"), filtro.dataSaidaInicio()));
+            }
+            if (filtro.dataSaidaFim() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("dataSaida"), filtro.dataSaidaFim()));
+            }
+
+            // 11. Operação atual: oculta entregues com saída antes do mês corrente
+            if (Boolean.TRUE.equals(filtro.ocultarEntreguesAnteriores())) {
+                predicates.add(cb.or(
+                        cb.notEqual(root.get("etapa"), EtapaOrdemServico.ENTREGUE),
+                        cb.isNull(root.get("dataSaida")),
+                        cb.greaterThanOrEqualTo(root.get("dataSaida"), inicioMesCorrente)
+                ));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

@@ -50,12 +50,16 @@ public class OrdemServicoController {
             @RequestParam(required = false) Boolean concluido,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataEntradaInicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataEntradaFim,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataSaidaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataSaidaFim,
             @RequestParam(required = false) Boolean emAtraso,
+            @RequestParam(required = false) Boolean ocultarEntreguesAnteriores,
             @RequestParam(required = false, defaultValue = "true") Boolean ativo
     ) {
         FiltroOrdensServico filtro = new FiltroOrdensServico(
                 termo, etapas, origemId, tipoServicoId, faturado, concluido,
-                dataEntradaInicio, dataEntradaFim, emAtraso, ativo
+                dataEntradaInicio, dataEntradaFim, dataSaidaInicio, dataSaidaFim,
+                emAtraso, ocultarEntreguesAnteriores, ativo
         );
         return ResponseEntity.ok(ordemServicoService.listar(filtro));
     }

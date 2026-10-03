@@ -3,6 +3,7 @@ package com.rfleet.service;
 import com.rfleet.domain.*;
 import com.rfleet.dto.*;
 import com.rfleet.repository.*;
+import com.rfleet.util.DataOficina;
 import com.rfleet.util.PlacaUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -249,7 +250,9 @@ public class OrdemServicoService {
     public List<OrdemServicoDTO> listar(FiltroOrdensServico filtro) {
         long limiteSla = obterLimiteDiasSla();
 
-        Specification<OrdemServico> spec = OrdemServicoSpecification.comFiltros(filtro, limiteSla);
+        Specification<OrdemServico> spec = OrdemServicoSpecification.comFiltros(
+                filtro, limiteSla, DataOficina.inicioDoMesCorrente()
+        );
 
         Sort sort = Sort.by(Sort.Direction.DESC, "dataEntrada", "id");
 
