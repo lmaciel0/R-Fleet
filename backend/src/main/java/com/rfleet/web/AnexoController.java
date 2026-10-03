@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -43,14 +44,15 @@ public class AnexoController {
     }
 
     @GetMapping("/api/anexos/{id}/download")
-    public ResponseEntity<Resource> downloadAnexo(@PathVariable Long id) {
+    public ResponseEntity<Resource> downloadAnexo(@PathVariable Long id) throws IOException {
         AnexoOs anexo = anexoService.obterEntidadePorId(id);
-        Resource recurso = anexoService.carregarArquivoComoRecurso(anexo);
+        Resource recurso = anexoService.carregarConteudo(anexo);
 
         String nomeCodificado = URLEncoder.encode(anexo.getNomeArquivo(), StandardCharsets.UTF_8).replace("+", "%20");
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(anexo.getTipoConteudo()))
+                .contentLength(recurso.contentLength())
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + anexo.getNomeArquivo() + "\"; filename*=UTF-8''" + nomeCodificado)
                 .body(recurso);
     }

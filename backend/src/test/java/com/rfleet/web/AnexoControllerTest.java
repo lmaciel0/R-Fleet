@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rfleet.dto.AnexoOsDTO;
 import com.rfleet.support.GestorDeTeste;
 import com.rfleet.dto.RegistrarEntradaRequest;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -18,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,6 +39,12 @@ class AnexoControllerTest {
 
     @Autowired
     private GestorDeTeste gestorDeTeste;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private String tokenJwt;
     private Long ordemServicoId;
@@ -131,15 +142,79 @@ class AnexoControllerTest {
     void deveAceitarAnexoNoLimite() throws Exception {
         MockMultipartFile noLimite = new MockMultipartFile("arquivo", "limite.pdf", "application/pdf", new byte[OITO_MB]);
 
+        Long anexoId = enviarAnexo(noLimite);
+
+        assertThat(linhasDeConteudo(anexoId)).isEqualTo(1);
+    }
+
+    private Long enviarAnexo(MockMultipartFile arquivo) throws Exception {
         MvcResult result = mockMvc.perform(multipart("/api/ordens-servico/" + ordemServicoId + "/anexos")
-                        .file(noLimite)
+                        .file(arquivo)
                         .header("Authorization", "Bearer " + tokenJwt))
                 .andExpect(status().isCreated())
                 .andReturn();
+        return objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asLong();
+    }
 
-        // Remove o arquivo gravado em disco
-        String anexoId = objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
+    private int linhasDeConteudo(Long anexoId) {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM anexos_conteudo WHERE anexo_id = ?", Integer.class, anexoId);
+    }
+
+    @Test
+    @DisplayName("Guarda o conteúdo no banco e o download devolve exatamente os mesmos bytes")
+    void deveGuardarOConteudoNoBancoEBaixarOsMesmosBytes() throws Exception {
+        byte[] todosOsBytes = new byte[256];
+        for (int i = 0; i < todosOsBytes.length; i++) {
+            todosOsBytes[i] = (byte) i;
+        }
+
+        Long anexoId = enviarAnexo(new MockMultipartFile("arquivo", "foto.jpg", "image/jpeg", todosOsBytes));
+
+        assertThat(linhasDeConteudo(anexoId)).isEqualTo(1);
+
+        mockMvc.perform(get("/api/anexos/" + anexoId + "/download")
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/jpeg"))
+                .andExpect(content().bytes(todosOsBytes));
+    }
+
+    @Test
+    @DisplayName("Excluir o anexo remove também o conteúdo do banco")
+    void deveExcluirOConteudoJuntoComOAnexo() throws Exception {
+        Long anexoId = enviarAnexo(new MockMultipartFile("arquivo", "nota.pdf", "application/pdf", new byte[]{1, 2, 3}));
+
         mockMvc.perform(delete("/api/anexos/" + anexoId).header("Authorization", "Bearer " + tokenJwt))
                 .andExpect(status().isNoContent());
+        // O Hibernate só envia o DELETE no flush; a consulta abaixo é SQL puro e não dispara flush
+        entityManager.flush();
+
+        assertThat(linhasDeConteudo(anexoId)).isZero();
+    }
+
+    @Test
+    @DisplayName("Anexo sem conteúdo no banco (gravado em disco antes da V6) responde 404")
+    void deveResponder404QuandoOAnexoNaoTemConteudo() throws Exception {
+        Long anexoId = jdbcTemplate.queryForObject(
+                "INSERT INTO anexos_os (ordem_servico_id, nome_arquivo, tipo_conteudo, tamanho_bytes) "
+                        + "VALUES (?, 'antigo.pdf', 'application/pdf', 10) RETURNING id",
+                Long.class, ordemServicoId);
+
+        mockMvc.perform(get("/api/anexos/" + anexoId + "/download")
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.mensagem").value("Conteúdo do anexo não encontrado: antigo.pdf"));
+    }
+
+    @Test
+    @DisplayName("Download mantém o nome com acento no Content-Disposition")
+    void deveManterNomeComAcentoNoDownload() throws Exception {
+        Long anexoId = enviarAnexo(new MockMultipartFile("arquivo", "orçamento.pdf", "application/pdf", new byte[]{9}));
+
+        mockMvc.perform(get("/api/anexos/" + anexoId + "/download")
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", containsString("filename*=UTF-8''or%C3%A7amento.pdf")));
     }
 }

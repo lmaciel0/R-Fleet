@@ -4,12 +4,13 @@ import com.rfleet.domain.AnexoOs;
 import com.rfleet.domain.OrdemServico;
 import com.rfleet.domain.Usuario;
 import com.rfleet.dto.AnexoOsDTO;
+import com.rfleet.repository.AnexoConteudoRepository;
 import com.rfleet.repository.AnexoOsRepository;
 import com.rfleet.repository.OrdemServicoRepository;
 import com.rfleet.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,42 +20,30 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class AnexoService {
 
-    private final Path uploadPath;
     private final AnexoOsRepository anexoOsRepository;
+    private final AnexoConteudoRepository anexoConteudoRepository;
     private final OrdemServicoRepository ordemServicoRepository;
     private final UsuarioRepository usuarioRepository;
     private final DataSize tamanhoMaximoUpload;
 
     public AnexoService(
-            @Value("${app.storage.upload-dir:./uploads}") String uploadDir,
             @Value("${spring.servlet.multipart.max-file-size}") DataSize tamanhoMaximoUpload,
             AnexoOsRepository anexoOsRepository,
+            AnexoConteudoRepository anexoConteudoRepository,
             OrdemServicoRepository ordemServicoRepository,
             UsuarioRepository usuarioRepository
     ) {
-        this.uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
         this.anexoOsRepository = anexoOsRepository;
+        this.anexoConteudoRepository = anexoConteudoRepository;
         this.ordemServicoRepository = ordemServicoRepository;
         this.usuarioRepository = usuarioRepository;
         this.tamanhoMaximoUpload = tamanhoMaximoUpload;
-
-        try {
-            Files.createDirectories(this.uploadPath);
-        } catch (IOException e) {
-            throw new RuntimeException("Não foi possível inicializar a pasta de uploads: " + this.uploadPath, e);
-        }
     }
 
     @Transactional
@@ -77,26 +66,24 @@ public class AnexoService {
         }
 
         String nomeOriginal = StringUtils.cleanPath(arquivo.getOriginalFilename() != null ? arquivo.getOriginalFilename() : "arquivo");
-        String nomeArmazenado = UUID.randomUUID() + "_" + nomeOriginal.replaceAll("[^a-zA-Z0-9._-]", "_");
 
-        Path destino = this.uploadPath.resolve(nomeArmazenado);
-
+        byte[] dados;
         try {
-            Files.copy(arquivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+            dados = arquivo.getBytes();
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao salvar arquivo no disco", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao ler o arquivo enviado", e);
         }
 
         AnexoOs anexo = AnexoOs.builder()
                 .ordemServico(os)
                 .nomeArquivo(nomeOriginal)
                 .tipoConteudo(arquivo.getContentType() != null ? arquivo.getContentType() : "application/octet-stream")
-                .tamanhoBytes(arquivo.getSize())
-                .caminhoStorage(destino.toString())
+                .tamanhoBytes((long) dados.length)
                 .usuario(usuario)
                 .build();
 
         anexo = anexoOsRepository.save(anexo);
+        anexoConteudoRepository.salvar(anexo.getId(), dados);
         return AnexoOsDTO.fromEntity(anexo);
     }
 
@@ -118,18 +105,12 @@ public class AnexoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anexo não encontrado: " + id));
     }
 
-    public Resource carregarArquivoComoRecurso(AnexoOs anexo) {
-        try {
-            Path arquivo = Paths.get(anexo.getCaminhoStorage()).normalize();
-            Resource resource = new UrlResource(arquivo.toUri());
-            if (resource.exists() && resource.isReadable()) {
-                return resource;
-            } else {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Arquivo não encontrado no disco: " + anexo.getNomeArquivo());
-            }
-        } catch (MalformedURLException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao carregar arquivo", e);
-        }
+    @Transactional(readOnly = true)
+    public Resource carregarConteudo(AnexoOs anexo) {
+        byte[] dados = anexoConteudoRepository.buscar(anexo.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Conteúdo do anexo não encontrado: " + anexo.getNomeArquivo()));
+        return new ByteArrayResource(dados);
     }
 
     @Transactional
@@ -137,12 +118,7 @@ public class AnexoService {
         AnexoOs anexo = anexoOsRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anexo não encontrado: " + id));
 
-        try {
-            Path arquivo = Paths.get(anexo.getCaminhoStorage());
-            Files.deleteIfExists(arquivo);
-        } catch (IOException ignored) {
-        }
-
+        // O conteúdo sai junto (ON DELETE CASCADE em anexos_conteudo)
         anexoOsRepository.delete(anexo);
     }
 }
