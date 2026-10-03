@@ -3,13 +3,14 @@ import { DashboardMetricas, EtapaOrdemServico } from '../types';
 import {
   Car,
   AlertTriangle,
-  Clock,
+  HandCoins,
   DollarSign,
   TrendingUp,
   Building2,
   Layers,
   CheckCircle2,
 } from 'lucide-react';
+import { nomeMesAtual } from '../utils/meses';
 
 interface DashboardViewProps {
   metricas: DashboardMetricas | null;
@@ -52,6 +53,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ metricas }) => {
       currency: 'BRL',
     }).format(val || 0);
   };
+
+  const formatarPercentual = (val: number) => `${(val ?? 0).toLocaleString('pt-BR')}%`;
 
   const totalPatio = metricas.totalVeiculosPatio;
   const emAtraso = metricas.veiculosEmAtraso;
@@ -107,20 +110,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ metricas }) => {
           </div>
         </div>
 
-        {/* 3. Tempo Médio no Pátio */}
+        {/* 3. Comissão Mensal */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Tempo Médio</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">Comissão Mensal</span>
             <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <Clock className="w-4 h-4" />
+              <HandCoins className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-100 font-mono">
-            {metricas.tempoMedioPatioDias}{' '}
-            <span className="text-sm font-normal text-slate-400">dias</span>
+          <div className="text-2xl font-extrabold text-amber-400 font-mono truncate">
+            {formatarMoeda(metricas.comissaoMesAtual)}
           </div>
           <div className="text-xs text-slate-400 mt-1">
-            <span>Permanência dos ativos</span>
+            <span>
+              {formatarPercentual(metricas.comissaoPercentual)} de{' '}
+              {formatarMoeda(metricas.faturamentoMesAtual)} faturado em {nomeMesAtual()}
+            </span>
           </div>
         </div>
 

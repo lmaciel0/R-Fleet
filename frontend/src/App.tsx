@@ -51,7 +51,7 @@ const AppContent: React.FC = () => {
     setCarregandoDados(true);
     try {
       const [ordensRes, metricasRes, origensRes, tiposRes] = await Promise.all([
-        api.listarOrdens({ ativo: true }),
+        api.listarOrdens({ ativo: true, ocultarEntreguesAnteriores: true }),
         api.obterMetricas(),
         api.listarOrigens(),
         api.listarTiposServico(),
