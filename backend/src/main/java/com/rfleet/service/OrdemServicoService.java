@@ -272,6 +272,11 @@ public class OrdemServicoService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<HistoricoMesDTO> listarMesesHistorico() {
+        return ordemServicoRepository.resumirPorMesDeSaida(EtapaOrdemServico.ENTREGUE);
+    }
+
     @Transactional
     public void arquivar(Long id) {
         OrdemServico os = ordemServicoRepository.findById(id)
