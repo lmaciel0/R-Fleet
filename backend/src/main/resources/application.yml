@@ -14,6 +14,12 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:rfleet}
     password: ${SPRING_DATASOURCE_PASSWORD:rfleet123}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      # Pool pequeno para o Neon grátis: conexões ociosas fecham em 30 s (minimum-idle 0),
+      # e o banco pode suspender enquanto a API dorme em vez de ficar acordado pelo pool.
+      maximum-pool-size: 5
+      minimum-idle: 0
+      idle-timeout: 30000
   jpa:
     hibernate:
       ddl-auto: validate
