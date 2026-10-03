@@ -42,6 +42,18 @@ class JwtServiceTest {
     }
 
     @Test
+    @DisplayName("Aceita chave com quebras de linha (saída do openssl em duas linhas, inclusive \\r\\n do Windows)")
+    void aceitaChaveComQuebrasDeLinha() {
+        String chave = chaveAleatoria(64);
+        String emDuasLinhas = chave.substring(0, 64) + "\r\n" + chave.substring(64) + "\r\n";
+
+        JwtService jwtService = new JwtService(emDuasLinhas, 3_600_000);
+
+        assertThat(jwtService.extractUsername(jwtService.generateToken("gestor@rfleet.local", Map.of())))
+                .isEqualTo("gestor@rfleet.local");
+    }
+
+    @Test
     @DisplayName("Aceita chave forte e emite token válido")
     void aceitaChaveForte() {
         JwtService jwtService = new JwtService(chaveAleatoria(64), 3_600_000);
