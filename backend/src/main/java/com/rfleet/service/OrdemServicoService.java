@@ -246,33 +246,10 @@ public class OrdemServicoService {
     }
 
     @Transactional(readOnly = true)
-    public List<OrdemServicoDTO> listar(
-            String termo,
-            List<EtapaOrdemServico> etapas,
-            Long origemId,
-            Long tipoServicoId,
-            Boolean faturado,
-            Boolean concluido,
-            LocalDate dataEntradaInicio,
-            LocalDate dataEntradaFim,
-            Boolean emAtraso,
-            Boolean ativo
-    ) {
+    public List<OrdemServicoDTO> listar(FiltroOrdensServico filtro) {
         long limiteSla = obterLimiteDiasSla();
 
-        Specification<OrdemServico> spec = OrdemServicoSpecification.comFiltros(
-                termo,
-                etapas,
-                origemId,
-                tipoServicoId,
-                faturado,
-                concluido,
-                dataEntradaInicio,
-                dataEntradaFim,
-                emAtraso,
-                limiteSla,
-                ativo
-        );
+        Specification<OrdemServico> spec = OrdemServicoSpecification.comFiltros(filtro, limiteSla);
 
         Sort sort = Sort.by(Sort.Direction.DESC, "dataEntrada", "id");
 
