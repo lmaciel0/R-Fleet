@@ -111,4 +111,35 @@ class AnexoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
     }
+
+    private static final int OITO_MB = 8 * 1024 * 1024;
+
+    @Test
+    @DisplayName("Rejeita anexo acima de 8 MB com 413")
+    void deveRejeitarAnexoAcimaDoLimite() throws Exception {
+        MockMultipartFile grande = new MockMultipartFile("arquivo", "grande.pdf", "application/pdf", new byte[OITO_MB + 1]);
+
+        mockMvc.perform(multipart("/api/ordens-servico/" + ordemServicoId + "/anexos")
+                        .file(grande)
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().is(413))
+                .andExpect(jsonPath("$.mensagem").value("O arquivo excede o tamanho máximo permitido de 8 MB."));
+    }
+
+    @Test
+    @DisplayName("Aceita anexo de exatamente 8 MB")
+    void deveAceitarAnexoNoLimite() throws Exception {
+        MockMultipartFile noLimite = new MockMultipartFile("arquivo", "limite.pdf", "application/pdf", new byte[OITO_MB]);
+
+        MvcResult result = mockMvc.perform(multipart("/api/ordens-servico/" + ordemServicoId + "/anexos")
+                        .file(noLimite)
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        // Remove o arquivo gravado em disco
+        String anexoId = objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
+        mockMvc.perform(delete("/api/anexos/" + anexoId).header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isNoContent());
+    }
 }

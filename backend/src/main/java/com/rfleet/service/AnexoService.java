@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -34,9 +35,11 @@ public class AnexoService {
     private final AnexoOsRepository anexoOsRepository;
     private final OrdemServicoRepository ordemServicoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final DataSize tamanhoMaximoUpload;
 
     public AnexoService(
             @Value("${app.storage.upload-dir:./uploads}") String uploadDir,
+            @Value("${spring.servlet.multipart.max-file-size}") DataSize tamanhoMaximoUpload,
             AnexoOsRepository anexoOsRepository,
             OrdemServicoRepository ordemServicoRepository,
             UsuarioRepository usuarioRepository
@@ -45,6 +48,7 @@ public class AnexoService {
         this.anexoOsRepository = anexoOsRepository;
         this.ordemServicoRepository = ordemServicoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.tamanhoMaximoUpload = tamanhoMaximoUpload;
 
         try {
             Files.createDirectories(this.uploadPath);
@@ -57,6 +61,11 @@ public class AnexoService {
     public AnexoOsDTO salvarAnexo(Long ordemServicoId, MultipartFile arquivo, String emailUsuario) {
         if (arquivo == null || arquivo.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O arquivo não pode estar vazio");
+        }
+
+        if (arquivo.getSize() > tamanhoMaximoUpload.toBytes()) {
+            throw new ResponseStatusException(HttpStatus.valueOf(413),
+                    "O arquivo excede o tamanho máximo permitido de " + tamanhoMaximoUpload.toMegabytes() + " MB.");
         }
 
         OrdemServico os = ordemServicoRepository.findById(ordemServicoId)
