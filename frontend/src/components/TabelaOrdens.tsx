@@ -17,6 +17,7 @@ interface TabelaOrdensProps {
   tiposServico: TipoServico[];
   onSelecionarOrdem: (ordem: OrdemServico) => void;
   onTransicionarEtapa?: (ordemId: number, novaEtapa: EtapaOrdemServico) => void;
+  onErro?: (mensagem: string) => void;
 }
 
 export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
@@ -24,6 +25,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
   origens,
   tiposServico,
   onSelecionarOrdem,
+  onErro,
 }) => {
   const [termo, setTermo] = useState('');
   const [etapaFiltro, setEtapaFiltro] = useState<string>('');
@@ -87,8 +89,9 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
       ocultarEntreguesAnteriores: true,
     };
 
-    const url = api.exportarOrdensUrl(formato, filtros);
-    window.open(url, '_blank');
+    api.exportarOrdens(formato, filtros).catch((err: any) => {
+      onErro?.(err.message || 'Falha ao exportar.');
+    });
   };
 
   const formatarMoeda = (val: number) => {
