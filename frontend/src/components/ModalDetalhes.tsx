@@ -290,7 +290,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
   if (carregando || !ordem) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-grafite/40 backdrop-blur-sm">
         <div
           ref={dialogoRef}
           tabIndex={-1}
@@ -298,10 +298,10 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
           aria-modal="true"
           aria-busy="true"
           aria-label="Carregando Ordem de Serviço"
-          className="outline-none bg-slate-900 border border-slate-800 p-8 rounded-2xl text-center"
+          className="outline-none bg-etiqueta border border-trilho p-8 rounded-2xl text-center"
         >
-          <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-slate-300">Carregando detalhes da Ordem de Serviço...</p>
+          <div className="w-8 h-8 border-2 border-mercosul border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-grafite">Carregando detalhes da Ordem de Serviço...</p>
         </div>
       </div>
     );
@@ -311,28 +311,28 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   const isAtencao = ordem.statusSla === 'AMARELO';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-grafite/40 backdrop-blur-sm animate-fade-in">
       <div
         ref={dialogoRef}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-detalhes-titulo"
-        className="outline-none bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="outline-none bg-etiqueta border border-trilho w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
       >
         {/* Header do Modal */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+        <div className="p-5 border-b border-trilho flex items-center justify-between bg-parede/60">
           <div className="flex items-center gap-3">
             <PlacaBadge placa={ordem.placa} mercosul={ordem.mercosul} size="md" />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-slate-400">
+                <span className="font-placa tabular-nums text-xs font-bold text-aco">
                   #{String(ordem.id).padStart(5, '0')}
                 </span>
-                <span className="text-slate-600" aria-hidden="true">&bull;</span>
-                <h3 id="modal-detalhes-titulo" className="text-base font-bold text-slate-100">{ordem.modelo}</h3>
+                <span className="text-trilho" aria-hidden="true">&bull;</span>
+                <h3 id="modal-detalhes-titulo" className="text-base font-bold text-grafite">{ordem.modelo}</h3>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-aco">
                 Entrada em {ordem.dataEntrada ? ordem.dataEntrada.split('-').reverse().join('/') : '-'}
               </p>
             </div>
@@ -341,21 +341,21 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
           <button
             onClick={onFechar}
             aria-label="Fechar"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-aco hover:text-grafite hover:bg-parede transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Abas */}
-        <div className="flex items-center gap-1 px-5 border-b border-slate-800 bg-slate-950/40">
+        <div className="flex items-center gap-1 px-5 border-b border-trilho bg-parede/60">
           <button
             onClick={() => setAba('geral')}
             aria-pressed={aba === 'geral'}
             className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               aba === 'geral'
-                ? 'border-sky-500 text-sky-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-mercosul text-mercosul'
+                : 'border-transparent text-aco hover:text-grafite'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -367,8 +367,8 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
             aria-pressed={aba === 'financeiro'}
             className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               aba === 'financeiro'
-                ? 'border-sky-500 text-sky-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-mercosul text-mercosul'
+                : 'border-transparent text-aco hover:text-grafite'
             }`}
           >
             <DollarSign className="w-4 h-4" />
@@ -380,8 +380,8 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
             aria-pressed={aba === 'historico'}
             className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               aba === 'historico'
-                ? 'border-sky-500 text-sky-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-mercosul text-mercosul'
+                : 'border-transparent text-aco hover:text-grafite'
             }`}
           >
             <History className="w-4 h-4" />
@@ -393,8 +393,8 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
             aria-pressed={aba === 'anexos'}
             className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               aba === 'anexos'
-                ? 'border-sky-500 text-sky-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-mercosul text-mercosul'
+                : 'border-transparent text-aco hover:text-grafite'
             }`}
           >
             <Paperclip className="w-4 h-4" />
@@ -405,17 +405,17 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
         {/* Conteúdo das Abas */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
           {erro && (
-            <div role="alert" className="p-3 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-300 text-xs flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+            <div role="alert" className="p-3 bg-vermelho/10 border border-vermelho/40 rounded-xl text-vermelho text-xs flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-vermelho mt-0.5" />
               <span>{erro}</span>
             </div>
           )}
 
           {!ordem.ativo && (
-            <div className="p-3 bg-amber-950/40 border border-amber-700/60 rounded-xl space-y-3">
+            <div className="p-3 bg-amarelo/15 border border-amarelo/60 rounded-xl space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-start gap-2 text-xs text-amber-200">
-                  <Archive className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                <div className="flex items-start gap-2 text-xs text-amarelo-tinta">
+                  <Archive className="w-4 h-4 shrink-0 text-amarelo-tinta mt-0.5" />
                   <span>
                     Esta OS está arquivada: não aparece na operação, no dashboard nem nas exportações. O motivo
                     está na Linha do Tempo.
@@ -425,7 +425,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                   <button
                     onClick={() => handleAlterarArquivamento(false)}
                     disabled={salvandoArquivamento || excluindo}
-                    className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                    className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-white bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
                   >
                     {salvandoArquivamento ? (
                       <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -440,7 +440,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                     <button
                       onClick={() => setConfirmandoExclusao(true)}
                       disabled={salvandoArquivamento}
-                      className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-rose-300 border border-rose-700 hover:bg-rose-900/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                      className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-vermelho border border-vermelho/40 hover:bg-vermelho/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>Excluir de vez</span>
@@ -450,11 +450,11 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
               </div>
 
               {confirmandoExclusao && (
-                <div className="pt-3 border-t border-amber-800/50 space-y-3">
-                  <p className="text-xs text-rose-200">
+                <div className="pt-3 border-t border-amarelo/60 space-y-3">
+                  <p className="text-xs text-vermelho">
                     Isto apaga a OS #{String(ordem.id).padStart(5, '0')} com a linha do tempo e os anexos dela. Não
                     tem como desfazer. O veículo continua cadastrado. Digite a placa{' '}
-                    <strong className="font-mono">{ordem.placa}</strong> para confirmar.
+                    <strong className="font-placa tabular-nums">{ordem.placa}</strong> para confirmar.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <input
@@ -464,7 +464,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       placeholder={ordem.placa}
                       aria-label="Placa para confirmar a exclusão"
                       autoFocus
-                      className="flex-1 bg-slate-900 border border-rose-800 rounded-xl px-3 py-2 text-xs font-mono uppercase text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                      className="flex-1 bg-etiqueta border border-vermelho/40 rounded-xl px-3 py-2 text-xs font-placa tabular-nums uppercase text-grafite focus:outline-none focus:ring-2 focus:ring-vermelho"
                     />
                     <button
                       onClick={() => {
@@ -472,14 +472,14 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                         setPlacaConfirmacao('');
                       }}
                       disabled={excluindo}
-                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition-all disabled:opacity-40 cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-grafite hover:bg-parede transition-all disabled:opacity-40 cursor-pointer"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={handleExcluirOrdem}
                       disabled={excluindo || !placaConfere(placaConfirmacao)}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-vermelho hover:bg-vermelho/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
                     >
                       {excluindo ? (
                         <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -501,82 +501,82 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
             <div className="space-y-6">
               {/* Painel de Etapa e SLA */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-                  <span className="text-xs text-slate-400 uppercase font-semibold">Etapa Atual</span>
-                  <p className="text-base font-bold text-slate-100 mt-1">
+                <div className="bg-parede/60 p-4 rounded-xl border border-trilho">
+                  <span className="text-xs text-aco uppercase font-semibold">Etapa Atual</span>
+                  <p className="text-base font-bold text-grafite mt-1">
                     {ordem.etapaDescricao}
                   </p>
                 </div>
 
-                <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-                  <span className="text-xs text-slate-400 uppercase font-semibold">SLA / Pátio</span>
+                <div className="bg-parede/60 p-4 rounded-xl border border-trilho">
+                  <span className="text-xs text-aco uppercase font-semibold">SLA / Pátio</span>
                   <div className="flex items-center gap-1.5 mt-1">
                     {isAtrasado ? (
-                      <AlertTriangle className="w-4 h-4 text-rose-400" />
+                      <AlertTriangle className="w-4 h-4 text-vermelho" />
                     ) : (
-                      <Clock className="w-4 h-4 text-emerald-400" />
+                      <Clock className="w-4 h-4 text-verde" />
                     )}
                     <span
-                      className={`text-base font-mono font-bold ${
-                        isAtrasado ? 'text-rose-400' : isAtencao ? 'text-amber-400' : 'text-emerald-400'
+                      className={`text-base font-placa tabular-nums font-bold ${
+                        isAtrasado ? 'text-vermelho' : isAtencao ? 'text-amarelo-tinta' : 'text-verde'
                       }`}
                     >
                       {ordem.diasNoPatio} {ordem.diasNoPatio === 1 ? 'dia' : 'dias'}
                     </span>
-                    <span className="text-xs text-slate-400">
-                      ({ordem.statusSla === 'VERMELHO' ? 'Em Atraso' : 'Dentro do Prazo'})
+                    <span className="text-xs text-aco">
+                      ({ordem.statusSla === 'VERMELHO' ? 'Parado' : 'Dentro do prazo'})
                     </span>
                   </div>
                 </div>
 
-                <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-                  <span className="text-xs text-slate-400 uppercase font-semibold">Valor Orçado</span>
-                  <p className="text-base font-mono font-bold text-emerald-400 mt-1">
+                <div className="bg-parede/60 p-4 rounded-xl border border-trilho">
+                  <span className="text-xs text-aco uppercase font-semibold">Valor Orçado</span>
+                  <p className="text-base font-placa tabular-nums font-bold text-verde mt-1">
                     {formatarMoeda(ordem.valorOrcamento)}
                   </p>
                 </div>
               </div>
 
               {/* Informações detalhadas do veículo */}
-              <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/80 space-y-3">
-                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+              <div className="bg-parede/60 p-4 rounded-xl border border-trilho space-y-3">
+                <h4 className="text-xs font-bold text-grafite uppercase tracking-wider">
                   Detalhes Operacionais
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                   <div>
-                    <span className="text-slate-400 block">Origem</span>
-                    <span className="font-semibold text-slate-200">{ordem.origemNome || 'Não informada'}</span>
+                    <span className="text-aco block">Origem</span>
+                    <span className="font-semibold text-grafite">{ordem.origemNome || 'Não informada'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">Tipo de Serviço</span>
-                    <span className="font-semibold text-sky-400">{ordem.tipoServicoNome || 'Geral'}</span>
+                    <span className="text-aco block">Tipo de Serviço</span>
+                    <span className="font-semibold text-mercosul">{ordem.tipoServicoNome || 'Geral'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">Data de Entrada</span>
-                    <span className="font-mono text-slate-200">
+                    <span className="text-aco block">Data de Entrada</span>
+                    <span className="font-placa tabular-nums text-grafite">
                       {ordem.dataEntrada ? ordem.dataEntrada.split('-').reverse().join('/') : '-'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">Data de Saída</span>
-                    <span className="font-mono text-slate-200">
+                    <span className="text-aco block">Data de Saída</span>
+                    <span className="font-placa tabular-nums text-grafite">
                       {ordem.dataSaida ? ordem.dataSaida.split('-').reverse().join('/') : 'Em aberto'}
                     </span>
                   </div>
                 </div>
 
                 {ordem.observacoes && (
-                  <div className="pt-2 border-t border-slate-800/60">
-                    <span className="text-slate-400 block text-xs">Observações</span>
-                    <p className="text-xs text-slate-300 mt-0.5 whitespace-pre-wrap">{ordem.observacoes}</p>
+                  <div className="pt-2 border-t border-trilho">
+                    <span className="text-aco block text-xs">Observações</span>
+                    <p className="text-xs text-grafite mt-0.5 whitespace-pre-wrap">{ordem.observacoes}</p>
                   </div>
                 )}
               </div>
 
               {/* Transição de Etapa Rápida (OS arquivada não muda de etapa) */}
               {ordem.ativo && (
-                <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 space-y-3">
-                  <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                <div className="bg-parede/60 p-4 rounded-xl border border-trilho space-y-3">
+                  <h4 className="text-xs font-bold text-grafite uppercase tracking-wider">
                     Alterar Etapa Operacional
                   </h4>
 
@@ -585,7 +585,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       value={novaEtapa}
                       onChange={(e) => setNovaEtapa(e.target.value as EtapaOrdemServico)}
                       aria-label="Nova etapa"
-                      className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="flex-1 bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
                     >
                       {TODAS_ETAPAS.map((item) => (
                         <option key={item.etapa} value={item.etapa}>
@@ -600,13 +600,13 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       onChange={(e) => setObsTransicao(e.target.value)}
                       placeholder="Motivo ou nota da mudança (opcional)"
                       aria-label="Nota da mudança de etapa"
-                      className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      className="flex-1 bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
                     />
 
                     <button
                       onClick={handleTransicionarEtapa}
                       disabled={salvandoTransicao || novaEtapa === ordem.etapa}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
                     >
                       {salvandoTransicao ? (
                         <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -623,16 +623,16 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
               {/* Arquivamento: tira a OS da operação sem apagar nada */}
               {ordem.ativo && (
-                <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                <div className="bg-parede/60 p-4 rounded-xl border border-trilho space-y-3">
                   {!confirmandoArquivamento ? (
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-aco">
                         Lançou errado ou o cliente desistiu? Arquive a OS: ela sai da operação, mas fica
                         guardada e pode ser restaurada no Histórico.
                       </p>
                       <button
                         onClick={() => setConfirmandoArquivamento(true)}
-                        className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-amber-300 border border-amber-700/70 hover:bg-amber-900/30 transition-all cursor-pointer flex items-center gap-1.5 justify-center"
+                        className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-amarelo-tinta border border-amarelo/60 hover:bg-amarelo/15 transition-all cursor-pointer flex items-center gap-1.5 justify-center"
                       >
                         <Archive className="w-3.5 h-3.5" />
                         <span>Arquivar OS</span>
@@ -640,7 +640,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                     </div>
                   ) : (
                     <>
-                      <p className="text-xs text-slate-300">
+                      <p className="text-xs text-grafite">
                         Por que esta OS está sendo arquivada? O motivo fica registrado na linha do tempo.
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3">
@@ -651,7 +651,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                           placeholder="Ex.: entrada lançada em duplicidade"
                           aria-label="Motivo do arquivamento"
                           autoFocus
-                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          className="flex-1 bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-amarelo"
                         />
                         <button
                           onClick={() => {
@@ -659,14 +659,14 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                             setMotivoArquivamento('');
                           }}
                           disabled={salvandoArquivamento}
-                          className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition-all disabled:opacity-40 cursor-pointer"
+                          className="px-4 py-2 rounded-xl text-xs font-semibold text-grafite hover:bg-parede transition-all disabled:opacity-40 cursor-pointer"
                         >
                           Cancelar
                         </button>
                         <button
                           onClick={() => handleAlterarArquivamento(true)}
                           disabled={salvandoArquivamento || !motivoArquivamento.trim()}
-                          className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                          className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-amarelo-tinta hover:bg-amarelo/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
                         >
                           {salvandoArquivamento ? (
                             <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -689,18 +689,18 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
           {aba === 'financeiro' && (
             <div className="space-y-6">
               {/* Ajuste de Orçamento */}
-              <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 space-y-4">
+              <div className="bg-parede/60 p-5 rounded-2xl border border-trilho space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-bold text-slate-100">Valor Orçado da OS</h4>
-                    <p className="text-xs text-slate-400">
+                    <h4 className="text-sm font-bold text-grafite">Valor Orçado da OS</h4>
+                    <p className="text-xs text-aco">
                       Toda alteração de valor é registrada na linha do tempo de auditoria
                     </p>
                   </div>
                   {!editandoOrcamento && (
                     <button
                       onClick={() => setEditandoOrcamento(true)}
-                      className="flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 font-semibold px-3 py-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20"
+                      className="flex items-center gap-1.5 text-xs text-mercosul hover:text-mercosul font-semibold px-3 py-1.5 rounded-lg bg-mercosul/10 border border-mercosul/40"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                       <span>Alterar Valor</span>
@@ -709,14 +709,14 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                 </div>
 
                 {!editandoOrcamento ? (
-                  <div className="text-2xl font-mono font-bold text-emerald-400">
+                  <div className="text-2xl font-placa tabular-nums font-bold text-verde">
                     {formatarMoeda(ordem.valorOrcamento)}
                   </div>
                 ) : (
                   <form onSubmit={handleSalvarOrcamento} className="space-y-3 pt-2">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label htmlFor="detalhes-novo-valor" className="block text-xs font-semibold text-slate-300 mb-1">
+                        <label htmlFor="detalhes-novo-valor" className="block text-xs font-semibold text-grafite mb-1">
                           Novo Valor (R$) *
                         </label>
                         <input
@@ -726,11 +726,11 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                           id="detalhes-novo-valor"
                           onChange={(e) => setNovoValor(e.target.value)}
                           placeholder="Ex: 1500.00"
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          className="w-full bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs font-placa tabular-nums font-bold text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
                         />
                       </div>
                       <div>
-                        <label htmlFor="detalhes-justificativa" className="block text-xs font-semibold text-slate-300 mb-1">
+                        <label htmlFor="detalhes-justificativa" className="block text-xs font-semibold text-grafite mb-1">
                           Justificativa da Mudança (Opcional)
                         </label>
                         <input
@@ -739,7 +739,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                           id="detalhes-justificativa"
                           onChange={(e) => setJustificativaOrcamento(e.target.value)}
                           placeholder="Ex: Adição de peças ou mão de obra extra"
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                          className="w-full bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
                         />
                       </div>
                     </div>
@@ -748,14 +748,14 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       <button
                         type="submit"
                         disabled={salvandoOrcamento}
-                        className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                        className="px-4 py-1.5 bg-verde hover:bg-verde/90 text-white rounded-lg text-xs font-bold transition-all disabled:opacity-50"
                       >
                         {salvandoOrcamento ? 'Salvando...' : 'Salvar Novo Valor'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditandoOrcamento(false)}
-                        className="px-3 py-1.5 text-slate-400 hover:text-slate-200 text-xs font-medium"
+                        className="px-3 py-1.5 text-aco hover:text-grafite text-xs font-medium"
                       >
                         Cancelar
                       </button>
@@ -765,20 +765,20 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
               </div>
 
               {/* Status de Faturamento */}
-              <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 space-y-4">
+              <div className="bg-parede/60 p-5 rounded-2xl border border-trilho space-y-4">
                 <div className="flex items-center gap-2">
-                  <Receipt className="w-4 h-4 text-emerald-400" />
-                  <h4 className="text-sm font-bold text-slate-100">Status de Faturamento</h4>
+                  <Receipt className="w-4 h-4 text-verde" />
+                  <h4 className="text-sm font-bold text-grafite">Status de Faturamento</h4>
                 </div>
 
                 <form onSubmit={handleSalvarFaturamento} className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-200">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-grafite">
                       <input
                         type="checkbox"
                         checked={faturado}
                         onChange={(e) => setFaturado(e.target.checked)}
-                        className="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 bg-slate-900 w-4 h-4"
+                        className="rounded border-trilho text-verde focus:ring-verde bg-etiqueta w-4 h-4"
                       />
                       <span>Ordem de Serviço Faturada</span>
                     </label>
@@ -786,7 +786,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="detalhes-data-faturamento" className="block text-xs font-semibold text-slate-300 mb-1">
+                      <label htmlFor="detalhes-data-faturamento" className="block text-xs font-semibold text-grafite mb-1">
                         Data de Faturamento
                       </label>
                       <input
@@ -794,12 +794,12 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                         value={dataFaturamento}
                         id="detalhes-data-faturamento"
                         onChange={(e) => setDataFaturamento(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        className="w-full bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs font-placa tabular-nums text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="detalhes-numero-nf" className="block text-xs font-semibold text-slate-300 mb-1">
+                      <label htmlFor="detalhes-numero-nf" className="block text-xs font-semibold text-grafite mb-1">
                         Número da Nota Fiscal (NF)
                       </label>
                       <input
@@ -808,7 +808,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                         id="detalhes-numero-nf"
                         onChange={(e) => setNumeroNf(e.target.value)}
                         placeholder="Ex: NF-2026-0045"
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        className="w-full bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
                       />
                     </div>
                   </div>
@@ -816,7 +816,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                   <button
                     type="submit"
                     disabled={salvandoFaturamento}
-                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                    className="px-4 py-2 bg-mercosul hover:bg-mercosul/90 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
                   >
                     {salvandoFaturamento ? 'Atualizando...' : 'Atualizar Faturamento'}
                   </button>
@@ -829,49 +829,49 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
           {aba === 'historico' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-grafite uppercase tracking-wider">
                   Linha do Tempo Completa de Auditoria
                 </h4>
-                <span className="text-[11px] text-slate-400 font-mono">
+                <span className="text-[11px] text-aco font-placa tabular-nums">
                   Registros imutáveis
                 </span>
               </div>
 
               {carregandoHistorico ? (
-                <div className="py-12 text-center text-slate-400">
-                  <div className="w-6 h-6 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <div className="py-12 text-center text-aco">
+                  <div className="w-6 h-6 border-2 border-mercosul border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                   <p className="text-xs">Carregando histórico...</p>
                 </div>
               ) : historico.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
+                <div className="py-8 text-center text-aco text-xs">
                   Nenhum registro histórico encontrado.
                 </div>
               ) : (
-                <div className="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+                <div className="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-parede">
                   {historico.map((h) => (
                     <div key={h.id} className="relative group">
                       {/* Ponto na timeline */}
-                      <span className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-sky-500 border-2 border-slate-900 group-hover:scale-125 transition-transform" />
+                      <span className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-mercosul border-2 border-trilho group-hover:scale-125 transition-transform" />
 
-                      <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-1">
+                      <div className="bg-parede/60 p-3.5 rounded-xl border border-trilho space-y-1">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-slate-200">
+                          <span className="font-semibold text-grafite">
                             {h.etapaAnteriorDescricao
                               ? `${h.etapaAnteriorDescricao} → ${h.etapaNovaDescricao}`
                               : `Etapa: ${h.etapaNovaDescricao}`}
                           </span>
-                          <span className="text-[11px] font-mono text-slate-400">
+                          <span className="text-[11px] font-placa tabular-nums text-aco">
                             {formatarDataHora(h.dataHora)}
                           </span>
                         </div>
 
                         {h.observacao && (
-                          <p className="text-xs text-slate-300 italic">{h.observacao}</p>
+                          <p className="text-xs text-grafite italic">{h.observacao}</p>
                         )}
 
-                        <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400 border-t border-slate-900">
+                        <div className="flex items-center justify-between pt-1 text-[11px] text-aco border-t border-trilho">
                           <span>Responsável: {h.usuarioNome}</span>
-                          <span className="font-mono text-slate-400">
+                          <span className="font-placa tabular-nums text-aco">
                             Orçamento: {formatarMoeda(h.valorOrcamentoMomento)}
                           </span>
                         </div>
@@ -887,7 +887,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
           {aba === 'anexos' && (
             <div className="space-y-4">
               {/* Dropzone de Upload */}
-              <div className="border-2 border-dashed border-slate-700 hover:border-sky-500 has-[:focus-visible]:border-sky-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sky-400 rounded-2xl p-6 text-center transition-colors">
+              <div className="border-2 border-dashed border-trilho hover:border-mercosul has-[:focus-visible]:border-mercosul has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-mercosul rounded-2xl p-6 text-center transition-colors">
                 <input
                   type="file"
                   id="file-upload"
@@ -899,42 +899,42 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                   htmlFor="file-upload"
                   className="cursor-pointer flex flex-col items-center justify-center space-y-2"
                 >
-                  <div className="w-10 h-10 rounded-full bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+                  <div className="w-10 h-10 rounded-full bg-mercosul/10 border border-mercosul/40 flex items-center justify-center text-mercosul">
                     <Upload className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-sky-400 hover:underline">
+                    <span className="text-xs font-bold text-mercosul hover:underline">
                       Clique para enviar um arquivo
                     </span>
-                    <span className="text-xs text-slate-400 block mt-0.5">
+                    <span className="text-xs text-aco block mt-0.5">
                       Fotos de avarias, ordens assinadas, PDFs de vistoria (até 8MB)
                     </span>
                   </div>
                 </label>
                 {enviandoAnexo && (
-                  <p role="status" className="text-xs text-sky-400 mt-2 font-medium">Enviando anexo...</p>
+                  <p role="status" className="text-xs text-mercosul mt-2 font-medium">Enviando anexo...</p>
                 )}
               </div>
 
               {/* Lista de Arquivos */}
               <div className="space-y-2">
                 {anexos.length === 0 ? (
-                  <p className="text-center py-6 text-xs text-slate-400">
+                  <p className="text-center py-6 text-xs text-aco">
                     Nenhum anexo registrado para esta ordem de serviço.
                   </p>
                 ) : (
                   anexos.map((anexo) => (
                     <div
                       key={anexo.id}
-                      className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-3 text-xs"
+                      className="bg-parede/60 p-3 rounded-xl border border-trilho flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <Paperclip className="w-4 h-4 text-slate-400 shrink-0" />
+                        <Paperclip className="w-4 h-4 text-aco shrink-0" />
                         <div className="truncate">
-                          <span className="font-semibold text-slate-200 block truncate">
+                          <span className="font-semibold text-grafite block truncate">
                             {anexo.nomeArquivo}
                           </span>
-                          <span className="text-[10px] text-slate-400">
+                          <span className="text-[10px] text-aco">
                             {(anexo.tamanhoBytes / 1024).toFixed(1)} KB &bull; {anexo.usuarioNome}
                           </span>
                         </div>
@@ -943,14 +943,14 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
                           onClick={() => handleBaixarAnexo(anexo.id, anexo.nomeArquivo)}
-                          className="p-1.5 text-slate-400 hover:text-sky-400 hover:bg-slate-800 rounded-lg transition-colors"
+                          className="p-1.5 text-aco hover:text-mercosul hover:bg-parede rounded-lg transition-colors"
                           title="Baixar arquivo"
                         >
                           <Download className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleExcluirAnexo(anexo.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                          className="p-1.5 text-aco hover:text-vermelho hover:bg-parede rounded-lg transition-colors"
                           title="Excluir arquivo"
                         >
                           <Trash2 className="w-4 h-4" />

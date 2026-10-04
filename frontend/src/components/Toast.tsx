@@ -39,10 +39,10 @@ const ToastItem: React.FC<{ toast: ToastMessage; onDismiss: (id: string) => void
 
   const bgBorder =
     toast.tipo === 'sucesso'
-      ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'
+      ? 'bg-verde/10 border-verde/40 text-verde'
       : toast.tipo === 'erro'
-      ? 'bg-rose-950/90 border-rose-500/50 text-rose-200'
-      : 'bg-slate-900/90 border-sky-500/50 text-sky-200';
+      ? 'bg-vermelho/10 border-vermelho/40 text-vermelho'
+      : 'bg-etiqueta border-mercosul/40 text-mercosul';
 
   const Icon =
     toast.tipo === 'sucesso'
@@ -53,7 +53,7 @@ const ToastItem: React.FC<{ toast: ToastMessage; onDismiss: (id: string) => void
 
   return (
     <div
-      className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-lg border backdrop-blur-md shadow-xl transition-all animate-slide-in ${bgBorder}`}
+      className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-lg border backdrop-blur-md  transition-all animate-slide-in ${bgBorder}`}
     >
       <Icon className="w-5 h-5 shrink-0 mt-0.5" />
       <div className="flex-1 text-sm font-medium leading-snug">{toast.texto}</div>

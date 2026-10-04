@@ -1,30 +1,35 @@
 import React from 'react';
-import { OrdemServico, EtapaOrdemServico } from '../types';
+import { OrdemServico } from '../types';
 import { PlacaBadge } from './PlacaBadge';
-import { Clock, DollarSign, ArrowRight, CheckCircle2, AlertTriangle, Building2, Wrench } from 'lucide-react';
+import { AlertTriangle, Check } from 'lucide-react';
 
 interface KanbanCardProps {
   ordem: OrdemServico;
   onSelecionar: (ordem: OrdemServico) => void;
   onAvancarEtapa: (ordem: OrdemServico) => void;
-  etapaSeguinte?: EtapaOrdemServico;
+  /** Nome da próxima etapa; sem ele (última etapa) o botão de mover some */
+  tituloEtapaSeguinte?: string;
 }
 
+// Faixa do semáforo na borda esquerda da etiqueta
+const FAIXA: Record<OrdemServico['statusSla'], string> = {
+  VERMELHO: 'shadow-[inset_5px_0_0_var(--color-vermelho)]',
+  AMARELO: 'shadow-[inset_5px_0_0_var(--color-amarelo)]',
+  VERDE: 'shadow-[inset_5px_0_0_var(--color-verde)]',
+};
+
+const formatarMoeda = (valor: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor || 0);
+
+/** Etiqueta de chave: um carro pendurado na etapa em que está. */
 export const KanbanCard: React.FC<KanbanCardProps> = ({
   ordem,
   onSelecionar,
   onAvancarEtapa,
-  etapaSeguinte,
+  tituloEtapaSeguinte,
 }) => {
-  const isAtrasado = ordem.statusSla === 'VERMELHO';
-  const isAtencao = ordem.statusSla === 'AMARELO';
-
-  const formatarMoeda = (valor: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(valor || 0);
-  };
+  const dias = `${ordem.diasNoPatio} ${ordem.diasNoPatio === 1 ? 'dia' : 'dias'}`;
+  const origemEServico = [ordem.origemNome, ordem.tipoServicoNome].filter(Boolean).join(', ');
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('text/plain', String(ordem.id));
@@ -36,106 +41,75 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
       draggable
       onDragStart={handleDragStart}
       onClick={() => onSelecionar(ordem)}
-      className={`group relative bg-slate-900/90 rounded-xl p-3.5 border transition-all duration-200 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-0.5 ${
-        isAtrasado
-          ? 'border-rose-500/60 shadow-rose-950/30 hover:border-rose-400'
-          : isAtencao
-          ? 'border-amber-500/50 shadow-amber-950/20 hover:border-amber-400'
-          : 'border-slate-800 hover:border-slate-700 hover:bg-slate-850'
-      }`}
+      className="group relative cursor-pointer select-none rounded-[2px] has-[h4_button:focus-visible]:outline-2 has-[h4_button:focus-visible]:outline-offset-2 has-[h4_button:focus-visible]:outline-mercosul"
     >
-      {/* Topo do Card: Número da OS e Placa */}
-      <div className="flex items-center justify-between gap-2 mb-2.5">
-        <span className="font-mono text-xs font-bold text-slate-400 tracking-wider">
-          #{String(ordem.id).padStart(5, '0')}
-        </span>
-        <PlacaBadge placa={ordem.placa} mercosul={ordem.mercosul} size="sm" />
-      </div>
+      {/* Ilhós: o furo reforçado por onde a etiqueta fica pendurada */}
+      <span
+        aria-hidden="true"
+        className="absolute top-[7px] left-1/2 -translate-x-1/2 z-10 w-3 h-3 rounded-full bg-parede ring-[2.5px] ring-aco/45"
+      />
 
-      {/* Modelo do Veículo */}
-      <h4 className="text-sm font-semibold text-slate-100 line-clamp-1 mb-2">
-        {/* Botão para o teclado: o clique dele sobe até o card. O contorno de foco é desenhado no card
-            inteiro pelo ::after, que deixa o mouse passar para o card (senão o arraste quebra) */}
-        <button
-          type="button"
-          className="text-left cursor-pointer after:absolute after:inset-0 after:rounded-xl after:pointer-events-none focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-sky-400"
-        >
-          {ordem.modelo}
-        </button>
-      </h4>
+      <div className="etiqueta-borda bg-trilho p-px transition-colors group-hover:bg-aco">
+        <div className={`etiqueta-face bg-etiqueta pl-4 pr-3 pt-7 ${FAIXA[ordem.statusSla]}`}>
+          <div className="flex justify-center">
+            <PlacaBadge placa={ordem.placa} mercosul={ordem.mercosul} size="lg" />
+          </div>
 
-      {/* Tags: Origem & Tipo de Serviço */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {ordem.origemNome && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60">
-            <Building2 className="w-3 h-3 text-slate-400" />
-            <span className="truncate max-w-[110px]">{ordem.origemNome}</span>
-          </span>
-        )}
-        {ordem.tipoServicoNome && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-sky-300 bg-sky-950/50 px-2 py-0.5 rounded border border-sky-800/40">
-            <Wrench className="w-3 h-3 text-sky-400" />
-            <span>{ordem.tipoServicoNome}</span>
-          </span>
-        )}
-      </div>
+          <h4 className="mt-3 text-[16px] leading-snug font-semibold text-grafite line-clamp-1">
+            {/* Botão para o teclado: o clique dele sobe até a etiqueta. O contorno de foco vai na etiqueta inteira
+                (has-[...] no contêiner), porque o clip-path do chanfro cortaria um contorno desenhado aqui dentro */}
+            <button type="button" className="text-left cursor-pointer focus-visible:outline-none">
+              {ordem.modelo}
+            </button>
+          </h4>
+          {origemEServico && <p className="text-[13px] text-aco line-clamp-1">{origemEServico}</p>}
 
-      {/* Linha de SLA / Dias no Pátio */}
-      <div className="flex items-center justify-between text-xs mb-3 pt-2 border-t border-slate-800/80">
-        <div
-          className={`flex items-center gap-1 font-medium ${
-            isAtrasado
-              ? 'text-rose-400'
-              : isAtencao
-              ? 'text-amber-400'
-              : 'text-emerald-400'
-          }`}
-          title={`Status SLA: ${ordem.statusSla} (${ordem.diasNoPatio} dias no pátio)`}
-        >
-          {isAtrasado ? (
-            <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-          ) : (
-            <Clock className="w-3.5 h-3.5 shrink-0" />
+          <p className="mt-2.5 text-[14px] font-semibold flex items-center gap-1">
+            {ordem.statusSla === 'VERMELHO' && (
+              <>
+                <AlertTriangle className="w-4 h-4 text-vermelho shrink-0" aria-hidden="true" />
+                <span className="text-vermelho">{dias} parado</span>
+              </>
+            )}
+            {ordem.statusSla === 'AMARELO' && <span className="text-amarelo-tinta">{dias} no pátio</span>}
+            {ordem.statusSla === 'VERDE' && (
+              <span className="text-verde">
+                Pronto<span className="font-normal text-aco">, {dias} no pátio</span>
+              </span>
+            )}
+          </p>
+
+          <div className="mt-1 pb-3 flex items-baseline justify-between gap-2">
+            {ordem.valorOrcamento > 0 ? (
+              <span className="font-placa tabular-nums text-[17px] font-semibold text-grafite">
+                {formatarMoeda(ordem.valorOrcamento)}
+              </span>
+            ) : (
+              <span className="text-[14px] text-aco">Sem orçamento</span>
+            )}
+            {ordem.valorOrcamento <= 0 ? null : ordem.faturado ? (
+              <span className="inline-flex items-center gap-0.5 text-[13px] font-medium text-verde">
+                <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                Faturado
+              </span>
+            ) : (
+              <span className="text-[13px] text-aco">A faturar</span>
+            )}
+          </div>
+
+          {tituloEtapaSeguinte && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAvancarEtapa(ordem);
+              }}
+              className="-ml-4 -mr-3 w-[calc(100%+1.75rem)] border-t border-trilho pl-4 pr-3 py-2.5 text-left text-[14px] font-semibold text-mercosul hover:bg-mercosul/5 focus-visible:-outline-offset-4 cursor-pointer"
+            >
+              Mover para {tituloEtapaSeguinte}
+            </button>
           )}
-          <span>
-            {ordem.diasNoPatio} {ordem.diasNoPatio === 1 ? 'dia' : 'dias'} no pátio
-          </span>
         </div>
-
-        {/* Faturamento status */}
-        {ordem.faturado ? (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-300 bg-emerald-950/80 border border-emerald-500/30 px-1.5 py-0.5 rounded">
-            <CheckCircle2 className="w-2.5 h-2.5" />
-            Faturado
-          </span>
-        ) : (
-          <span className="text-[10px] text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded">
-            A faturar
-          </span>
-        )}
-      </div>
-
-      {/* Rodapé do Card: Valor Orçado e Ação Rápida */}
-      <div className="flex items-center justify-between pt-1">
-        <div className="flex items-center gap-1 text-slate-200 font-mono text-xs font-bold">
-          <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-          <span>{formatarMoeda(ordem.valorOrcamento)}</span>
-        </div>
-
-        {etapaSeguinte && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAvancarEtapa(ordem);
-            }}
-            title="Avançar para a próxima etapa"
-            className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold bg-slate-800 hover:bg-sky-600 text-slate-300 hover:text-white border border-slate-700 hover:border-sky-500 transition-all cursor-pointer opacity-80 group-hover:opacity-100"
-          >
-            <span>Avançar</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
-        )}
       </div>
     </div>
   );
