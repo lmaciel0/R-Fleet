@@ -173,3 +173,23 @@ colunas em raia, cards compactos).
 - **Etiqueta** mais baixa: cabeça de 16 px, chanfro de 10 px, número da OS e placa na mesma linha, chips de origem
   e serviço com ícone, sombra leve de etiqueta pendurada. Parado ganha borda e brilho vermelhos.
 - **Login**: tela sempre na noite, rótulos em caixa normal, "Entrar no R-Fleet".
+
+## Revisão 4 — o pátio no celular (2026-10-04)
+
+Itens 1, 2, 5 e 6 da revisão de UX pedida pelo usuário.
+
+- **Quadro no celular** (abaixo de 768 px): uma fileira de chips com a contagem de cada etapa, mais "Parados"
+  primeiro quando houver, e a lista da etapa escolhida na vertical. Abre nos parados; sem parados, na primeira
+  etapa com carro. As raias continuam no computador.
+- **Busca de placa** (`BuscaRapida.tsx`): lupa na navbar (campo aparente a partir de 1536 px), Ctrl+K ou "/".
+  Procura placa ou modelo nos carros do pátio enquanto digita, com os parados primeiro. Com a placa completa e sem
+  resultado, consulta `/veiculos/buscar-placa`: abre a OS em aberto ou oferece "Registrar entrada" com a placa
+  preenchida.
+- **Painel**: clicar numa etapa abre a Tabela filtrada por ela (o `onFiltrarEtapa` existia, mas não era chamado).
+  "Entregue" saiu das barras do pátio (aparecia "1 (0%)") e virou a linha "Entregues em <mês>".
+- **Endereço** (`utils/rota.ts`): `#quadro`, `#tabela`, `#painel`, `#historico` e `#<aba>/os/<id>`. O F5 mantém a
+  tela, o voltar do navegador funciona e o link de uma OS pode ser enviado. Fechar uma OS aberta por clique volta no
+  histórico; aberta por link, só tira a OS do endereço.
+- **Carregamento**: raias fantasmas no lugar do spinner no quadro; o contador da navbar só aparece com os números.
+- **Raia "Entregue"** começa recolhida (contagem e nome na vertical) e abre com um clique; a escolha fica salva neste
+  navegador (`rfleet_entregue_aberta`). Soltar um card nela continua funcionando.

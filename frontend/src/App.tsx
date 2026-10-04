@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginView } from './components/LoginView';
 import { Navbar } from './components/Navbar';
-import { KanbanBoard } from './components/KanbanBoard';
+import { KanbanBoard, QuadroFantasma } from './components/KanbanBoard';
+import { BuscaRapida } from './components/BuscaRapida';
 import { TabelaOrdens } from './components/TabelaOrdens';
 import { DashboardView } from './components/DashboardView';
 import { HistoricoView } from './components/HistoricoView';
@@ -11,7 +12,6 @@ import { ModalDetalhes } from './components/ModalDetalhes';
 import { ModalImportar } from './components/ModalImportar';
 import { Toast, ToastMessage } from './components/Toast';
 import {
-  AbaApp,
   OrdemServico,
   DashboardMetricas,
   Origem,
@@ -19,11 +19,17 @@ import {
   EtapaOrdemServico,
 } from './types';
 import { api } from './services/api';
+import { useRota } from './utils/rota';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
-  const [abaAtiva, setAbaAtiva] = useState<AbaApp>('kanban');
+  // Aba e OS aberta vêm do endereço (#tabela, #quadro/os/106)
+  const { rota, irParaAba, abrirOs, fecharOs } = useRota();
+  const abaAtiva = rota.aba;
+  const ordemSelecionadaId = rota.osId;
+  // Etapa escolhida no Painel: a Tabela abre já filtrada por ela
+  const [etapaTabela, setEtapaTabela] = useState<EtapaOrdemServico | null>(null);
   const [ordens, setOrdens] = useState<OrdemServico[]>([]);
   const [metricas, setMetricas] = useState<DashboardMetricas | null>(null);
   const [origens, setOrigens] = useState<Origem[]>([]);
@@ -35,8 +41,9 @@ const AppContent: React.FC = () => {
 
   // Modais
   const [modalEntradaAberto, setModalEntradaAberto] = useState(false);
+  const [placaEntrada, setPlacaEntrada] = useState<string | undefined>(undefined);
   const [modalImportarAberto, setModalImportarAberto] = useState(false);
-  const [ordemSelecionadaId, setOrdemSelecionadaId] = useState<number | null>(null);
+  const [buscaAberta, setBuscaAberta] = useState(false);
 
   // Notificações Toast
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -80,6 +87,28 @@ const AppContent: React.FC = () => {
     carregarDadosIniciais();
   }, [carregarDadosIniciais]);
 
+  // Ctrl+K (ou Cmd+K) abre a busca de placa de qualquer tela; "/" também, fora de campos de texto
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const aoTeclar = (e: KeyboardEvent) => {
+      const alvo = e.target as HTMLElement;
+      const digitando = alvo.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(alvo.tagName);
+      // Com outro diálogo aberto (detalhes, entrada), o atalho não empilha a busca por cima
+      if (document.querySelector('[role="dialog"]')) return;
+      if ((e.key === 'k' && (e.ctrlKey || e.metaKey)) || (e.key === '/' && !digitando)) {
+        e.preventDefault();
+        setBuscaAberta(true);
+      }
+    };
+    document.addEventListener('keydown', aoTeclar);
+    return () => document.removeEventListener('keydown', aoTeclar);
+  }, [isAuthenticated]);
+
+  const abrirEntrada = (placa?: string) => {
+    setPlacaEntrada(placa);
+    setModalEntradaAberto(true);
+  };
+
   const handleTransicionarEtapa = async (ordemId: number, novaEtapa: EtapaOrdemServico) => {
     try {
       const atualizada = await api.transicionarEtapa(ordemId, novaEtapa);
@@ -119,7 +148,7 @@ const AppContent: React.FC = () => {
   };
 
   const handleOrdemExcluida = (excluida: OrdemServico) => {
-    setOrdemSelecionadaId(null);
+    fecharOs();
     // Só OS arquivada pode ser excluída, então basta o Histórico (Arquivadas) buscar de novo
     setVersaoDados((v) => v + 1);
     adicionarToast(`Ordem de Serviço #${String(excluida.id).padStart(5, '0')} (${excluida.placa}) excluída.`);
@@ -143,15 +172,21 @@ const AppContent: React.FC = () => {
       {/* Barra de Navegação */}
       <Navbar
         abaAtiva={abaAtiva}
-        setAbaAtiva={setAbaAtiva}
-        onAbrirNovaEntrada={() => setModalEntradaAberto(true)}
+        setAbaAtiva={(aba) => {
+          setEtapaTabela(null);
+          irParaAba(aba);
+        }}
+        onAbrirNovaEntrada={() => abrirEntrada()}
         onAbrirImportar={() => setModalImportarAberto(true)}
+        onAbrirBusca={() => setBuscaAberta(true)}
         metricas={metricas}
       />
 
       {/* Conteúdo Principal */}
       <main className={`flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 ${abaAtiva === 'kanban' ? '' : 'max-w-[1536px]'}`}>
-        {carregandoDados && ordens.length === 0 ? (
+        {carregandoDados && ordens.length === 0 && abaAtiva === 'kanban' ? (
+          <QuadroFantasma />
+        ) : carregandoDados && ordens.length === 0 ? (
           <div className="py-20 text-center text-aco">
             <div className="w-8 h-8 border-2 border-mercosul border-t-transparent rounded-full animate-spin mx-auto mb-3" />
             <p className="text-sm">Sincronizando veículos e ordens de serviço...</p>
@@ -161,19 +196,21 @@ const AppContent: React.FC = () => {
             {abaAtiva === 'kanban' && (
               <KanbanBoard
                 ordens={ordens}
-                onSelecionarOrdem={(o) => setOrdemSelecionadaId(o.id)}
+                onSelecionarOrdem={(o) => abrirOs(o.id)}
                 onTransicionarEtapa={handleTransicionarEtapa}
-                onRegistrarEntrada={() => setModalEntradaAberto(true)}
+                onRegistrarEntrada={() => abrirEntrada()}
                 onImportar={() => setModalImportarAberto(true)}
               />
             )}
 
             {abaAtiva === 'tabela' && (
               <TabelaOrdens
+                key={etapaTabela ?? 'todas'}
+                etapaInicial={etapaTabela ?? undefined}
                 ordens={ordens}
                 origens={origens}
                 tiposServico={tiposServico}
-                onSelecionarOrdem={(o) => setOrdemSelecionadaId(o.id)}
+                onSelecionarOrdem={(o) => abrirOs(o.id)}
                 onTransicionarEtapa={handleTransicionarEtapa}
                 onErro={(mensagem) => adicionarToast(mensagem, 'erro')}
               />
@@ -182,8 +219,9 @@ const AppContent: React.FC = () => {
             {abaAtiva === 'dashboard' && (
               <DashboardView
                 metricas={metricas}
-                onFiltrarEtapa={() => {
-                  setAbaAtiva('tabela');
+                onFiltrarEtapa={(etapa) => {
+                  setEtapaTabela(etapa);
+                  irParaAba('tabela');
                 }}
               />
             )}
@@ -191,7 +229,7 @@ const AppContent: React.FC = () => {
             {abaAtiva === 'historico' && (
               <HistoricoView
                 versaoDados={versaoDados}
-                onSelecionarOrdem={(o) => setOrdemSelecionadaId(o.id)}
+                onSelecionarOrdem={(o) => abrirOs(o.id)}
                 onErro={(mensagem) => adicionarToast(mensagem, 'erro')}
               />
             )}
@@ -202,6 +240,7 @@ const AppContent: React.FC = () => {
       {/* Modais Globais */}
       {modalEntradaAberto && (
         <ModalEntrada
+          placaInicial={placaEntrada}
           origens={origens}
           tiposServico={tiposServico}
           onFechar={() => setModalEntradaAberto(false)}
@@ -218,10 +257,26 @@ const AppContent: React.FC = () => {
 
       {ordemSelecionadaId !== null && (
         <ModalDetalhes
+          key={ordemSelecionadaId}
           ordemId={ordemSelecionadaId}
-          onFechar={() => setOrdemSelecionadaId(null)}
+          onFechar={fecharOs}
           onAtualizada={handleOrdemAtualizada}
           onExcluida={handleOrdemExcluida}
+        />
+      )}
+
+      {buscaAberta && (
+        <BuscaRapida
+          ordens={ordens}
+          onFechar={() => setBuscaAberta(false)}
+          onAbrirOs={(id) => {
+            setBuscaAberta(false);
+            abrirOs(id);
+          }}
+          onRegistrarEntrada={(placa) => {
+            setBuscaAberta(false);
+            abrirEntrada(placa);
+          }}
         />
       )}
 

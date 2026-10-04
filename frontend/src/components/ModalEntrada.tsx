@@ -20,6 +20,8 @@ interface ModalEntradaProps {
   tiposServico: TipoServico[];
   onFechar: () => void;
   onSucesso: (novaOrdem: any) => void;
+  /** Placa já digitada (ex.: vinda da busca rápida); a consulta da placa roda sozinha */
+  placaInicial?: string;
 }
 
 export const ModalEntrada: React.FC<ModalEntradaProps> = ({
@@ -27,8 +29,9 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
   tiposServico,
   onFechar,
   onSucesso,
+  placaInicial,
 }) => {
-  const [placa, setPlaca] = useState('');
+  const [placa, setPlaca] = useState(placaInicial ?? '');
   const [modelo, setModelo] = useState('');
   const [origemId, setOrigemId] = useState<number | undefined>(origens[0]?.id);
   const [tipoServicoId, setTipoServicoId] = useState<number | undefined>(tiposServico[0]?.id);
