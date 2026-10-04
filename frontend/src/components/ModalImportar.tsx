@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { api } from '../services/api';
 import { ImportacaoResultado } from '../types';
+import { useDialogo } from '../utils/acessibilidade';
 import {
   X,
   FileSpreadsheet,
@@ -20,6 +21,8 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
   const [importando, setImportando] = useState(false);
   const [resultado, setResultado] = useState<ImportacaoResultado | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+
+  const dialogoRef = useDialogo<HTMLDivElement>(onFechar);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -49,7 +52,14 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div
+        ref={dialogoRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-importar-titulo"
+        className="outline-none bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+      >
         {/* Header */}
         <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
           <div className="flex items-center gap-2.5">
@@ -57,12 +67,13 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-100">Importar Planilha Legada</h3>
+              <h3 id="modal-importar-titulo" className="text-base font-bold text-slate-100">Importar Planilha Legada</h3>
               <p className="text-xs text-slate-400">Migração de dados do Excel (.xlsx ou .csv)</p>
             </div>
           </div>
           <button
             onClick={onFechar}
+            aria-label="Fechar"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -72,7 +83,7 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
         {/* Conteúdo */}
         <div className="p-6 overflow-y-auto space-y-5 flex-1">
           {erro && (
-            <div className="p-3 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-300 text-xs flex items-start gap-2">
+            <div role="alert" className="p-3 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-300 text-xs flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
               <span>{erro}</span>
             </div>
@@ -103,14 +114,14 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
           </div>
 
           {/* Dropzone */}
-          <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-2xl p-6 text-center transition-colors">
+          <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500 has-[:focus-visible]:border-emerald-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sky-400 rounded-2xl p-6 text-center transition-colors">
             <input
               type="file"
               id="planilha-upload"
               accept=".xlsx,.xls,.csv"
               onChange={handleFileChange}
               disabled={importando}
-              className="hidden"
+              className="sr-only"
             />
             <label
               htmlFor="planilha-upload"
@@ -130,7 +141,7 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
 
           {/* Resumo da Importação */}
           {resultado && (
-            <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 space-y-3">
+            <div role="status" className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 space-y-3">
               <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 Resultado da Importação

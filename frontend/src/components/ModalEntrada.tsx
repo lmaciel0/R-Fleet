@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Origem, TipoServico, BuscarPlacaResultado, EtapaOrdemServico } from '../types';
 import { api } from '../services/api';
 import { PlacaBadge } from './PlacaBadge';
+import { useDialogo } from '../utils/acessibilidade';
 import {
   X,
   Car,
@@ -42,6 +43,8 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
   const [resultadoPlaca, setResultadoPlaca] = useState<BuscarPlacaResultado | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  const dialogoRef = useDialogo<HTMLDivElement>(onFechar);
 
   // Debounce search placa
   useEffect(() => {
@@ -119,7 +122,14 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-      <div className="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div
+        ref={dialogoRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-entrada-titulo"
+        className="outline-none bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+      >
         {/* Header */}
         <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/70">
           <div className="flex items-center gap-2.5">
@@ -127,12 +137,13 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
               <Car className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-100">Registrar Entrada no Pátio</h3>
+              <h3 id="modal-entrada-titulo" className="text-base font-bold text-slate-100">Registrar Entrada no Pátio</h3>
               <p className="text-xs text-slate-400">Fluxo rápido &lt; 30 segundos</p>
             </div>
           </div>
           <button
             onClick={onFechar}
+            aria-label="Fechar"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -142,7 +153,7 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 flex-1">
           {erro && (
-            <div className="p-3 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-300 text-xs flex items-start gap-2">
+            <div role="alert" className="p-3 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-300 text-xs flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
               <span>{erro}</span>
             </div>
@@ -150,7 +161,7 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
 
           {/* Alerta de OS Ativa Duplicada */}
           {impedidoPorOsAtiva && (
-            <div className="p-3.5 bg-amber-950/80 border border-amber-500/60 rounded-xl text-amber-200 text-xs flex items-start gap-2.5 shadow-lg shadow-amber-950/30 animate-pulse">
+            <div role="alert" className="p-3.5 bg-amber-950/80 border border-amber-500/60 rounded-xl text-amber-200 text-xs flex items-start gap-2.5 shadow-lg shadow-amber-950/30 animate-pulse">
               <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400 mt-0.5" />
               <div>
                 <strong className="block font-bold text-amber-300">
@@ -165,7 +176,7 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
 
           {/* Campo Placa com Busca e Preview */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+            <label htmlFor="entrada-placa" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
               Placa do Veículo *
             </label>
             <div className="flex gap-3 items-center">
@@ -175,6 +186,7 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
                   required
                   maxLength={7}
                   value={placa}
+                  id="entrada-placa"
                   onChange={(e) => handlePlacaChange(e.target.value)}
                   placeholder="Ex: BRA2E19 ou ABC1234"
                   className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm font-mono font-bold tracking-widest text-slate-100 placeholder-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-sky-500"
@@ -204,13 +216,14 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
 
           {/* Modelo */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+            <label htmlFor="entrada-modelo" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
               Modelo do Veículo *
             </label>
             <input
               type="text"
               required
               value={modelo}
+              id="entrada-modelo"
               onChange={(e) => setModelo(e.target.value)}
               placeholder="Ex: CHEVROLET TRACKER 1.2 TURBO"
               className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-sky-500"
@@ -220,12 +233,13 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
           {/* Grid: Origem e Tipo de Serviço */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="entrada-origem" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1">
                 <Building2 className="w-3.5 h-3.5 text-slate-400" />
                 Origem / Locadora
               </label>
               <select
                 value={origemId}
+                id="entrada-origem"
                 onChange={(e) => setOrigemId(Number(e.target.value))}
                 className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               >
@@ -238,12 +252,13 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="entrada-tipo-servico" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1">
                 <Wrench className="w-3.5 h-3.5 text-slate-400" />
                 Tipo de Serviço
               </label>
               <select
                 value={tipoServicoId}
+                id="entrada-tipo-servico"
                 onChange={(e) => setTipoServicoId(Number(e.target.value))}
                 className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               >
@@ -259,11 +274,12 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
           {/* Grid: Etapa Inicial e Orçamento */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="entrada-etapa" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
                 Etapa Inicial
               </label>
               <select
                 value={etapa}
+                id="entrada-etapa"
                 onChange={(e) => setEtapa(e.target.value as EtapaOrdemServico)}
                 className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               >
@@ -275,7 +291,7 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="entrada-valor" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1">
                 <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
                 Valor Orçado (R$)
               </label>
@@ -286,6 +302,7 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
                 <input
                   type="text"
                   value={valorOrcamento}
+                  id="entrada-valor"
                   onChange={(e) => handleValorChange(e.target.value)}
                   className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm font-mono font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 />
@@ -295,13 +312,14 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
 
           {/* Data de Entrada */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1">
+            <label htmlFor="entrada-data" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />
               Data de Entrada
             </label>
             <input
               type="date"
               value={dataEntrada}
+              id="entrada-data"
               onChange={(e) => setDataEntrada(e.target.value)}
               className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
@@ -309,13 +327,14 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
 
           {/* Observações */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1">
+            <label htmlFor="entrada-observacoes" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider flex items-center gap-1">
               <FileText className="w-3.5 h-3.5 text-slate-400" />
               Observações / Detalhes do Serviço
             </label>
             <textarea
               rows={2}
               value={observacoes}
+              id="entrada-observacoes"
               onChange={(e) => setObservacoes(e.target.value)}
               placeholder="Ex: Barulho na suspensão dianteira; verificar pastilhas..."
               className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"

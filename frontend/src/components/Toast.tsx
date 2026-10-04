@@ -14,7 +14,11 @@ interface ToastProps {
 
 export const Toast: React.FC<ToastProps> = ({ toasts, onDismiss }) => {
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full">
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full"
+    >
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}
@@ -55,6 +59,7 @@ const ToastItem: React.FC<{ toast: ToastMessage; onDismiss: (id: string) => void
       <div className="flex-1 text-sm font-medium leading-snug">{toast.texto}</div>
       <button
         onClick={() => onDismiss(toast.id)}
+        aria-label="Fechar aviso"
         className="opacity-70 hover:opacity-100 transition-opacity p-0.5"
       >
         <X className="w-4 h-4" />
