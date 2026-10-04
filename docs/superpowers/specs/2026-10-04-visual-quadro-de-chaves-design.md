@@ -152,3 +152,24 @@ O que mudou em relação ao plano acima:
 | Entregue | `#4A5056` | `#AEB5BA` |
 
 Todas passam de 4,5:1 como texto sobre a etiqueta e como fundo de selo com `sobre-cor`.
+
+## Revisão 3 — personalidade e a noite do R-Fleet original (2026-10-04)
+
+Retorno do usuário: depois dos PRs #11 a #13 o sistema mudou demais e ficou sem personalidade. Tabela, painel e
+fontes (Barlow) agradam e ficam como estão. Falta o clima do visual original (azul-marinho, marca, abas em pílula,
+colunas em raia, cards compactos).
+
+- **Noite** (`--color-noite*`): o azul-marinho do original volta na navbar e no login, **iguais nos dois temas**.
+  A barra do navegador no celular acompanha (`#0B1426`).
+- **Tema escuro** passa do grafite (`#171C20`) para o marinho do original (`#080D1A` de fundo, `#111A2E` de superfície).
+  Tabela e painel herdam só a troca de cor.
+- **Tema claro** com fundo levemente azulado (`#E3E8EF`), para conversar com a navbar.
+- **Marca**: uma placa Mercosul escrita "R-FLEET" (`Marca.tsx`). É a ousadia do sistema: pequena na navbar,
+  grande no login, com o brilho azul do original atrás.
+- **Navbar**: abas em pílula com ícone, contador "no pátio | parados" num só bloco com o ponto vermelho pulsando
+  enquanto houver carro parado, "Registrar entrada" em azul `#2563EB` (texto branco, 5,2:1) com brilho.
+- **Quadro**: colunas voltam a ser raias com contorno, faixa da cor da etapa no topo, ponto e contagem.
+  Coluna vazia mostra "Nenhum carro" em caixa tracejada.
+- **Etiqueta** mais baixa: cabeça de 16 px, chanfro de 10 px, número da OS e placa na mesma linha, chips de origem
+  e serviço com ícone, sombra leve de etiqueta pendurada. Parado ganha borda e brilho vermelhos.
+- **Login**: tela sempre na noite, rótulos em caixa normal, "Entrar no R-Fleet".

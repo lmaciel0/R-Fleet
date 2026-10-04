@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 export type Tema = 'claro' | 'escuro';
 
 const CHAVE = 'rfleet_tema';
-const COR_DA_BARRA: Record<Tema, string> = { claro: '#E2E5E3', escuro: '#171C20' };
+const COR_DA_BARRA: Record<Tema, string> = { claro: '#0B1426', escuro: '#0C1527' };
 
 function aplicar(tema: Tema) {
   document.documentElement.dataset.tema = tema;
