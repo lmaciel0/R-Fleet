@@ -48,8 +48,8 @@ export const ArquivadasView: React.FC<ArquivadasViewProps> = ({ versaoDados, onS
 
   if (ordens === null) {
     return (
-      <div className="py-20 text-center text-slate-400">
-        <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+      <div className="py-20 text-center text-aco">
+        <div className="w-8 h-8 border-2 border-mercosul border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-sm">Carregando OS arquivadas...</p>
       </div>
     );
@@ -57,19 +57,19 @@ export const ArquivadasView: React.FC<ArquivadasViewProps> = ({ versaoDados, onS
 
   if (ordens.length === 0) {
     return (
-      <div className="py-20 text-center text-slate-400">
-        <Archive className="w-10 h-10 mx-auto mb-3 text-slate-600" />
+      <div className="py-20 text-center text-aco">
+        <Archive className="w-10 h-10 mx-auto mb-3 text-trilho" />
         <p className="text-sm">Nenhuma OS arquivada.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <div className="bg-etiqueta border border-trilho rounded-2xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="border-b border-slate-800 bg-slate-950/80 text-slate-400 font-semibold uppercase tracking-wider">
+            <tr className="border-b border-trilho bg-parede/60 text-aco font-semibold uppercase tracking-wider">
               <th className="py-3.5 px-4">Placa</th>
               <th className="py-3.5 px-4">Veículo / Modelo</th>
               <th className="py-3.5 px-4">Origem</th>
@@ -78,23 +78,23 @@ export const ArquivadasView: React.FC<ArquivadasViewProps> = ({ versaoDados, onS
               <th className="py-3.5 px-4 text-right">Valor</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/80">
+          <tbody className="divide-y divide-trilho">
             {ordens.map((ordem) => (
               <tr
                 key={ordem.id}
                 onClick={() => onSelecionarOrdem(ordem)}
                 onKeyDown={ativarComTeclado(() => onSelecionarOrdem(ordem))}
                 tabIndex={0}
-                className="hover:bg-slate-800/60 focus-visible:-outline-offset-2 transition-colors cursor-pointer"
+                className="hover:bg-parede focus-visible:-outline-offset-2 transition-colors cursor-pointer"
               >
                 <td className="py-3 px-4">
                   <PlacaBadge placa={ordem.placa} mercosul={ordem.mercosul} size="sm" />
                 </td>
-                <td className="py-3 px-4 font-medium text-slate-100 max-w-[200px] truncate">{ordem.modelo}</td>
-                <td className="py-3 px-4 text-slate-300">{ordem.origemNome || '-'}</td>
-                <td className="py-3 px-4 text-slate-300">{ordem.etapaDescricao}</td>
-                <td className="py-3 px-4 text-slate-400 font-mono">{formatarData(ordem.dataEntrada)}</td>
-                <td className="py-3 px-4 text-right font-mono font-bold text-slate-100">
+                <td className="py-3 px-4 font-medium text-grafite max-w-[200px] truncate">{ordem.modelo}</td>
+                <td className="py-3 px-4 text-grafite">{ordem.origemNome || '-'}</td>
+                <td className="py-3 px-4 text-grafite">{ordem.etapaDescricao}</td>
+                <td className="py-3 px-4 text-aco font-placa tabular-nums">{formatarData(ordem.dataEntrada)}</td>
+                <td className="py-3 px-4 text-right font-placa tabular-nums font-bold text-grafite">
                   {formatarMoeda(ordem.valorOrcamento)}
                 </td>
               </tr>
@@ -102,7 +102,7 @@ export const ArquivadasView: React.FC<ArquivadasViewProps> = ({ versaoDados, onS
           </tbody>
         </table>
       </div>
-      <div className="px-4 py-3 border-t border-slate-800 bg-slate-950/60 text-xs text-slate-400">
+      <div className="px-4 py-3 border-t border-trilho bg-parede/60 text-xs text-aco">
         {ordens.length} {ordens.length === 1 ? 'OS arquivada' : 'OS arquivadas'}. Clique numa linha para ver o
         motivo, restaurar ou excluir de vez.
       </div>

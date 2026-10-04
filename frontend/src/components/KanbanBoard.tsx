@@ -8,58 +8,18 @@ interface KanbanBoardProps {
   onTransicionarEtapa: (ordemId: number, novaEtapa: EtapaOrdemServico) => void;
 }
 
-interface ColunaDef {
-  etapa: EtapaOrdemServico;
-  titulo: string;
-  corBorda: string;
-  corTag: string;
-}
-
-const COLUNAS: ColunaDef[] = [
-  {
-    etapa: 'AGUARDANDO_ORCAMENTO',
-    titulo: 'Aguardando Orçamento',
-    corBorda: 'border-slate-500/40',
-    corTag: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
-  },
-  {
-    etapa: 'ORCAMENTO',
-    titulo: 'Orçamento',
-    corBorda: 'border-blue-500/40',
-    corTag: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  },
-  {
-    etapa: 'APROVADO',
-    titulo: 'Aprovado',
-    corBorda: 'border-teal-500/40',
-    corTag: 'bg-teal-500/20 text-teal-300 border-teal-500/30',
-  },
-  {
-    etapa: 'EM_SERVICO',
-    titulo: 'Em Serviço',
-    corBorda: 'border-amber-500/40',
-    corTag: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-  },
-  {
-    etapa: 'FINALIZADO',
-    titulo: 'Finalizado',
-    corBorda: 'border-purple-500/40',
-    corTag: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-  },
-  {
-    etapa: 'AGUARDANDO_RETIRADA',
-    titulo: 'Aguardando Retirada',
-    corBorda: 'border-emerald-500/40',
-    corTag: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-  },
-  {
-    etapa: 'ENTREGUE',
-    titulo: 'Entregue',
-    corBorda: 'border-zinc-600/40',
-    corTag: 'bg-zinc-700/30 text-zinc-300 border-zinc-600/30',
-  },
+// A etapa é identificada pela posição e pelo nome; cor fica reservada para o semáforo
+const COLUNAS: { etapa: EtapaOrdemServico; titulo: string }[] = [
+  { etapa: 'AGUARDANDO_ORCAMENTO', titulo: 'Aguardando orçamento' },
+  { etapa: 'ORCAMENTO', titulo: 'Orçamento' },
+  { etapa: 'APROVADO', titulo: 'Aprovado' },
+  { etapa: 'EM_SERVICO', titulo: 'Em serviço' },
+  { etapa: 'FINALIZADO', titulo: 'Finalizado' },
+  { etapa: 'AGUARDANDO_RETIRADA', titulo: 'Aguardando retirada' },
+  { etapa: 'ENTREGUE', titulo: 'Entregue' },
 ];
 
+/** Quadro de chaves: cada coluna é um trilho com as etiquetas dos carros daquela etapa. */
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   ordens,
   onSelecionarOrdem,
@@ -67,12 +27,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 }) => {
   const [dragOverCol, setDragOverCol] = useState<EtapaOrdemServico | null>(null);
 
-  const getEtapaSeguinte = (etapaAtual: EtapaOrdemServico): EtapaOrdemServico | undefined => {
+  const colunaSeguinte = (etapaAtual: EtapaOrdemServico) => {
     const idx = COLUNAS.findIndex((c) => c.etapa === etapaAtual);
-    if (idx >= 0 && idx < COLUNAS.length - 1) {
-      return COLUNAS[idx + 1].etapa;
-    }
-    return undefined;
+    return idx >= 0 ? COLUNAS[idx + 1] : undefined;
   };
 
   const handleDrop = (e: React.DragEvent, novaEtapa: EtapaOrdemServico) => {
@@ -95,51 +52,46 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
   };
 
-  const handleDragLeave = () => {
-    setDragOverCol(null);
-  };
-
   return (
-    <div className="w-full overflow-x-auto pb-6">
-      <div className="flex gap-4 min-w-[1750px] px-1">
+    <div className="w-full overflow-x-auto pb-6 snap-x snap-mandatory md:snap-none">
+      <div className="flex gap-5 w-max">
         {COLUNAS.map((coluna) => {
           const ordensNaColuna = ordens.filter((o) => o.etapa === coluna.etapa);
+          const parados = ordensNaColuna.filter((o) => o.statusSla === 'VERMELHO').length;
           const isDragOver = dragOverCol === coluna.etapa;
 
           return (
-            <div
+            <section
               key={coluna.etapa}
+              aria-label={coluna.titulo}
               onDragOver={(e) => handleDragOver(e, coluna.etapa)}
-              onDragLeave={handleDragLeave}
+              onDragLeave={() => setDragOverCol(null)}
               onDrop={(e) => handleDrop(e, coluna.etapa)}
-              className={`flex-1 min-w-[240px] max-w-[270px] bg-slate-950/60 rounded-2xl border flex flex-col transition-all duration-200 ${
-                isDragOver
-                  ? 'border-sky-500 bg-sky-950/20 shadow-lg shadow-sky-500/10'
-                  : 'border-slate-800/80'
+              className={`w-[264px] shrink-0 snap-start flex flex-col rounded-md transition-colors ${
+                isDragOver ? 'bg-mercosul/5' : ''
               }`}
             >
-              {/* Cabeçalho da Coluna */}
-              <div className="p-3.5 border-b border-slate-800/80 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`w-2.5 h-2.5 rounded-full border ${coluna.corBorda} bg-current`} />
-                  <h3 className="text-xs font-bold text-slate-200 tracking-wide uppercase">
-                    {coluna.titulo}
-                  </h3>
+              {/* Cabeçalho e trilho */}
+              <div className="px-1">
+                <div className="flex items-baseline gap-2">
+                  <h3 className="font-placa text-[18px] leading-tight font-semibold text-grafite">{coluna.titulo}</h3>
+                  <span className="font-placa tabular-nums text-[18px] text-aco">{ordensNaColuna.length}</span>
+                  {parados > 0 && (
+                    <span className="ml-auto text-[13px] font-semibold text-vermelho">
+                      {parados} {parados === 1 ? 'parado' : 'parados'}
+                    </span>
+                  )}
                 </div>
-                <span
-                  className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${coluna.corTag}`}
-                >
-                  {ordensNaColuna.length}
-                </span>
+                <div
+                  aria-hidden="true"
+                  className={`mt-2 h-[3px] rounded-full transition-colors ${isDragOver ? 'bg-mercosul' : 'bg-grafite'}`}
+                />
               </div>
 
-              {/* Lista de Cards da Etapa */}
-              <div className="flex-1 p-2.5 space-y-2.5 overflow-y-auto max-h-[calc(100vh-210px)] min-h-[450px]">
+              {/* Etiquetas penduradas no trilho */}
+              <div className="flex-1 px-1 pt-3 pb-2 space-y-3 overflow-y-auto max-h-[calc(100vh-200px)] min-h-[420px]">
                 {ordensNaColuna.length === 0 ? (
-                  <div className="h-40 flex flex-col items-center justify-center text-center p-4 border border-dashed border-slate-800 rounded-xl text-slate-400 text-xs">
-                    <span>Nenhum veículo</span>
-                    <span className="text-[11px] opacity-70">nesta etapa</span>
-                  </div>
+                  <p className="pt-2 text-[14px] text-aco">Nenhum carro nesta etapa</p>
                 ) : (
                   ordensNaColuna.map((ordem) => (
                     <KanbanCard
@@ -147,15 +99,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       ordem={ordem}
                       onSelecionar={onSelecionarOrdem}
                       onAvancarEtapa={(o) => {
-                        const prox = getEtapaSeguinte(o.etapa);
-                        if (prox) onTransicionarEtapa(o.id, prox);
+                        const prox = colunaSeguinte(o.etapa);
+                        if (prox) onTransicionarEtapa(o.id, prox.etapa);
                       }}
-                      etapaSeguinte={getEtapaSeguinte(ordem.etapa)}
+                      tituloEtapaSeguinte={colunaSeguinte(ordem.etapa)?.titulo}
                     />
                   ))
                 )}
               </div>
-            </div>
+            </section>
           );
         })}
       </div>

@@ -1,12 +1,26 @@
 @import "tailwindcss";
 
-/* Tailwind v4 lê os tokens daqui; o tailwind.config.js (formato v3) não era carregado */
+/*
+ * Tokens do visual "Quadro de chaves" (docs/superpowers/specs/2026-10-04-visual-quadro-de-chaves-design.md).
+ * Cor é status: azul Mercosul é ação; verde, amarelo e vermelho só aparecem como semáforo.
+ */
 @theme {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Barlow', system-ui, sans-serif;
+  /* Placas, nomes de etapa e números (sempre com tabular-nums) */
+  --font-placa: 'Barlow Semi Condensed', 'Barlow', sans-serif;
 
-  --color-slate-850: #151f32;
-  --color-slate-950: #080d1a;
+  --color-parede: #e2e5e3;
+  --color-etiqueta: #ffffff;
+  --color-grafite: #23272b;
+  --color-aco: #566064;
+  --color-trilho: #bfc5c7;
+  --color-mercosul: #003399;
+
+  /* Semáforo da planilha original */
+  --color-verde: #1b7340;
+  --color-amarelo: #e8a600;
+  --color-amarelo-tinta: #7a5200;
+  --color-vermelho: #b3261e;
 }
 
 * {
@@ -15,8 +29,8 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-slate-950);
-  color: var(--color-slate-50);
+  background-color: var(--color-parede);
+  color: var(--color-grafite);
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -27,8 +41,19 @@ body {
 /* Foco visível para quem navega pelo teclado; os campos com focus:ring continuam com o anel deles */
 @layer base {
   :focus-visible {
-    outline: 2px solid var(--color-sky-400);
+    outline: 2px solid var(--color-mercosul);
     outline-offset: 2px;
+  }
+}
+
+/*
+ * Etiqueta de chave: cantos de cima chanfrados. A camada de fora (.etiqueta-borda) tem 1px de padding
+ * e a cor da borda; a de dentro (.etiqueta-face) é a superfície branca.
+ */
+@layer components {
+  .etiqueta-borda,
+  .etiqueta-face {
+    clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%, 0 14px);
   }
 }
 
@@ -50,14 +75,14 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #080d1a;
+  background: var(--color-parede);
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--color-trilho);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--color-aco);
 }
 
 @keyframes slideIn {

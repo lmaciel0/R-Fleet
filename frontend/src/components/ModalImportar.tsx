@@ -51,30 +51,30 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-grafite/40 backdrop-blur-sm animate-fade-in">
       <div
         ref={dialogoRef}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-importar-titulo"
-        className="outline-none bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="outline-none bg-etiqueta border border-trilho w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
       >
         {/* Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+        <div className="p-5 border-b border-trilho flex items-center justify-between bg-parede/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-9 h-9 rounded-xl bg-verde/10 border border-verde/40 flex items-center justify-center text-verde">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h3 id="modal-importar-titulo" className="text-base font-bold text-slate-100">Importar Planilha Legada</h3>
-              <p className="text-xs text-slate-400">Migração de dados do Excel (.xlsx ou .csv)</p>
+              <h3 id="modal-importar-titulo" className="text-base font-bold text-grafite">Importar Planilha Legada</h3>
+              <p className="text-xs text-aco">Migração de dados do Excel (.xlsx ou .csv)</p>
             </div>
           </div>
           <button
             onClick={onFechar}
             aria-label="Fechar"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-aco hover:text-grafite hover:bg-parede transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -83,29 +83,29 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
         {/* Conteúdo */}
         <div className="p-6 overflow-y-auto space-y-5 flex-1">
           {erro && (
-            <div role="alert" className="p-3 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-300 text-xs flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+            <div role="alert" className="p-3 bg-vermelho/10 border border-vermelho/40 rounded-xl text-vermelho text-xs flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-vermelho mt-0.5" />
               <span>{erro}</span>
             </div>
           )}
 
           {/* Instruções de colunas */}
-          <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2 text-xs">
-            <div className="flex items-center gap-1.5 text-sky-400 font-bold">
+          <div className="bg-parede/60 p-4 rounded-xl border border-trilho space-y-2 text-xs">
+            <div className="flex items-center gap-1.5 text-mercosul font-bold">
               <Info className="w-4 h-4" />
               <span>Estrutura Esperada das Colunas:</span>
             </div>
-            <p className="text-slate-300 leading-relaxed">
+            <p className="text-grafite leading-relaxed">
               A primeira linha deve ser o cabeçalho. As colunas devem estar na seguinte ordem:
             </p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-slate-400 font-mono pt-1">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-aco font-placa tabular-nums pt-1">
               <div>A: OS / Número</div>
               <div>B: Placa *</div>
               <div>C: Modelo *</div>
               <div>D: Origem / Locadora</div>
               <div>E: Tipo de Serviço</div>
               <div>F: Etapa / Status</div>
-              <div className="text-emerald-400 font-bold">G: Data de Entrada *</div>
+              <div className="text-verde font-bold">G: Data de Entrada *</div>
               <div>H: Data de Saída</div>
               <div>I: Valor Orçado (R$)</div>
               <div>J: Faturado (Sim/Não)</div>
@@ -114,7 +114,7 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
           </div>
 
           {/* Dropzone */}
-          <div className="border-2 border-dashed border-slate-700 hover:border-emerald-500 has-[:focus-visible]:border-emerald-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sky-400 rounded-2xl p-6 text-center transition-colors">
+          <div className="border-2 border-dashed border-trilho hover:border-verde has-[:focus-visible]:border-verde/40 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-mercosul rounded-2xl p-6 text-center transition-colors">
             <input
               type="file"
               id="planilha-upload"
@@ -127,13 +127,13 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
               htmlFor="planilha-upload"
               className="cursor-pointer flex flex-col items-center justify-center space-y-2"
             >
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-1">
+              <div className="w-12 h-12 rounded-2xl bg-verde/10 border border-verde/40 flex items-center justify-center text-verde mb-1">
                 <Upload className="w-6 h-6" />
               </div>
-              <span className="text-xs font-bold text-emerald-400 hover:underline">
+              <span className="text-xs font-bold text-verde hover:underline">
                 {arquivo ? arquivo.name : 'Selecione ou arraste o arquivo aqui'}
               </span>
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[11px] text-aco">
                 Suporta planilhas Excel (.xlsx) e arquivos delimitados (.csv)
               </span>
             </label>
@@ -141,33 +141,33 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
 
           {/* Resumo da Importação */}
           {resultado && (
-            <div role="status" className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 space-y-3">
-              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <div role="status" className="bg-parede/60 p-4 rounded-xl border border-trilho space-y-3">
+              <h4 className="text-xs font-bold text-grafite uppercase tracking-wider flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-verde" />
                 Resultado da Importação
               </h4>
 
               <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                <div className="bg-slate-900 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 block text-[10px]">Lidas</span>
-                  <strong className="font-mono text-slate-100">{resultado.totalLinhasLidas}</strong>
+                <div className="bg-etiqueta p-2 rounded-lg border border-trilho">
+                  <span className="text-aco block text-[10px]">Lidas</span>
+                  <strong className="font-placa tabular-nums text-grafite">{resultado.totalLinhasLidas}</strong>
                 </div>
-                <div className="bg-slate-900 p-2 rounded-lg border border-slate-800">
-                  <span className="text-emerald-400 block text-[10px]">Importadas</span>
-                  <strong className="font-mono text-emerald-400">{resultado.totalImportadas}</strong>
+                <div className="bg-etiqueta p-2 rounded-lg border border-trilho">
+                  <span className="text-verde block text-[10px]">Importadas</span>
+                  <strong className="font-placa tabular-nums text-verde">{resultado.totalImportadas}</strong>
                 </div>
-                <div className="bg-slate-900 p-2 rounded-lg border border-slate-800">
-                  <span className="text-amber-400 block text-[10px]">Ignoradas</span>
-                  <strong className="font-mono text-amber-400">{resultado.totalIgnoradas}</strong>
+                <div className="bg-etiqueta p-2 rounded-lg border border-trilho">
+                  <span className="text-amarelo-tinta block text-[10px]">Ignoradas</span>
+                  <strong className="font-placa tabular-nums text-amarelo-tinta">{resultado.totalIgnoradas}</strong>
                 </div>
-                <div className="bg-slate-900 p-2 rounded-lg border border-slate-800">
-                  <span className="text-rose-400 block text-[10px]">Erros</span>
-                  <strong className="font-mono text-rose-400">{resultado.totalErros}</strong>
+                <div className="bg-etiqueta p-2 rounded-lg border border-trilho">
+                  <span className="text-vermelho block text-[10px]">Erros</span>
+                  <strong className="font-placa tabular-nums text-vermelho">{resultado.totalErros}</strong>
                 </div>
               </div>
 
               {resultado.mensagens.length > 0 && (
-                <div className="max-h-36 overflow-y-auto space-y-1 text-[11px] text-slate-400 font-mono bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                <div className="max-h-36 overflow-y-auto space-y-1 text-[11px] text-aco font-placa tabular-nums bg-etiqueta p-2.5 rounded-lg border border-trilho">
                   {resultado.mensagens.map((msg, idx) => (
                     <div key={idx} className="leading-tight">
                       &bull; {msg}
@@ -180,11 +180,11 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
         </div>
 
         {/* Rodapé */}
-        <div className="p-4 border-t border-slate-800 flex items-center justify-end gap-3 bg-slate-950/60">
+        <div className="p-4 border-t border-trilho flex items-center justify-end gap-3 bg-parede/60">
           <button
             type="button"
             onClick={onFechar}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-aco hover:text-grafite hover:bg-parede transition-colors cursor-pointer"
           >
             Fechar
           </button>
@@ -193,7 +193,7 @@ export const ModalImportar: React.FC<ModalImportarProps> = ({ onFechar, onSucess
             type="button"
             disabled={!arquivo || importando}
             onClick={handleImportar}
-            className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-lg shadow-emerald-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
           >
             {importando ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
