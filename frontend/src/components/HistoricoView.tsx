@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { History, FileSpreadsheet, FileText } from 'lucide-react';
+import { History, FileSpreadsheet, FileText, Archive } from 'lucide-react';
 import { HistoricoMes, OrdemServico } from '../types';
 import { api } from '../services/api';
 import { PlacaBadge } from './PlacaBadge';
+import { ArquivadasView } from './ArquivadasView';
 import { intervaloDoMes, rotuloMesCurto, rotuloMesLongo } from '../utils/meses';
 
 interface HistoricoViewProps {
@@ -15,7 +16,8 @@ interface HistoricoViewProps {
 const mesmoMes = (a: HistoricoMes | null, b: HistoricoMes) =>
   a !== null && a.ano === b.ano && a.mes === b.mes;
 
-export const HistoricoView: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecionarOrdem, onErro }) => {
+/** Veículos entregues, agrupados pelo mês de saída. */
+const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecionarOrdem, onErro }) => {
   const [meses, setMeses] = useState<HistoricoMes[] | null>(null);
   const [mesSelecionado, setMesSelecionado] = useState<HistoricoMes | null>(null);
   const [ordens, setOrdens] = useState<OrdemServico[]>([]);
@@ -231,6 +233,34 @@ export const HistoricoView: React.FC<HistoricoViewProps> = ({ versaoDados, onSel
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+export const HistoricoView: React.FC<HistoricoViewProps> = (props) => {
+  const [visao, setVisao] = useState<'entregues' | 'arquivadas'>('entregues');
+
+  const classeBotao = (ativo: boolean) =>
+    `flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+      ativo
+        ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+        : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-slate-200'
+    }`;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <button onClick={() => setVisao('entregues')} className={classeBotao(visao === 'entregues')}>
+          <History className="w-4 h-4" />
+          <span>Entregues</span>
+        </button>
+        <button onClick={() => setVisao('arquivadas')} className={classeBotao(visao === 'arquivadas')}>
+          <Archive className="w-4 h-4" />
+          <span>Arquivadas</span>
+        </button>
+      </div>
+
+      {visao === 'entregues' ? <EntreguesPorMes {...props} /> : <ArquivadasView {...props} />}
     </div>
   );
 };

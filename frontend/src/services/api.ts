@@ -224,13 +224,6 @@ export const api = {
     return request(`/veiculos/buscar-placa/${sanitizada}`);
   },
 
-  // Apaga o veículo com todas as ordens de serviço, o histórico e os anexos dele
-  async excluirVeiculo(id: number): Promise<void> {
-    return request(`/veiculos/${idNaUrl(id)}`, {
-      method: 'DELETE',
-    });
-  },
-
   // Ordens de Serviço
   async listarOrdens(filtros: Record<string, any> = {}): Promise<OrdemServico[]> {
     const params = new URLSearchParams();
@@ -301,9 +294,11 @@ export const api = {
     return request(`/ordens-servico/${idNaUrl(id)}/historico`);
   },
 
-  async arquivarOrdem(id: number): Promise<void> {
-    return request(`/ordens-servico/${idNaUrl(id)}`, {
-      method: 'DELETE',
+  // Arquiva (motivo obrigatório) ou restaura a OS; a mudança fica na linha do tempo
+  async alterarArquivamento(id: number, arquivada: boolean, motivo?: string): Promise<OrdemServico> {
+    return request(`/ordens-servico/${idNaUrl(id)}/arquivamento`, {
+      method: 'PATCH',
+      body: JSON.stringify({ arquivada, motivo }),
     });
   },
 
