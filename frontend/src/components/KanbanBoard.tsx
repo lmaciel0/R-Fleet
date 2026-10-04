@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { FileSpreadsheet, Plus } from 'lucide-react';
+import { AlertTriangle, ChevronsRight, FileSpreadsheet, Plus } from 'lucide-react';
 import { OrdemServico, EtapaOrdemServico } from '../types';
 import { KanbanCard } from './KanbanCard';
 import { ETAPAS } from '../utils/etapas';
+import { useTelaLarga } from '../utils/tela';
 
 interface KanbanBoardProps {
   ordens: OrdemServico[];
@@ -27,6 +28,60 @@ const GanchosVazios: React.FC = () => (
   </svg>
 );
 
+type FiltroCelular = EtapaOrdemServico | 'PARADOS';
+
+// A raia "Entregue" começa recolhida: no dia a dia ela só ocupa espaço. A escolha fica neste navegador.
+const CHAVE_ENTREGUE = 'rfleet_entregue_aberta';
+const lerEntregueAberta = () => {
+  try {
+    return localStorage.getItem(CHAVE_ENTREGUE) === 'sim';
+  } catch {
+    return false;
+  }
+};
+const salvarEntregueAberta = (aberta: boolean) => {
+  try {
+    localStorage.setItem(CHAVE_ENTREGUE, aberta ? 'sim' : 'nao');
+  } catch {
+    // Sem armazenamento: vale só nesta visita
+  }
+};
+
+/** Esqueleto do quadro enquanto os carros carregam, no lugar de um spinner */
+export const QuadroFantasma: React.FC = () => (
+  <div aria-busy="true" className="w-full overflow-hidden">
+    <span className="sr-only">Carregando o quadro</span>
+    <div aria-hidden="true" className="flex gap-4 w-max animate-pulse">
+      {[3, 2, 1, 2, 1].map((cartoes, i) => (
+        <div key={i} className="w-[272px] rounded-xl border border-trilho bg-etiqueta/45 overflow-hidden">
+          <div className="h-1 bg-trilho" />
+          <div className="px-3 py-3 flex items-center gap-2 border-b border-trilho/70">
+            <span className="w-2.5 h-2.5 rounded-full bg-trilho" />
+            <span className="h-4 w-32 rounded bg-trilho" />
+            <span className="ml-auto h-5 w-6 rounded bg-trilho" />
+          </div>
+          <div className="p-2.5 space-y-2.5">
+            {Array.from({ length: cartoes }).map((_, j) => (
+              <div key={j} className="rounded-[3px] bg-etiqueta border border-trilho">
+                <div className="h-4 bg-trilho/70" />
+                <div className="p-3 space-y-2.5">
+                  <div className="flex justify-between">
+                    <span className="h-4 w-16 rounded bg-trilho/70" />
+                    <span className="h-8 w-24 rounded bg-trilho/70" />
+                  </div>
+                  <span className="block h-4 w-36 rounded bg-trilho/70" />
+                  <span className="block h-5 w-28 rounded bg-trilho/50" />
+                  <span className="block h-5 w-24 rounded bg-trilho/70" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 /** Quadro de chaves: cada coluna é uma raia com as etiquetas dos carros daquela etapa. */
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   ordens,
@@ -36,6 +91,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onImportar,
 }) => {
   const [dragOverCol, setDragOverCol] = useState<EtapaOrdemServico | null>(null);
+  const telaLarga = useTelaLarga();
+  // Celular: qual etapa a lista mostra (null = escolha automática)
+  const [filtroCelular, setFiltroCelular] = useState<FiltroCelular | null>(null);
+  const [entregueAberta, setEntregueAberta] = useState(lerEntregueAberta);
 
   const etapaSeguinte = (etapaAtual: EtapaOrdemServico) => {
     const idx = ETAPAS.findIndex((c) => c.etapa === etapaAtual);
@@ -91,13 +150,111 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     );
   }
 
+  const cartao = (ordem: OrdemServico) => (
+    <KanbanCard
+      key={ordem.id}
+      ordem={ordem}
+      onSelecionar={onSelecionarOrdem}
+      onAvancarEtapa={(o) => {
+        const prox = etapaSeguinte(o.etapa);
+        if (prox) onTransicionarEtapa(o.id, prox.etapa);
+      }}
+      etapaSeguinte={etapaSeguinte(ordem.etapa)}
+    />
+  );
+
+  const parados = ordens.filter((o) => o.statusSla === 'VERMELHO');
+
+  // Celular: uma etapa por vez, escolhida nos chips, em lista vertical. Abre nos parados, se houver.
+  if (!telaLarga) {
+    const primeiraComCarro = ETAPAS.find((e) => ordens.some((o) => o.etapa === e.etapa)) ?? ETAPAS[0];
+    const filtro: FiltroCelular = filtroCelular ?? (parados.length > 0 ? 'PARADOS' : primeiraComCarro.etapa);
+    const lista = filtro === 'PARADOS' ? parados : ordens.filter((o) => o.etapa === filtro);
+    const titulo = filtro === 'PARADOS' ? 'Parados' : (ETAPAS.find((e) => e.etapa === filtro)?.titulo ?? '');
+
+    const classeChip = (ativo: boolean, fundoAtivo: string) =>
+      `shrink-0 snap-start flex items-center gap-2 min-h-11 pl-3 pr-2 rounded-lg border font-placa text-[15px] font-semibold cursor-pointer transition-colors ${
+        ativo ? `${fundoAtivo} border-transparent text-sobre-cor` : 'bg-etiqueta border-trilho text-grafite'
+      }`;
+
+    return (
+      <div className="-mx-4 sm:-mx-6">
+        <div className="relative">
+          <div
+            role="group"
+            aria-label="Etapa mostrada"
+            className="flex gap-2 overflow-x-auto snap-x px-4 sm:px-6 pb-3 [scrollbar-width:none]"
+          >
+            {parados.length > 0 && (
+              <button
+                type="button"
+                aria-pressed={filtro === 'PARADOS'}
+                onClick={() => setFiltroCelular('PARADOS')}
+                className={classeChip(filtro === 'PARADOS', 'bg-vermelho')}
+              >
+                <AlertTriangle className={`w-4 h-4 ${filtro === 'PARADOS' ? '' : 'text-vermelho'}`} aria-hidden="true" />
+                Parados
+                <span className="min-w-6 px-1 rounded-[4px] bg-black/15 text-center tabular-nums">{parados.length}</span>
+              </button>
+            )}
+            {ETAPAS.map((e) => {
+              const qtd = ordens.filter((o) => o.etapa === e.etapa).length;
+              const ativo = filtro === e.etapa;
+              return (
+                <button
+                  key={e.etapa}
+                  type="button"
+                  aria-pressed={ativo}
+                  onClick={() => setFiltroCelular(e.etapa)}
+                  className={classeChip(ativo, e.fundo)}
+                >
+                  {!ativo && <span aria-hidden="true" className={`w-2.5 h-2.5 rounded-full ${e.fundo}`} />}
+                  {e.titulo}
+                  <span
+                    className={`min-w-6 px-1 rounded-[4px] text-center tabular-nums ${
+                      ativo ? 'bg-black/15' : qtd > 0 ? 'bg-parede' : 'text-aco'
+                    }`}
+                  >
+                    {qtd}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {/* Esmaecido na borda direita: indica que há mais etapas ao deslizar */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute right-0 top-0 bottom-3 w-8 bg-gradient-to-l from-parede to-transparent"
+          />
+        </div>
+
+        <section aria-label={titulo} className="px-4 sm:px-6">
+          {lista.length === 0 ? (
+            <p className="py-10 rounded-lg border border-dashed border-trilho text-center text-[15px] text-aco">
+              Nenhum carro em {titulo.toLowerCase()}
+            </p>
+          ) : (
+            <div className="space-y-3">{lista.map(cartao)}</div>
+          )}
+        </section>
+      </div>
+    );
+  }
+
+  const alternarEntregue = () => {
+    salvarEntregueAberta(!entregueAberta);
+    setEntregueAberta(!entregueAberta);
+  };
+
   return (
-    <div className="w-full overflow-x-auto pb-4 snap-x snap-mandatory md:snap-none">
+    <div className="w-full overflow-x-auto pb-4">
       <div className="flex gap-4 w-max">
         {ETAPAS.map((coluna) => {
           const ordensNaColuna = ordens.filter((o) => o.etapa === coluna.etapa);
-          const parados = ordensNaColuna.filter((o) => o.statusSla === 'VERMELHO').length;
+          const paradosNaColuna = ordensNaColuna.filter((o) => o.statusSla === 'VERMELHO').length;
           const isDragOver = dragOverCol === coluna.etapa;
+          const recolhivel = coluna.etapa === 'ENTREGUE';
+          const recolhida = recolhivel && !entregueAberta;
 
           return (
             <section
@@ -106,49 +263,71 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               onDragOver={(e) => handleDragOver(e, coluna.etapa)}
               onDragLeave={() => setDragOverCol(null)}
               onDrop={(e) => handleDrop(e, coluna.etapa)}
-              className={`relative w-[272px] shrink-0 snap-start flex flex-col rounded-xl border overflow-hidden transition-colors ${
-                isDragOver ? 'border-mercosul bg-mercosul/10' : 'border-trilho bg-etiqueta/45'
-              }`}
+              className={`relative shrink-0 flex flex-col rounded-xl border overflow-hidden transition-colors ${
+                recolhida ? 'w-14' : 'w-[272px]'
+              } ${isDragOver ? 'border-mercosul bg-mercosul/10' : 'border-trilho bg-etiqueta/45'}`}
             >
               {/* Trilho na cor da etapa, no topo da raia */}
               <div aria-hidden="true" className={`h-1 ${coluna.fundo}`} />
 
-              <div className="px-3 pt-2.5 pb-2.5 flex items-center gap-2 border-b border-trilho/70">
-                <span aria-hidden="true" className={`w-2.5 h-2.5 rounded-full shrink-0 ${coluna.fundo}`} />
-                <h3 className="font-placa text-[17px] leading-tight font-semibold text-grafite truncate">{coluna.titulo}</h3>
-                {parados > 0 && (
-                  <span className="ml-auto text-[13px] font-semibold text-vermelho shrink-0">
-                    {parados} {parados === 1 ? 'parado' : 'parados'}
-                  </span>
-                )}
-                <span
-                  className={`${parados > 0 ? '' : 'ml-auto'} min-w-6 px-1.5 rounded-[4px] text-center font-placa tabular-nums text-[15px] font-semibold text-sobre-cor shrink-0 ${coluna.fundo}`}
+              {recolhida ? (
+                // Recolhida: só a contagem e o nome na vertical; soltar um card aqui continua funcionando
+                <button
+                  type="button"
+                  onClick={alternarEntregue}
+                  aria-expanded={false}
+                  aria-label={`Mostrar ${coluna.titulo.toLowerCase()} (${ordensNaColuna.length})`}
+                  title={`Mostrar ${coluna.titulo.toLowerCase()}`}
+                  className="flex-1 flex flex-col items-center gap-3 pt-3 text-grafite hover:bg-etiqueta/60 cursor-pointer"
                 >
-                  {ordensNaColuna.length}
-                </span>
-              </div>
+                  <span
+                    className={`min-w-6 px-1.5 rounded-[4px] text-center font-placa tabular-nums text-[15px] font-semibold text-sobre-cor ${coluna.fundo}`}
+                  >
+                    {ordensNaColuna.length}
+                  </span>
+                  <span className="font-placa text-[17px] font-semibold [writing-mode:vertical-rl]">{coluna.titulo}</span>
+                </button>
+              ) : (
+                <>
+                  <div className="px-3 pt-2.5 pb-2.5 flex items-center gap-2 border-b border-trilho/70">
+                    <span aria-hidden="true" className={`w-2.5 h-2.5 rounded-full shrink-0 ${coluna.fundo}`} />
+                    <h3 className="font-placa text-[17px] leading-tight font-semibold text-grafite truncate">{coluna.titulo}</h3>
+                    {paradosNaColuna > 0 && (
+                      <span className="ml-auto text-[13px] font-semibold text-vermelho shrink-0">
+                        {paradosNaColuna} {paradosNaColuna === 1 ? 'parado' : 'parados'}
+                      </span>
+                    )}
+                    <span
+                      className={`${paradosNaColuna > 0 ? '' : 'ml-auto'} min-w-6 px-1.5 rounded-[4px] text-center font-placa tabular-nums text-[15px] font-semibold text-sobre-cor shrink-0 ${coluna.fundo}`}
+                    >
+                      {ordensNaColuna.length}
+                    </span>
+                    {recolhivel && (
+                      <button
+                        type="button"
+                        onClick={alternarEntregue}
+                        aria-expanded={true}
+                        aria-label={`Recolher ${coluna.titulo.toLowerCase()}`}
+                        title="Recolher"
+                        className="-mr-1 p-1 rounded-md text-aco hover:text-grafite hover:bg-parede cursor-pointer"
+                      >
+                        <ChevronsRight className="w-4 h-4" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
 
-              {/* Etiquetas penduradas na raia */}
-              <div className="p-2.5 space-y-2.5 overflow-y-auto max-h-[calc(100vh-200px)]">
-                {ordensNaColuna.length === 0 ? (
-                  <p className="py-6 rounded-lg border border-dashed border-trilho text-center text-[14px] text-aco">
-                    Nenhum carro
-                  </p>
-                ) : (
-                  ordensNaColuna.map((ordem) => (
-                    <KanbanCard
-                      key={ordem.id}
-                      ordem={ordem}
-                      onSelecionar={onSelecionarOrdem}
-                      onAvancarEtapa={(o) => {
-                        const prox = etapaSeguinte(o.etapa);
-                        if (prox) onTransicionarEtapa(o.id, prox.etapa);
-                      }}
-                      etapaSeguinte={etapaSeguinte(ordem.etapa)}
-                    />
-                  ))
-                )}
-              </div>
+                  {/* Etiquetas penduradas na raia */}
+                  <div className="p-2.5 space-y-2.5 overflow-y-auto max-h-[calc(100vh-200px)]">
+                    {ordensNaColuna.length === 0 ? (
+                      <p className="py-6 rounded-lg border border-dashed border-trilho text-center text-[14px] text-aco">
+                        Nenhum carro
+                      </p>
+                    ) : (
+                      ordensNaColuna.map(cartao)
+                    )}
+                  </div>
+                </>
+              )}
             </section>
           );
         })}

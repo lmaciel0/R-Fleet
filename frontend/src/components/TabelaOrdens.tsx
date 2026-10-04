@@ -20,6 +20,8 @@ interface TabelaOrdensProps {
   onSelecionarOrdem: (ordem: OrdemServico) => void;
   onTransicionarEtapa?: (ordemId: number, novaEtapa: EtapaOrdemServico) => void;
   onErro?: (mensagem: string) => void;
+  /** Etapa já filtrada ao abrir (ex.: clique numa etapa do Painel) */
+  etapaInicial?: EtapaOrdemServico;
 }
 
 export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
@@ -28,9 +30,10 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
   tiposServico,
   onSelecionarOrdem,
   onErro,
+  etapaInicial,
 }) => {
   const [termo, setTermo] = useState('');
-  const [etapaFiltro, setEtapaFiltro] = useState<string>('');
+  const [etapaFiltro, setEtapaFiltro] = useState<string>(etapaInicial ?? '');
   const [origemFiltro, setOrigemFiltro] = useState<string>('');
   const [tipoServicoFiltro, setTipoServicoFiltro] = useState<string>('');
   const [faturadoFiltro, setFaturadoFiltro] = useState<string>('');

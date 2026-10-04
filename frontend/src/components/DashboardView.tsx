@@ -18,7 +18,7 @@ interface DashboardViewProps {
   onFiltrarEtapa?: (etapa: EtapaOrdemServico) => void;
 }
 
-export const DashboardView: React.FC<DashboardViewProps> = ({ metricas }) => {
+export const DashboardView: React.FC<DashboardViewProps> = ({ metricas, onFiltrarEtapa }) => {
   if (!metricas) {
     return (
       <div className="py-20 text-center text-aco">
@@ -152,37 +152,58 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ metricas }) => {
             <div>
               <h3 className="text-base font-bold text-grafite">Distribuição do Fluxo por Etapas</h3>
               <p className="text-xs text-aco mt-0.5">
-                Quantidade de veículos em cada estágio operacional da oficina
+                Carros do pátio em cada etapa. Clique numa etapa para ver os carros na tabela.
               </p>
             </div>
           </div>
 
-          <div className="space-y-3.5">
-            {ETAPAS.map(({ etapa, titulo: label, fundo }) => {
+          <ul className="-mx-2 space-y-0.5">
+            {/* Entregue fica fora das barras: não está no pátio, e a contagem é só do mês */}
+            {ETAPAS.filter(({ etapa }) => etapa !== 'ENTREGUE').map(({ etapa, titulo: label, fundo }) => {
               const count = metricas.distribuicaoPorEtapa[etapa] || 0;
-              const perc = totalPatio > 0 && etapa !== 'ENTREGUE'
-                ? Math.round((count / totalPatio) * 100)
-                : 0;
+              const perc = totalPatio > 0 ? Math.round((count / totalPatio) * 100) : 0;
 
               return (
-                <div key={etapa} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-grafite">{label}</span>
-                    <span className="font-placa tabular-nums text-grafite">
-                      {count} <span className="text-aco font-normal">({perc}%)</span>
+                <li key={etapa}>
+                  <button
+                    type="button"
+                    onClick={() => onFiltrarEtapa?.(etapa)}
+                    title={`Ver ${label.toLowerCase()} na tabela`}
+                    className="w-full px-2 py-1.5 space-y-1 rounded-lg text-left hover:bg-parede/70 cursor-pointer transition-colors"
+                  >
+                    <span className="flex items-center justify-between text-xs font-semibold">
+                      <span className="text-grafite">{label}</span>
+                      <span className="font-placa tabular-nums text-grafite">
+                        {count} <span className="text-aco font-normal">({perc}%)</span>
+                      </span>
                     </span>
-                  </div>
-                  {/* Barra de progresso */}
-                  <div className="w-full bg-parede h-2 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${fundo}`}
-                      style={{ width: `${Math.min(perc, 100)}%` }}
-                    />
-                  </div>
-                </div>
+                    {/* Barra de progresso */}
+                    <span aria-hidden="true" className="block w-full bg-parede h-2 rounded-full overflow-hidden">
+                      <span
+                        className={`block h-full rounded-full transition-all duration-500 ${fundo}`}
+                        style={{ width: `${Math.min(perc, 100)}%` }}
+                      />
+                    </span>
+                  </button>
+                </li>
               );
             })}
-          </div>
+          </ul>
+
+          <button
+            type="button"
+            onClick={() => onFiltrarEtapa?.('ENTREGUE')}
+            title="Ver os entregues do mês na tabela"
+            className="mt-4 -mx-2 w-[calc(100%+1rem)] px-2 pt-3 pb-1.5 flex items-center justify-between border-t border-trilho text-xs rounded-b-lg text-left hover:bg-parede/70 cursor-pointer transition-colors"
+          >
+            <span className="flex items-center gap-2 font-semibold text-grafite">
+              <CheckCircle2 className="w-4 h-4 text-etapa-entregue" aria-hidden="true" />
+              Entregues em {nomeMesAtual()}
+            </span>
+            <span className="font-placa tabular-nums text-[15px] font-semibold text-grafite">
+              {metricas.distribuicaoPorEtapa.ENTREGUE || 0}
+            </span>
+          </button>
         </div>
 
         {/* Distribuição por Locadora / Origem & Faturamento */}

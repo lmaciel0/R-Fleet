@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LayoutGrid, ListFilter, BarChart3, Plus, FileSpreadsheet, LogOut, History, Moon, Sun, LucideIcon } from 'lucide-react';
+import { LayoutGrid, ListFilter, BarChart3, Plus, FileSpreadsheet, LogOut, History, Moon, Sun, Search, LucideIcon } from 'lucide-react';
 import { AbaApp, DashboardMetricas } from '../types';
 import { useTema } from '../utils/tema';
 import { Marca } from './Marca';
@@ -10,6 +10,7 @@ interface NavbarProps {
   setAbaAtiva: (aba: AbaApp) => void;
   onAbrirNovaEntrada: () => void;
   onAbrirImportar: () => void;
+  onAbrirBusca: () => void;
   metricas?: DashboardMetricas | null;
 }
 
@@ -36,6 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setAbaAtiva,
   onAbrirNovaEntrada,
   onAbrirImportar,
+  onAbrirBusca,
   metricas,
 }) => {
   const { usuario, logout } = useAuth();
@@ -72,8 +74,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <p className="hidden xl:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-black/25 border border-noite-borda text-[14px] text-noite-suave">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Busca de placa: campo aparente em telas bem largas, só a lupa nas demais (atalho Ctrl+K) */}
+          <button
+            onClick={onAbrirBusca}
+            title="Buscar placa (Ctrl+K)"
+            aria-label="Buscar placa"
+            aria-keyshortcuts="Control+K"
+            className="flex items-center gap-2 p-2 2xl:pl-3 2xl:pr-2 2xl:w-52 rounded-md border border-noite-borda bg-black/25 text-noite-suave hover:text-noite-texto hover:border-noite-suave/50 transition-colors cursor-pointer"
+          >
+            <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span className="hidden 2xl:inline text-[14px]">Buscar placa</span>
+            <kbd className="hidden 2xl:inline ml-auto px-1.5 rounded border border-noite-borda font-sans text-[12px]">Ctrl K</kbd>
+          </button>
+
+          {/* Só com os números carregados: antes disso mostraria "0 no pátio" */}
+          <p className={`hidden ${metricas ? 'xl:flex' : ''} items-center gap-3 px-3 py-1.5 rounded-lg bg-black/25 border border-noite-borda text-[14px] text-noite-suave`}>
             <span>
               <strong className="font-placa tabular-nums text-[17px] font-semibold text-noite-texto">{totalPatio}</strong>{' '}
               no pátio
