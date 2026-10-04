@@ -2,7 +2,8 @@
 
 /*
  * Tokens do visual "Quadro de chaves" (docs/superpowers/specs/2026-10-04-visual-quadro-de-chaves-design.md).
- * Cor é status: azul Mercosul é ação; verde, amarelo e vermelho só aparecem como semáforo.
+ * Azul Mercosul é ação; cada etapa tem sua cor; verde, amarelo e vermelho são o semáforo de prazo.
+ * Os valores abaixo são do tema claro; o escuro redefine as mesmas variáveis em [data-tema="escuro"].
  */
 @theme {
   --font-sans: 'Barlow', system-ui, sans-serif;
@@ -21,6 +22,50 @@
   --color-amarelo: #e8a600;
   --color-amarelo-tinta: #7a5200;
   --color-vermelho: #b3261e;
+
+  /* Texto sobre fundo preenchido com uma das cores acima (botões, selos) */
+  --color-sobre-cor: #ffffff;
+
+  /* Cor de cada etapa, como ganchos coloridos no quadro */
+  --color-etapa-aguardando: #5a6b85;
+  --color-etapa-orcamento: #2459d6;
+  --color-etapa-aprovado: #0b7f7b;
+  --color-etapa-servico: #c2560a;
+  --color-etapa-finalizado: #6a3fc4;
+  --color-etapa-retirada: #23824b;
+  --color-etapa-entregue: #4a5056;
+
+  /* Furos do painel perfurado no fundo */
+  --color-furo: rgb(35 39 43 / 0.09);
+}
+
+/* Tema escuro: escolhido pelo usuário ou pelo sistema (script no index.html define data-tema antes de pintar) */
+:root[data-tema='escuro'] {
+  color-scheme: dark;
+
+  --color-parede: #171c20;
+  --color-etiqueta: #232a30;
+  --color-grafite: #e6eaec;
+  --color-aco: #a2acb2;
+  --color-trilho: #3a444b;
+  --color-mercosul: #7ea2ff;
+
+  --color-verde: #5cc98a;
+  --color-amarelo: #f0b847;
+  --color-amarelo-tinta: #f0b847;
+  --color-vermelho: #ff7a6e;
+
+  --color-sobre-cor: #14181b;
+
+  --color-etapa-aguardando: #9aabc4;
+  --color-etapa-orcamento: #7ea2ff;
+  --color-etapa-aprovado: #3fc7c0;
+  --color-etapa-servico: #ff9a4d;
+  --color-etapa-finalizado: #b595ff;
+  --color-etapa-retirada: #5cc98a;
+  --color-etapa-entregue: #aeb5ba;
+
+  --color-furo: rgb(0 0 0 / 0.32);
 }
 
 * {
@@ -30,6 +75,9 @@
 body {
   font-family: var(--font-sans);
   background-color: var(--color-parede);
+  /* Painel perfurado (eucatex de oficina): furos discretos em grade */
+  background-image: radial-gradient(circle, var(--color-furo) 1.3px, transparent 1.8px);
+  background-size: 18px 18px;
   color: var(--color-grafite);
   min-height: 100vh;
   margin: 0;

@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LayoutGrid, ListFilter, BarChart3, Plus, FileSpreadsheet, LogOut, History, LucideIcon } from 'lucide-react';
+import { LayoutGrid, ListFilter, BarChart3, Plus, FileSpreadsheet, LogOut, History, Moon, Sun, LucideIcon } from 'lucide-react';
 import { AbaApp, DashboardMetricas } from '../types';
+import { useTema } from '../utils/tema';
 
 interface NavbarProps {
   abaAtiva: AbaApp;
@@ -32,15 +33,24 @@ export const Navbar: React.FC<NavbarProps> = ({
   metricas,
 }) => {
   const { usuario, logout } = useAuth();
+  const { tema, alternar } = useTema();
+  const rotuloTema = tema === 'escuro' ? 'Usar tema claro' : 'Usar tema escuro';
 
   const totalPatio = metricas?.totalVeiculosPatio ?? 0;
   const parados = metricas?.veiculosEmAtraso ?? 0;
 
   return (
     <header className="sticky top-0 z-30 bg-etiqueta border-b border-trilho">
-      <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4 whitespace-nowrap">
+      <div className="px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4 whitespace-nowrap">
         <div className="flex items-center gap-8 h-full min-w-0">
-          <span className="font-placa text-[24px] font-bold leading-none text-grafite">R-Fleet</span>
+          <span className="flex items-center gap-2">
+            {/* Marca: uma etiqueta de chave */}
+            <svg viewBox="0 0 18 24" className="w-[18px] h-6" aria-hidden="true">
+              <path d="M5 0h8l5 5v19H0V5z" className="fill-mercosul" />
+              <circle cx="9" cy="6" r="2.4" className="fill-etiqueta" />
+            </svg>
+            <span className="font-placa text-[24px] font-bold leading-none text-grafite">R-Fleet</span>
+          </span>
 
           {/* Só ícones em telas médias, ícone + nome a partir de lg */}
           <nav aria-label="Seções" className="hidden md:flex items-center gap-6 h-full">
@@ -67,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               pátio
             </span>
             {parados > 0 && (
-              <span className="px-2 py-0.5 rounded-[3px] bg-vermelho text-white font-semibold">
+              <span className="px-2 py-0.5 rounded-[3px] bg-vermelho text-sobre-cor font-semibold">
                 <span className="font-placa tabular-nums">{parados}</span> {parados === 1 ? 'parado' : 'parados'}
               </span>
             )}
@@ -86,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onAbrirNovaEntrada}
             aria-label="Registrar entrada"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-mercosul hover:bg-mercosul/90 text-white text-[14px] font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-mercosul hover:bg-mercosul/90 text-sobre-cor text-[14px] font-semibold transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" aria-hidden="true" />
             <span className="hidden sm:inline">Registrar entrada</span>
@@ -96,6 +106,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden xl:block text-[14px] text-grafite truncate max-w-[140px]" title={usuario?.email || ''}>
               {usuario?.nome || 'Gestor'}
             </span>
+            <button
+              onClick={alternar}
+              title={rotuloTema}
+              aria-label={rotuloTema}
+              className="p-2 rounded-md text-aco hover:text-grafite transition-colors cursor-pointer"
+            >
+              {tema === 'escuro' ? <Sun className="w-4 h-4" aria-hidden="true" /> : <Moon className="w-4 h-4" aria-hidden="true" />}
+            </button>
             <button
               onClick={logout}
               title="Sair"

@@ -92,10 +92,10 @@ export const LoginView: React.FC = () => {
             <button
               type="submit"
               disabled={carregando}
-              className="w-full mt-2 bg-mercosul hover:bg-mercosul/90 text-white font-medium py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full mt-2 bg-mercosul hover:bg-mercosul/90 text-sobre-cor font-medium py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {carregando ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-sobre-cor/30 border-t-sobre-cor rounded-full animate-spin" />
               ) : (
                 <span>Entrar</span>
               )}

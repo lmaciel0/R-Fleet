@@ -7,6 +7,16 @@
     <meta name="description" content="R-Fleet — Sistema de Gestão e Controle Operacional de Veículos na Oficina Mecânica e Funilaria" />
     <meta name="theme-color" content="#E2E5E3" />
     <title>R-Fleet — Controle de Veículos</title>
+    <!-- Aplica o tema antes de pintar: escolha salva do usuário, senão o tema do sistema (ver src/utils/tema.ts) -->
+    <script>
+      (function () {
+        var salvo = null;
+        try { salvo = localStorage.getItem('rfleet_tema'); } catch (e) {}
+        var escuro = salvo ? salvo === 'escuro' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.tema = escuro ? 'escuro' : 'claro';
+        document.querySelector('meta[name="theme-color"]').content = escuro ? '#171C20' : '#E2E5E3';
+      })();
+    </script>
     <!-- Google Fonts: Barlow (texto) e Barlow Semi Condensed (placas, etapas e números) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
