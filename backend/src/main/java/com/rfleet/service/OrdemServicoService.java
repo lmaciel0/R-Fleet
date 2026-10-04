@@ -278,11 +278,52 @@ public class OrdemServicoService {
         return ordemServicoRepository.resumirPorMesDeSaida(EtapaOrdemServico.ENTREGUE);
     }
 
+    /**
+     * Arquiva (some da operação, do Histórico, do dashboard e das exportações) ou restaura a OS.
+     * Nada é apagado: a mudança e o motivo ficam na linha do tempo.
+     */
     @Transactional
-    public void arquivar(Long id) {
-        OrdemServico os = ordemServicoRepository.findById(id)
+    public OrdemServicoDTO alterarArquivamento(Long id, ArquivamentoRequest request, String emailUsuario) {
+        OrdemServico os = ordemServicoRepository.findByIdComDetalhes(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ordem de serviço não encontrada com ID: " + id));
-        os.setAtivo(false);
-        ordemServicoRepository.save(os);
+
+        boolean arquivar = request.arquivada();
+        String motivo = request.motivo() != null ? request.motivo().trim() : "";
+
+        if (arquivar && motivo.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe o motivo do arquivamento.");
+        }
+        if (arquivar != Boolean.TRUE.equals(os.getAtivo())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    arquivar ? "A ordem de serviço já está arquivada." : "A ordem de serviço não está arquivada.");
+        }
+        // Restaurar uma OS em aberto não pode deixar o veículo com duas OS em aberto
+        if (!arquivar && os.getEtapa() != EtapaOrdemServico.ENTREGUE) {
+            ordemServicoRepository.findByVeiculoIdAndEtapaNotAndAtivoTrue(os.getVeiculo().getId(), EtapaOrdemServico.ENTREGUE)
+                    .ifPresent(outra -> {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "O veículo de placa " + PlacaUtils.formatar(os.getVeiculo().getPlaca())
+                                        + " já possui uma Ordem de Serviço em aberto (#" + outra.getId()
+                                        + "). Arquive ou entregue essa OS antes de restaurar esta.");
+                    });
+        }
+
+        os.setAtivo(!arquivar);
+        OrdemServico salva = ordemServicoRepository.save(os);
+
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElse(null);
+        String observacao = (arquivar ? "OS arquivada." : "OS restaurada.")
+                + (motivo.isEmpty() ? "" : " Motivo: " + motivo);
+
+        historicoEtapaRepository.save(HistoricoEtapa.builder()
+                .ordemServico(salva)
+                .etapaAnterior(salva.getEtapa())
+                .etapaNova(salva.getEtapa())
+                .usuario(usuario)
+                .valorOrcamentoMomento(salva.getValorOrcamento())
+                .observacao(observacao)
+                .build());
+
+        return OrdemServicoDTO.fromEntity(salva, obterLimiteDiasSla(), LocalDate.now());
     }
 }

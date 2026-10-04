@@ -114,9 +114,16 @@ public class OrdemServicoController {
         return ResponseEntity.ok(ordemServicoService.obterHistorico(id));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> arquivar(@PathVariable Long id) {
-        ordemServicoService.arquivar(id);
-        return ResponseEntity.noContent().build();
+    /**
+     * Arquiva (motivo obrigatório) ou restaura a OS, com registro na linha do tempo.
+     */
+    @PatchMapping("/{id}/arquivamento")
+    public ResponseEntity<OrdemServicoDTO> alterarArquivamento(
+            @PathVariable Long id,
+            @Valid @RequestBody ArquivamentoRequest request,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String email = userDetails != null ? userDetails.getUsername() : null;
+        return ResponseEntity.ok(ordemServicoService.alterarArquivamento(id, request, email));
     }
 }
