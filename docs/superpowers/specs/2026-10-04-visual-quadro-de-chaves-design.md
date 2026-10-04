@@ -115,3 +115,40 @@ O que eu teria feito no automático e troquei:
 
 Risco que fica: azul escuro como cor de ação é comum. Mantive porque aqui ele é o azul da placa e
 aparece junto com a placa em todo card, o que amarra a cor ao assunto.
+
+## Revisão 2 — mais vida e tema escuro (2026-10-04)
+
+Retorno do uso em produção: com o pátio vazio, o sistema "morreu". Era cinza chapado, só o azul aparecia e as
+sete colunas repetiam "Nenhum carro nesta etapa". Além disso, o tema escuro precisa existir, e o usuário
+escolhe qual usar.
+
+O que mudou em relação ao plano acima:
+
+- **Cor por etapa** (decisão do usuário). Cada etapa tem uma cor, como ganchos coloridos: a cabeça da etiqueta,
+  o trilho e o selo de contagem da coluna, as barras do painel e a marca na tabela. O botão "Mover para"
+  usa a cor da próxima etapa. Isso substitui o princípio "cor é só status".
+- **Semáforo de prazo vira selo** com texto ("18 dias parado", "5 dias no pátio", "Pronto, 11 dias"),
+  no lugar da faixa lateral, que agora competiria com a cor da etapa.
+- **Tema escuro** em `[data-tema="escuro"]`, redefinindo os mesmos tokens. Abre no tema do sistema e o
+  botão na navbar alterna; a escolha fica salva em `localStorage` (`rfleet_tema`). Um script no
+  `index.html` aplica o tema antes de pintar, para não piscar.
+- **Texto sobre cor** (`sobre-cor`): branco no claro e grafite no escuro. No escuro, o azul e as cores de
+  semáforo ficam claras o bastante para serem lidas como texto, então o texto em cima delas precisa ser escuro.
+- **A placa mantém as cores reais** (branca, faixa `#003399`, letras escuras) nos dois temas.
+- **Pátio vazio**: um trilho com um gancho de cada cor de etapa, "Nenhum carro no pátio" e as ações
+  "Registrar entrada" e "Importar planilha".
+- **Painel perfurado**: furos discretos em grade no fundo, como o eucatex onde a oficina pendura ferramentas.
+- **O quadro usa a largura toda da tela**, e as colunas não têm mais altura mínima (a barra de rolagem
+  ficava solta no meio da tela).
+
+| Etapa | Claro | Escuro |
+|---|---|---|
+| Aguardando orçamento | `#5A6B85` | `#9AABC4` |
+| Orçamento | `#2459D6` | `#7EA2FF` |
+| Aprovado | `#0B7F7B` | `#3FC7C0` |
+| Em serviço | `#C2560A` | `#FF9A4D` |
+| Finalizado | `#6A3FC4` | `#B595FF` |
+| Aguardando retirada | `#23824B` | `#5CC98A` |
+| Entregue | `#4A5056` | `#AEB5BA` |
+
+Todas passam de 4,5:1 como texto sobre a etiqueta e como fundo de selo com `sobre-cor`.

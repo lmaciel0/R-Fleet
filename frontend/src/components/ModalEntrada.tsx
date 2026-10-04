@@ -121,7 +121,7 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
   const impedidoPorOsAtiva = Boolean(resultadoPlaca?.possuiOsAtiva);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-grafite/40 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
       <div
         ref={dialogoRef}
         tabIndex={-1}
@@ -133,7 +133,7 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
         {/* Header */}
         <div className="p-5 border-b border-trilho flex items-center justify-between bg-parede/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-mercosul flex items-center justify-center text-white">
+            <div className="w-9 h-9 rounded-xl bg-mercosul flex items-center justify-center text-sobre-cor">
               <Car className="w-5 h-5" />
             </div>
             <div>
@@ -353,10 +353,10 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
             <button
               type="submit"
               disabled={salvando || impedidoPorOsAtiva || placa.length !== 7 || !modelo.trim()}
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl text-xs font-bold text-sobre-cor bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
             >
               {salvando ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-sobre-cor/30 border-t-sobre-cor rounded-full animate-spin" />
               ) : (
                 <span>Registrar entrada</span>
               )}
