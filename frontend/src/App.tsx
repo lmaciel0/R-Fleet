@@ -127,8 +127,8 @@ const AppContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-parede flex flex-col items-center justify-center text-aco">
-        <div className="w-10 h-10 border-2 border-mercosul border-t-transparent rounded-full animate-spin mb-4" />
+      <div className="min-h-screen fundo-noite flex flex-col items-center justify-center text-noite-suave">
+        <div className="w-10 h-10 border-2 border-acao border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-sm font-medium">Iniciando R-Fleet...</p>
       </div>
     );

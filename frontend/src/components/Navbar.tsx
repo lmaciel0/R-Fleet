@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { LayoutGrid, ListFilter, BarChart3, Plus, FileSpreadsheet, LogOut, History, Moon, Sun, LucideIcon } from 'lucide-react';
 import { AbaApp, DashboardMetricas } from '../types';
 import { useTema } from '../utils/tema';
+import { Marca } from './Marca';
 
 interface NavbarProps {
   abaAtiva: AbaApp;
@@ -19,12 +20,17 @@ const ABAS: { aba: AbaApp; icone: LucideIcon; rotulo: string }[] = [
   { aba: 'historico', icone: History, rotulo: 'Histórico' },
 ];
 
-// Aba ativa sublinhada com o mesmo trilho do quadro, em azul
-const classeAba = (ativa: boolean) =>
-  `relative flex items-center gap-1.5 h-full px-1 text-[15px] cursor-pointer transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:rounded-full ${
-    ativa ? 'text-grafite font-semibold after:bg-mercosul' : 'text-aco hover:text-grafite after:bg-transparent'
+// Abas em pílula, como no R-Fleet original: a ativa acende em azul
+const classeAba = (ativa: boolean, celular = false) =>
+  `flex items-center justify-center rounded-md border cursor-pointer transition-colors ${
+    celular ? 'gap-1.5 px-1 py-1.5 text-[13px]' : 'gap-2 px-3 py-1.5 text-[14px]'
+  } ${
+    ativa
+      ? 'bg-acao/25 border-acao/50 text-noite-texto font-semibold'
+      : 'border-transparent text-noite-suave hover:text-noite-texto hover:bg-noite-alto'
   }`;
 
+/** Barra de navegação. Fica na noite (azul-marinho) nos dois temas. */
 export const Navbar: React.FC<NavbarProps> = ({
   abaAtiva,
   setAbaAtiva,
@@ -40,20 +46,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   const parados = metricas?.veiculosEmAtraso ?? 0;
 
   return (
-    <header className="sticky top-0 z-30 bg-etiqueta border-b border-trilho">
-      <div className="px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4 whitespace-nowrap">
-        <div className="flex items-center gap-8 h-full min-w-0">
-          <span className="flex items-center gap-2">
-            {/* Marca: uma etiqueta de chave */}
-            <svg viewBox="0 0 18 24" className="w-[18px] h-6" aria-hidden="true">
-              <path d="M5 0h8l5 5v19H0V5z" className="fill-mercosul" />
-              <circle cx="9" cy="6" r="2.4" className="fill-etiqueta" />
-            </svg>
-            <span className="font-placa text-[24px] font-bold leading-none text-grafite">R-Fleet</span>
-          </span>
+    <header className="sticky top-0 z-30 bg-noite text-noite-texto border-b border-noite-borda shadow-[0_6px_24px_-12px_rgb(0_0_0/0.5)]">
+      <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 whitespace-nowrap">
+        <div className="flex items-center gap-6 min-w-0">
+          <Marca />
 
           {/* Só ícones em telas médias, ícone + nome a partir de lg */}
-          <nav aria-label="Seções" className="hidden md:flex items-center gap-6 h-full">
+          <nav
+            aria-label="Seções"
+            className="hidden md:flex items-center gap-1 p-1 rounded-lg bg-black/25 border border-noite-borda"
+          >
             {ABAS.map(({ aba, icone: Icone, rotulo }) => (
               <button
                 key={aba}
@@ -63,23 +65,34 @@ export const Navbar: React.FC<NavbarProps> = ({
                 aria-current={abaAtiva === aba ? 'page' : undefined}
                 className={classeAba(abaAtiva === aba)}
               >
-                <Icone className="w-4 h-4 shrink-0 lg:hidden" aria-hidden="true" />
+                <Icone className="w-4 h-4 shrink-0" aria-hidden="true" />
                 <span className="hidden lg:inline">{rotulo}</span>
               </button>
             ))}
           </nav>
         </div>
 
-        <div className="flex items-center gap-4 shrink-0">
-          <p className="hidden xl:flex items-baseline gap-3 text-[15px] text-aco">
+        <div className="flex items-center gap-3 shrink-0">
+          <p className="hidden xl:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-black/25 border border-noite-borda text-[14px] text-noite-suave">
             <span>
-              <strong className="font-placa tabular-nums text-[18px] font-semibold text-grafite">{totalPatio}</strong> no
-              pátio
+              <strong className="font-placa tabular-nums text-[17px] font-semibold text-noite-texto">{totalPatio}</strong>{' '}
+              no pátio
             </span>
             {parados > 0 && (
-              <span className="px-2 py-0.5 rounded-[3px] bg-vermelho text-sobre-cor font-semibold">
-                <span className="font-placa tabular-nums">{parados}</span> {parados === 1 ? 'parado' : 'parados'}
-              </span>
+              <>
+                <span aria-hidden="true" className="w-px h-4 bg-noite-borda" />
+                <span className="flex items-center gap-1.5 font-semibold text-alerta-noite">
+                  {/* Ponto que pulsa enquanto houver carro parado além do limite */}
+                  <span aria-hidden="true" className="relative flex w-2 h-2">
+                    <span className="absolute inset-0 rounded-full bg-alerta-noite opacity-70 animate-ping" />
+                    <span className="relative w-2 h-2 rounded-full bg-alerta-noite" />
+                  </span>
+                  <span>
+                    <span className="font-placa tabular-nums text-[17px]">{parados}</span>{' '}
+                    {parados === 1 ? 'parado' : 'parados'}
+                  </span>
+                </span>
+              </>
             )}
           </p>
 
@@ -87,30 +100,33 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onAbrirImportar}
             title="Importar planilha Excel ou CSV"
             aria-label="Importar planilha"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-md border border-trilho text-grafite text-[14px] font-medium hover:border-aco transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-md border border-noite-borda bg-noite-alto/60 text-noite-texto text-[14px] font-medium hover:bg-noite-alto hover:border-noite-suave/50 transition-colors cursor-pointer"
           >
-            <FileSpreadsheet className="w-4 h-4 text-aco" aria-hidden="true" />
+            <FileSpreadsheet className="w-4 h-4 text-[#5cc98a]" aria-hidden="true" />
             <span className="hidden lg:inline">Importar planilha</span>
           </button>
 
           <button
             onClick={onAbrirNovaEntrada}
             aria-label="Registrar entrada"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-mercosul hover:bg-mercosul/90 text-sobre-cor text-[14px] font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-acao hover:bg-[#3b74f0] text-white text-[14px] font-semibold border border-white/15 shadow-[0_0_22px_-6px_rgb(37_99_235/0.9)] transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" aria-hidden="true" />
             <span className="hidden sm:inline">Registrar entrada</span>
           </button>
 
-          <div className="flex items-center gap-1 pl-3 border-l border-trilho">
-            <span className="hidden xl:block text-[14px] text-grafite truncate max-w-[140px]" title={usuario?.email || ''}>
+          <div className="flex items-center gap-1 pl-3 border-l border-noite-borda">
+            <span
+              className="hidden xl:block mr-1 text-[14px] font-medium text-noite-texto truncate max-w-[140px]"
+              title={usuario?.email || ''}
+            >
               {usuario?.nome || 'Gestor'}
             </span>
             <button
               onClick={alternar}
               title={rotuloTema}
               aria-label={rotuloTema}
-              className="p-2 rounded-md text-aco hover:text-grafite transition-colors cursor-pointer"
+              className="p-2 rounded-md text-noite-suave hover:text-noite-texto hover:bg-noite-alto transition-colors cursor-pointer"
             >
               {tema === 'escuro' ? <Sun className="w-4 h-4" aria-hidden="true" /> : <Moon className="w-4 h-4" aria-hidden="true" />}
             </button>
@@ -118,7 +134,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={logout}
               title="Sair"
               aria-label="Sair"
-              className="p-2 rounded-md text-aco hover:text-vermelho transition-colors cursor-pointer"
+              className="p-2 rounded-md text-noite-suave hover:text-alerta-noite hover:bg-noite-alto transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" aria-hidden="true" />
             </button>
@@ -127,15 +143,18 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Navegação no celular, logo abaixo da barra */}
-      <nav aria-label="Seções" className="md:hidden flex items-stretch justify-around h-11 border-t border-trilho px-2">
+      <nav
+        aria-label="Seções"
+        className="md:hidden grid grid-cols-4 gap-1 border-t border-noite-borda bg-black/20 px-2 py-1.5"
+      >
         {ABAS.map(({ aba, icone: Icone, rotulo }) => (
           <button
             key={aba}
             onClick={() => setAbaAtiva(aba)}
             aria-current={abaAtiva === aba ? 'page' : undefined}
-            className={classeAba(abaAtiva === aba)}
+            className={classeAba(abaAtiva === aba, true)}
           >
-            <Icone className="w-4 h-4" aria-hidden="true" />
+            <Icone className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span>{rotulo}</span>
           </button>
         ))}
