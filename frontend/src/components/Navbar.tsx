@@ -63,12 +63,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Abas: só ícones em telas médias, ícone + rótulo a partir de lg */}
-          <nav className="hidden md:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
+          <nav aria-label="Seções" className="hidden md:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
             {ABAS.map(({ aba, icone: Icone, rotulo, titulo }) => (
               <button
                 key={aba}
                 onClick={() => setAbaAtiva(aba)}
                 title={titulo}
+                aria-label={titulo}
+                aria-current={abaAtiva === aba ? 'page' : undefined}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
                   abaAtiva === aba
                     ? 'bg-sky-500/20 text-sky-300 border-sky-500/30 shadow-sm'
@@ -108,6 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Botão Importar Planilha */}
           <button
             onClick={onAbrirImportar}
+            aria-label="Importar planilha"
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all cursor-pointer"
             title="Importar dados de planilha Excel ou CSV antiga"
           >
@@ -118,6 +121,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Botão Nova Entrada (< 30s) */}
           <button
             onClick={onAbrirNovaEntrada}
+            aria-label="Nova entrada"
             title="Registrar a entrada de um veículo"
             className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-lg shadow-emerald-500/20 border border-emerald-400/30 transition-all cursor-pointer"
           >
@@ -136,6 +140,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={logout}
               title="Sair do sistema"
+              aria-label="Sair do sistema"
               className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
@@ -145,11 +150,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Navegação Mobile (abaixo da barra em telas pequenas) */}
-      <div className="md:hidden flex items-center justify-around border-t border-slate-800/80 bg-slate-950/80 px-2 py-1.5">
+      <nav aria-label="Seções" className="md:hidden flex items-center justify-around border-t border-slate-800/80 bg-slate-950/80 px-2 py-1.5">
         {ABAS.map(({ aba, icone: Icone, rotuloMobile }) => (
           <button
             key={aba}
             onClick={() => setAbaAtiva(aba)}
+            aria-current={abaAtiva === aba ? 'page' : undefined}
             className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
               abaAtiva === aba ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
             }`}
@@ -158,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>{rotuloMobile}</span>
           </button>
         ))}
-      </div>
+      </nav>
     </header>
   );
 };

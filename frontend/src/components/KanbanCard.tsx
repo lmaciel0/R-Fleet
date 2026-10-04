@@ -54,7 +54,14 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
 
       {/* Modelo do Veículo */}
       <h4 className="text-sm font-semibold text-slate-100 line-clamp-1 mb-2">
-        {ordem.modelo}
+        {/* Botão para o teclado: o clique dele sobe até o card. O contorno de foco é desenhado no card
+            inteiro pelo ::after, que deixa o mouse passar para o card (senão o arraste quebra) */}
+        <button
+          type="button"
+          className="text-left cursor-pointer after:absolute after:inset-0 after:rounded-xl after:pointer-events-none focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-sky-400"
+        >
+          {ordem.modelo}
+        </button>
       </h4>
 
       {/* Tags: Origem & Tipo de Serviço */}

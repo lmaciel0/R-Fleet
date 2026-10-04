@@ -52,7 +52,7 @@ export const LoginView: React.FC = () => {
           </div>
 
           {erro && (
-            <div className="mb-5 p-3.5 bg-rose-950/70 border border-rose-500/40 rounded-xl flex items-start gap-2.5 text-rose-300 text-sm">
+            <div role="alert" className="mb-5 p-3.5 bg-rose-950/70 border border-rose-500/40 rounded-xl flex items-start gap-2.5 text-rose-300 text-sm">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
               <span>{erro}</span>
             </div>
@@ -60,7 +60,7 @@ export const LoginView: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="login-email" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
                 E-mail
               </label>
               <div className="relative">
@@ -72,6 +72,7 @@ export const LoginView: React.FC = () => {
                   autoComplete="username"
                   required
                   value={email}
+                  id="login-email"
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu.email@oficina.com.br"
                   className="w-full bg-slate-950/70 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
@@ -80,7 +81,7 @@ export const LoginView: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="login-senha" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
                 Senha
               </label>
               <div className="relative">
@@ -92,6 +93,7 @@ export const LoginView: React.FC = () => {
                   autoComplete="current-password"
                   required
                   value={senha}
+                  id="login-senha"
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="••••••••"
                   className="w-full bg-slate-950/70 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
