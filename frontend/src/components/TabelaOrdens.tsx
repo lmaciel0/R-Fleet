@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { OrdemServico, EtapaOrdemServico, Origem, TipoServico } from '../types';
 import { PlacaBadge } from './PlacaBadge';
 import { ativarComTeclado } from '../utils/acessibilidade';
+import { etapaInfo } from '../utils/etapas';
 import {
   Search,
   Download,
@@ -306,8 +307,9 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
 
                       {/* Etapa */}
                       <td className="py-3 px-4">
-                        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-parede text-grafite border border-trilho">
-                          {ordem.etapaDescricao}
+                        <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-grafite">
+                          <span aria-hidden="true" className={`w-2.5 h-2.5 rounded-[2px] ${etapaInfo(ordem.etapa).fundo}`} />
+                          {etapaInfo(ordem.etapa).titulo}
                         </span>
                       </td>
 

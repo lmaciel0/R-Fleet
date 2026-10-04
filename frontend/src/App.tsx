@@ -150,7 +150,7 @@ const AppContent: React.FC = () => {
       />
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 max-w-[1536px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className={`flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 ${abaAtiva === 'kanban' ? '' : 'max-w-[1536px]'}`}>
         {carregandoDados && ordens.length === 0 ? (
           <div className="py-20 text-center text-aco">
             <div className="w-8 h-8 border-2 border-mercosul border-t-transparent rounded-full animate-spin mx-auto mb-3" />
@@ -163,6 +163,8 @@ const AppContent: React.FC = () => {
                 ordens={ordens}
                 onSelecionarOrdem={(o) => setOrdemSelecionadaId(o.id)}
                 onTransicionarEtapa={handleTransicionarEtapa}
+                onRegistrarEntrada={() => setModalEntradaAberto(true)}
+                onImportar={() => setModalImportarAberto(true)}
               />
             )}
 

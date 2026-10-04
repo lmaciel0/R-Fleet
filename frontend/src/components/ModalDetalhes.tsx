@@ -290,7 +290,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
   if (carregando || !ordem) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-grafite/40 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div
           ref={dialogoRef}
           tabIndex={-1}
@@ -311,7 +311,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   const isAtencao = ordem.statusSla === 'AMARELO';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-grafite/40 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
       <div
         ref={dialogoRef}
         tabIndex={-1}
@@ -425,10 +425,10 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                   <button
                     onClick={() => handleAlterarArquivamento(false)}
                     disabled={salvandoArquivamento || excluindo}
-                    className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-white bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                    className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-sobre-cor bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
                   >
                     {salvandoArquivamento ? (
-                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-3.5 h-3.5 border-2 border-sobre-cor/30 border-t-sobre-cor rounded-full animate-spin" />
                     ) : (
                       <>
                         <ArchiveRestore className="w-3.5 h-3.5" />
@@ -479,10 +479,10 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                     <button
                       onClick={handleExcluirOrdem}
                       disabled={excluindo || !placaConfere(placaConfirmacao)}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-vermelho hover:bg-vermelho/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-sobre-cor bg-vermelho hover:bg-vermelho/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
                     >
                       {excluindo ? (
-                        <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-3.5 h-3.5 border-2 border-sobre-cor/30 border-t-sobre-cor rounded-full animate-spin" />
                       ) : (
                         <>
                           <Trash2 className="w-3.5 h-3.5" />
@@ -606,10 +606,10 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                     <button
                       onClick={handleTransicionarEtapa}
                       disabled={salvandoTransicao || novaEtapa === ordem.etapa}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-sobre-cor bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
                     >
                       {salvandoTransicao ? (
-                        <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-3.5 h-3.5 border-2 border-sobre-cor/30 border-t-sobre-cor rounded-full animate-spin" />
                       ) : (
                         <>
                           <span>Atualizar</span>
@@ -666,10 +666,10 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                         <button
                           onClick={() => handleAlterarArquivamento(true)}
                           disabled={salvandoArquivamento || !motivoArquivamento.trim()}
-                          className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-amarelo-tinta hover:bg-amarelo/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                          className="px-4 py-2 rounded-xl text-xs font-bold text-sobre-cor bg-amarelo-tinta hover:bg-amarelo-tinta/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
                         >
                           {salvandoArquivamento ? (
-                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <div className="w-3.5 h-3.5 border-2 border-sobre-cor/30 border-t-sobre-cor rounded-full animate-spin" />
                           ) : (
                             <>
                               <Archive className="w-3.5 h-3.5" />
@@ -748,7 +748,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       <button
                         type="submit"
                         disabled={salvandoOrcamento}
-                        className="px-4 py-1.5 bg-verde hover:bg-verde/90 text-white rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                        className="px-4 py-1.5 bg-verde hover:bg-verde/90 text-sobre-cor rounded-lg text-xs font-bold transition-all disabled:opacity-50"
                       >
                         {salvandoOrcamento ? 'Salvando...' : 'Salvar Novo Valor'}
                       </button>
@@ -816,7 +816,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                   <button
                     type="submit"
                     disabled={salvandoFaturamento}
-                    className="px-4 py-2 bg-mercosul hover:bg-mercosul/90 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                    className="px-4 py-2 bg-mercosul hover:bg-mercosul/90 text-sobre-cor rounded-xl text-xs font-bold transition-all disabled:opacity-50"
                   >
                     {salvandoFaturamento ? 'Atualizando...' : 'Atualizar Faturamento'}
                   </button>

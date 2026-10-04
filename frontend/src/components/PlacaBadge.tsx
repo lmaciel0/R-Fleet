@@ -21,7 +21,7 @@ export const PlacaBadge: React.FC<PlacaBadgeProps> = ({ placa, mercosul = true, 
   if (mercosul) {
     return (
       <div
-        className={`inline-flex flex-col items-center bg-white border-[1.5px] border-grafite rounded-[3px] overflow-hidden select-none font-placa tabular-nums ${
+        className={`inline-flex flex-col items-center bg-white border-[1.5px] border-[#23272b] rounded-[3px] overflow-hidden select-none font-placa tabular-nums ${
           isSmall
             ? 'h-6 min-w-[72px] text-[13px]'
             : isLarge
@@ -31,7 +31,7 @@ export const PlacaBadge: React.FC<PlacaBadgeProps> = ({ placa, mercosul = true, 
       >
         {/* Faixa Azul Mercosul */}
         <div
-          className={`w-full bg-mercosul flex items-center justify-between px-1.5 text-white font-sans font-bold leading-none ${
+          className={`w-full bg-[#003399] flex items-center justify-between px-1.5 text-white font-sans font-bold leading-none ${
             isSmall ? 'h-2 text-[6px]' : isLarge ? 'h-3 text-[8px]' : 'h-2.5 text-[7px]'
           }`}
         >
@@ -39,7 +39,7 @@ export const PlacaBadge: React.FC<PlacaBadgeProps> = ({ placa, mercosul = true, 
           <span className="opacity-80">★</span>
         </div>
         {/* Letras da Placa */}
-        <div className="flex-1 flex items-center justify-center px-2 font-bold tracking-wide text-grafite leading-none">
+        <div className="flex-1 flex items-center justify-center px-2 font-bold tracking-wide text-[#23272b] leading-none">
           {formatada}
         </div>
       </div>
@@ -49,7 +49,7 @@ export const PlacaBadge: React.FC<PlacaBadgeProps> = ({ placa, mercosul = true, 
   // Placa Padrão Antiga (Cinza com tarja preta)
   return (
     <div
-      className={`inline-flex items-center justify-center bg-[#c4c8ca] border-2 border-grafite rounded-[3px] text-grafite font-placa tabular-nums font-bold tracking-wide px-2 select-none ${
+      className={`inline-flex items-center justify-center bg-[#c4c8ca] border-2 border-[#23272b] rounded-[3px] text-[#23272b] font-placa tabular-nums font-bold tracking-wide px-2 select-none ${
         isSmall
           ? 'h-6 text-[13px]'
           : isLarge

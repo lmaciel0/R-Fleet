@@ -11,21 +11,12 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { nomeMesAtual } from '../utils/meses';
+import { ETAPAS } from '../utils/etapas';
 
 interface DashboardViewProps {
   metricas: DashboardMetricas | null;
   onFiltrarEtapa?: (etapa: EtapaOrdemServico) => void;
 }
-
-const ETAPAS_LABELS: Record<EtapaOrdemServico, string> = {
-  AGUARDANDO_ORCAMENTO: 'Aguardando Orçamento',
-  ORCAMENTO: 'Orçamento',
-  APROVADO: 'Aprovado',
-  EM_SERVICO: 'Em Serviço',
-  FINALIZADO: 'Finalizado',
-  AGUARDANDO_RETIRADA: 'Aguardando Retirada',
-  ENTREGUE: 'Entregue',
-};
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ metricas }) => {
   if (!metricas) {
@@ -164,14 +155,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ metricas }) => {
                 Quantidade de veículos em cada estágio operacional da oficina
               </p>
             </div>
-            <span className="text-xs text-aco font-placa tabular-nums bg-parede px-2.5 py-1 rounded-lg">
-              7 Estágios Ativos
-            </span>
           </div>
 
           <div className="space-y-3.5">
-            {Object.entries(ETAPAS_LABELS).map(([etapaKey, label]) => {
-              const etapa = etapaKey as EtapaOrdemServico;
+            {ETAPAS.map(({ etapa, titulo: label, fundo }) => {
               const count = metricas.distribuicaoPorEtapa[etapa] || 0;
               const perc = totalPatio > 0 && etapa !== 'ENTREGUE'
                 ? Math.round((count / totalPatio) * 100)
@@ -188,7 +175,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ metricas }) => {
                   {/* Barra de progresso */}
                   <div className="w-full bg-parede h-2 rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-500 bg-aco"
+                      className={`h-full rounded-full transition-all duration-500 ${fundo}`}
                       style={{ width: `${Math.min(perc, 100)}%` }}
                     />
                   </div>
