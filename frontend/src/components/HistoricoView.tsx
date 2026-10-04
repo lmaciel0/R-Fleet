@@ -3,6 +3,7 @@ import { History, FileSpreadsheet, FileText, Archive } from 'lucide-react';
 import { HistoricoMes, OrdemServico } from '../types';
 import { api } from '../services/api';
 import { PlacaBadge } from './PlacaBadge';
+import { ativarComTeclado } from '../utils/acessibilidade';
 import { ArquivadasView } from './ArquivadasView';
 import { intervaloDoMes, rotuloMesCurto, rotuloMesLongo } from '../utils/meses';
 
@@ -135,6 +136,7 @@ const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecion
           <button
             key={`${m.ano}-${m.mes}`}
             onClick={() => setMesSelecionado(m)}
+            aria-pressed={mesmoMes(mesSelecionado, m)}
             className={`shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
               mesmoMes(mesSelecionado, m)
                 ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
@@ -177,7 +179,9 @@ const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecion
                   <tr
                     key={ordem.id}
                     onClick={() => onSelecionarOrdem(ordem)}
-                    className="hover:bg-slate-800/60 transition-colors cursor-pointer"
+                    onKeyDown={ativarComTeclado(() => onSelecionarOrdem(ordem))}
+                    tabIndex={0}
+                    className="hover:bg-slate-800/60 focus-visible:-outline-offset-2 transition-colors cursor-pointer"
                   >
                     <td className="py-3 px-4">
                       <PlacaBadge placa={ordem.placa} mercosul={ordem.mercosul} size="sm" />
@@ -192,7 +196,7 @@ const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecion
                       {formatarMoeda(ordem.valorOrcamento)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className={ordem.faturado ? 'text-emerald-400 font-semibold' : 'text-slate-500'}>
+                      <span className={ordem.faturado ? 'text-emerald-400 font-semibold' : 'text-slate-400'}>
                         {ordem.faturado ? 'Sim' : 'Não'}
                       </span>
                     </td>
@@ -250,11 +254,19 @@ export const HistoricoView: React.FC<HistoricoViewProps> = (props) => {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <button onClick={() => setVisao('entregues')} className={classeBotao(visao === 'entregues')}>
+        <button
+          onClick={() => setVisao('entregues')}
+          aria-pressed={visao === 'entregues'}
+          className={classeBotao(visao === 'entregues')}
+        >
           <History className="w-4 h-4" />
           <span>Entregues</span>
         </button>
-        <button onClick={() => setVisao('arquivadas')} className={classeBotao(visao === 'arquivadas')}>
+        <button
+          onClick={() => setVisao('arquivadas')}
+          aria-pressed={visao === 'arquivadas'}
+          className={classeBotao(visao === 'arquivadas')}
+        >
           <Archive className="w-4 h-4" />
           <span>Arquivadas</span>
         </button>

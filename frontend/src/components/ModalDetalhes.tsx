@@ -7,6 +7,7 @@ import {
 } from '../types';
 import { api } from '../services/api';
 import { PlacaBadge } from './PlacaBadge';
+import { useDialogo } from '../utils/acessibilidade';
 import {
   X,
   Clock,
@@ -128,6 +129,8 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
       // Ignora erro
     }
   };
+
+  const dialogoRef = useDialogo<HTMLDivElement>(onFechar);
 
   useEffect(() => {
     carregarDados();
@@ -288,7 +291,15 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   if (carregando || !ordem) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl text-center">
+        <div
+          ref={dialogoRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-busy="true"
+          aria-label="Carregando Ordem de Serviço"
+          className="outline-none bg-slate-900 border border-slate-800 p-8 rounded-2xl text-center"
+        >
           <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-slate-300">Carregando detalhes da Ordem de Serviço...</p>
         </div>
@@ -301,7 +312,14 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div
+        ref={dialogoRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-detalhes-titulo"
+        className="outline-none bg-slate-900 border border-slate-800 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+      >
         {/* Header do Modal */}
         <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
           <div className="flex items-center gap-3">
@@ -311,8 +329,8 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                 <span className="font-mono text-xs font-bold text-slate-400">
                   #{String(ordem.id).padStart(5, '0')}
                 </span>
-                <span className="text-slate-600">&bull;</span>
-                <h3 className="text-base font-bold text-slate-100">{ordem.modelo}</h3>
+                <span className="text-slate-600" aria-hidden="true">&bull;</span>
+                <h3 id="modal-detalhes-titulo" className="text-base font-bold text-slate-100">{ordem.modelo}</h3>
               </div>
               <p className="text-xs text-slate-400">
                 Entrada em {ordem.dataEntrada ? ordem.dataEntrada.split('-').reverse().join('/') : '-'}
@@ -322,6 +340,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
           <button
             onClick={onFechar}
+            aria-label="Fechar"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -332,6 +351,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
         <div className="flex items-center gap-1 px-5 border-b border-slate-800 bg-slate-950/40">
           <button
             onClick={() => setAba('geral')}
+            aria-pressed={aba === 'geral'}
             className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               aba === 'geral'
                 ? 'border-sky-500 text-sky-400'
@@ -344,6 +364,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
           <button
             onClick={() => setAba('financeiro')}
+            aria-pressed={aba === 'financeiro'}
             className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               aba === 'financeiro'
                 ? 'border-sky-500 text-sky-400'
@@ -356,6 +377,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
           <button
             onClick={() => setAba('historico')}
+            aria-pressed={aba === 'historico'}
             className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               aba === 'historico'
                 ? 'border-sky-500 text-sky-400'
@@ -368,6 +390,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
           <button
             onClick={() => setAba('anexos')}
+            aria-pressed={aba === 'anexos'}
             className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               aba === 'anexos'
                 ? 'border-sky-500 text-sky-400'
@@ -382,7 +405,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
         {/* Conteúdo das Abas */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
           {erro && (
-            <div className="p-3 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-300 text-xs flex items-start gap-2">
+            <div role="alert" className="p-3 bg-rose-950/80 border border-rose-500/50 rounded-xl text-rose-300 text-xs flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
               <span>{erro}</span>
             </div>
@@ -439,6 +462,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       value={placaConfirmacao}
                       onChange={(e) => setPlacaConfirmacao(e.target.value)}
                       placeholder={ordem.placa}
+                      aria-label="Placa para confirmar a exclusão"
                       autoFocus
                       className="flex-1 bg-slate-900 border border-rose-800 rounded-xl px-3 py-2 text-xs font-mono uppercase text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
                     />
@@ -499,7 +523,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                     >
                       {ordem.diasNoPatio} {ordem.diasNoPatio === 1 ? 'dia' : 'dias'}
                     </span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-400">
                       ({ordem.statusSla === 'VERMELHO' ? 'Em Atraso' : 'Dentro do Prazo'})
                     </span>
                   </div>
@@ -520,21 +544,21 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                   <div>
-                    <span className="text-slate-500 block">Origem</span>
+                    <span className="text-slate-400 block">Origem</span>
                     <span className="font-semibold text-slate-200">{ordem.origemNome || 'Não informada'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Tipo de Serviço</span>
+                    <span className="text-slate-400 block">Tipo de Serviço</span>
                     <span className="font-semibold text-sky-400">{ordem.tipoServicoNome || 'Geral'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Data de Entrada</span>
+                    <span className="text-slate-400 block">Data de Entrada</span>
                     <span className="font-mono text-slate-200">
                       {ordem.dataEntrada ? ordem.dataEntrada.split('-').reverse().join('/') : '-'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Data de Saída</span>
+                    <span className="text-slate-400 block">Data de Saída</span>
                     <span className="font-mono text-slate-200">
                       {ordem.dataSaida ? ordem.dataSaida.split('-').reverse().join('/') : 'Em aberto'}
                     </span>
@@ -543,7 +567,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
                 {ordem.observacoes && (
                   <div className="pt-2 border-t border-slate-800/60">
-                    <span className="text-slate-500 block text-xs">Observações</span>
+                    <span className="text-slate-400 block text-xs">Observações</span>
                     <p className="text-xs text-slate-300 mt-0.5 whitespace-pre-wrap">{ordem.observacoes}</p>
                   </div>
                 )}
@@ -560,6 +584,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                     <select
                       value={novaEtapa}
                       onChange={(e) => setNovaEtapa(e.target.value as EtapaOrdemServico)}
+                      aria-label="Nova etapa"
                       className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     >
                       {TODAS_ETAPAS.map((item) => (
@@ -574,6 +599,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       value={obsTransicao}
                       onChange={(e) => setObsTransicao(e.target.value)}
                       placeholder="Motivo ou nota da mudança (opcional)"
+                      aria-label="Nota da mudança de etapa"
                       className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     />
 
@@ -623,6 +649,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                           value={motivoArquivamento}
                           onChange={(e) => setMotivoArquivamento(e.target.value)}
                           placeholder="Ex.: entrada lançada em duplicidade"
+                          aria-label="Motivo do arquivamento"
                           autoFocus
                           className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
                         />
@@ -689,25 +716,27 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                   <form onSubmit={handleSalvarOrcamento} className="space-y-3 pt-2">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        <label htmlFor="detalhes-novo-valor" className="block text-xs font-semibold text-slate-300 mb-1">
                           Novo Valor (R$) *
                         </label>
                         <input
                           type="text"
                           required
                           value={novoValor}
+                          id="detalhes-novo-valor"
                           onChange={(e) => setNovoValor(e.target.value)}
                           placeholder="Ex: 1500.00"
                           className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        <label htmlFor="detalhes-justificativa" className="block text-xs font-semibold text-slate-300 mb-1">
                           Justificativa da Mudança (Opcional)
                         </label>
                         <input
                           type="text"
                           value={justificativaOrcamento}
+                          id="detalhes-justificativa"
                           onChange={(e) => setJustificativaOrcamento(e.target.value)}
                           placeholder="Ex: Adição de peças ou mão de obra extra"
                           className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
@@ -757,24 +786,26 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      <label htmlFor="detalhes-data-faturamento" className="block text-xs font-semibold text-slate-300 mb-1">
                         Data de Faturamento
                       </label>
                       <input
                         type="date"
                         value={dataFaturamento}
+                        id="detalhes-data-faturamento"
                         onChange={(e) => setDataFaturamento(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      <label htmlFor="detalhes-numero-nf" className="block text-xs font-semibold text-slate-300 mb-1">
                         Número da Nota Fiscal (NF)
                       </label>
                       <input
                         type="text"
                         value={numeroNf}
+                        id="detalhes-numero-nf"
                         onChange={(e) => setNumeroNf(e.target.value)}
                         placeholder="Ex: NF-2026-0045"
                         className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
@@ -801,7 +832,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                 <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                   Linha do Tempo Completa de Auditoria
                 </h4>
-                <span className="text-[11px] text-slate-500 font-mono">
+                <span className="text-[11px] text-slate-400 font-mono">
                   Registros imutáveis
                 </span>
               </div>
@@ -812,7 +843,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                   <p className="text-xs">Carregando histórico...</p>
                 </div>
               ) : historico.length === 0 ? (
-                <div className="py-8 text-center text-slate-500 text-xs">
+                <div className="py-8 text-center text-slate-400 text-xs">
                   Nenhum registro histórico encontrado.
                 </div>
               ) : (
@@ -856,13 +887,13 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
           {aba === 'anexos' && (
             <div className="space-y-4">
               {/* Dropzone de Upload */}
-              <div className="border-2 border-dashed border-slate-700 hover:border-sky-500 rounded-2xl p-6 text-center transition-colors">
+              <div className="border-2 border-dashed border-slate-700 hover:border-sky-500 has-[:focus-visible]:border-sky-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sky-400 rounded-2xl p-6 text-center transition-colors">
                 <input
                   type="file"
                   id="file-upload"
                   onChange={handleUploadArquivo}
                   disabled={enviandoAnexo}
-                  className="hidden"
+                  className="sr-only"
                 />
                 <label
                   htmlFor="file-upload"
@@ -881,14 +912,14 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                   </div>
                 </label>
                 {enviandoAnexo && (
-                  <p className="text-xs text-sky-400 mt-2 font-medium">Enviando anexo...</p>
+                  <p role="status" className="text-xs text-sky-400 mt-2 font-medium">Enviando anexo...</p>
                 )}
               </div>
 
               {/* Lista de Arquivos */}
               <div className="space-y-2">
                 {anexos.length === 0 ? (
-                  <p className="text-center py-6 text-xs text-slate-500">
+                  <p className="text-center py-6 text-xs text-slate-400">
                     Nenhum anexo registrado para esta ordem de serviço.
                   </p>
                 ) : (

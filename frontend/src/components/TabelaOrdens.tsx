@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { OrdemServico, EtapaOrdemServico, Origem, TipoServico } from '../types';
 import { PlacaBadge } from './PlacaBadge';
+import { ativarComTeclado } from '../utils/acessibilidade';
 import {
   Search,
   Download,
@@ -124,6 +125,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
               value={termo}
               onChange={(e) => setTermo(e.target.value)}
               placeholder="Buscar por placa, modelo ou NF..."
+              aria-label="Buscar por placa, modelo ou NF"
               className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
             />
           </div>
@@ -134,6 +136,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
             <select
               value={etapaFiltro}
               onChange={(e) => setEtapaFiltro(e.target.value)}
+              aria-label="Filtrar por etapa"
               className="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
               <option value="">Todas as Etapas</option>
@@ -150,6 +153,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
             <select
               value={origemFiltro}
               onChange={(e) => setOrigemFiltro(e.target.value)}
+              aria-label="Filtrar por origem"
               className="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
               <option value="">Todas as Origens</option>
@@ -164,6 +168,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
             <select
               value={tipoServicoFiltro}
               onChange={(e) => setTipoServicoFiltro(e.target.value)}
+              aria-label="Filtrar por tipo de serviço"
               className="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
               <option value="">Todos os Serviços</option>
@@ -178,6 +183,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
             <select
               value={faturadoFiltro}
               onChange={(e) => setFaturadoFiltro(e.target.value)}
+              aria-label="Filtrar por faturamento"
               className="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
               <option value="">Faturamento (Todos)</option>
@@ -267,7 +273,9 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
                     <tr
                       key={ordem.id}
                       onClick={() => onSelecionarOrdem(ordem)}
-                      className="hover:bg-slate-800/60 transition-colors cursor-pointer group"
+                      onKeyDown={ativarComTeclado(() => onSelecionarOrdem(ordem))}
+                      tabIndex={0}
+                      className="hover:bg-slate-800/60 focus-visible:-outline-offset-2 transition-colors cursor-pointer group"
                     >
                       {/* OS ID */}
                       <td className="py-3 px-4 font-mono font-bold text-slate-400">

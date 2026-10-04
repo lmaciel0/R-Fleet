@@ -3,6 +3,7 @@ import { Archive } from 'lucide-react';
 import { OrdemServico } from '../types';
 import { api } from '../services/api';
 import { PlacaBadge } from './PlacaBadge';
+import { ativarComTeclado } from '../utils/acessibilidade';
 
 interface ArquivadasViewProps {
   /** Muda quando alguma OS é alterada (ex.: arquivada ou restaurada); dispara uma nova busca. */
@@ -82,7 +83,9 @@ export const ArquivadasView: React.FC<ArquivadasViewProps> = ({ versaoDados, onS
               <tr
                 key={ordem.id}
                 onClick={() => onSelecionarOrdem(ordem)}
-                className="hover:bg-slate-800/60 transition-colors cursor-pointer"
+                onKeyDown={ativarComTeclado(() => onSelecionarOrdem(ordem))}
+                tabIndex={0}
+                className="hover:bg-slate-800/60 focus-visible:-outline-offset-2 transition-colors cursor-pointer"
               >
                 <td className="py-3 px-4">
                   <PlacaBadge placa={ordem.placa} mercosul={ordem.mercosul} size="sm" />

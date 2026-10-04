@@ -1,19 +1,12 @@
 @import "tailwindcss";
 
-:root {
+/* Tailwind v4 lê os tokens daqui; o tailwind.config.js (formato v3) não era carregado */
+@theme {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --bg-primary: #080d1a;
-  --bg-secondary: #0f172a;
-  --bg-surface: #1e293b;
-  --border-color: #334155;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-
-  --status-green: #10b981;
-  --status-yellow: #f59e0b;
-  --status-red: #ef4444;
+  --color-slate-850: #151f32;
+  --color-slate-950: #080d1a;
 }
 
 * {
@@ -22,8 +15,8 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  background-color: var(--color-slate-950);
+  color: var(--color-slate-50);
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -31,19 +24,24 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Placa Automotiva */
-.license-plate {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1.5px solid #475569;
-  background-color: #020617;
-  color: #f8fafc;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+/* Foco visível para quem navega pelo teclado; os campos com focus:ring continuam com o anel deles */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-sky-400);
+    outline-offset: 2px;
+  }
+}
+
+/* Quem pede menos movimento no sistema não recebe animação nem transição (os spinners de carregamento ficam) */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.animate-spin),
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Scrollbar Moderno */
