@@ -115,18 +115,18 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
   return (
     <div className="space-y-4">
       {/* Barra de Filtros e Busca */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl">
+      <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
         <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
           {/* Campo de Busca */}
           <div className="relative flex-1 min-w-[240px]">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-aco absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={termo}
               onChange={(e) => setTermo(e.target.value)}
               placeholder="Buscar por placa, modelo ou NF..."
               aria-label="Buscar por placa, modelo ou NF"
-              className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full bg-parede/60 border border-trilho rounded-xl pl-9 pr-4 py-2 text-xs text-grafite placeholder-aco focus:outline-none focus:ring-2 focus:ring-mercosul"
             />
           </div>
 
@@ -137,7 +137,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
               value={etapaFiltro}
               onChange={(e) => setEtapaFiltro(e.target.value)}
               aria-label="Filtrar por etapa"
-              className="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="bg-parede/60 border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
             >
               <option value="">Todas as Etapas</option>
               <option value="AGUARDANDO_ORCAMENTO">Aguardando Orçamento</option>
@@ -154,7 +154,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
               value={origemFiltro}
               onChange={(e) => setOrigemFiltro(e.target.value)}
               aria-label="Filtrar por origem"
-              className="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="bg-parede/60 border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
             >
               <option value="">Todas as Origens</option>
               {origens.map((origem) => (
@@ -169,7 +169,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
               value={tipoServicoFiltro}
               onChange={(e) => setTipoServicoFiltro(e.target.value)}
               aria-label="Filtrar por tipo de serviço"
-              className="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="bg-parede/60 border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
             >
               <option value="">Todos os Serviços</option>
               {tiposServico.map((tipo) => (
@@ -184,7 +184,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
               value={faturadoFiltro}
               onChange={(e) => setFaturadoFiltro(e.target.value)}
               aria-label="Filtrar por faturamento"
-              className="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="bg-parede/60 border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
             >
               <option value="">Faturamento (Todos)</option>
               <option value="true">Faturados</option>
@@ -192,15 +192,15 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
             </select>
 
             {/* Checkbox Atrasados */}
-            <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-700/80 bg-slate-950/80 text-xs text-rose-300 font-medium cursor-pointer select-none">
+            <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-trilho bg-parede/60 text-xs text-vermelho font-medium cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={somenteAtrasados}
                 onChange={(e) => setSomenteAtrasados(e.target.checked)}
-                className="rounded border-slate-700 text-rose-500 focus:ring-rose-500 bg-slate-900"
+                className="rounded border-trilho text-vermelho focus:ring-vermelho bg-etiqueta"
               />
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-              <span>Em Atraso</span>
+              <AlertTriangle className="w-3.5 h-3.5 text-vermelho" />
+              <span>Parados</span>
             </label>
 
             {/* Limpar Filtros */}
@@ -208,28 +208,28 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
               <button
                 onClick={limparFiltros}
                 title="Limpar todos os filtros"
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                className="p-2 rounded-xl text-aco hover:text-grafite hover:bg-parede transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
             )}
 
             {/* Botões de Exportação */}
-            <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">
+            <div className="flex items-center gap-1.5 pl-2 border-l border-trilho">
               <button
                 onClick={() => handleExportar('xlsx')}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-parede hover:bg-trilho/50 text-grafite text-xs font-semibold border border-trilho transition-all cursor-pointer"
                 title="Exportar dados filtrados para Excel (.xlsx)"
               >
-                <Download className="w-3.5 h-3.5 text-emerald-400" />
+                <Download className="w-3.5 h-3.5 text-verde" />
                 <span>Excel</span>
               </button>
               <button
                 onClick={() => handleExportar('csv')}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-parede hover:bg-trilho/50 text-grafite text-xs font-semibold border border-trilho transition-all cursor-pointer"
                 title="Exportar dados filtrados para CSV (.csv)"
               >
-                <Download className="w-3.5 h-3.5 text-sky-400" />
+                <Download className="w-3.5 h-3.5 text-mercosul" />
                 <span>CSV</span>
               </button>
             </div>
@@ -238,11 +238,11 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
       </div>
 
       {/* Tabela de Ordens */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-etiqueta border border-trilho rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/80 text-slate-400 font-semibold uppercase tracking-wider">
+              <tr className="border-b border-trilho bg-parede/60 text-aco font-semibold uppercase tracking-wider">
                 <th className="py-3.5 px-4">OS</th>
                 <th className="py-3.5 px-4">Placa</th>
                 <th className="py-3.5 px-4">Veículo / Modelo</th>
@@ -256,12 +256,12 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
                 <th className="py-3.5 px-4 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80">
+            <tbody className="divide-y divide-trilho">
               {ordensFiltradas.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-12 text-center text-slate-400">
+                  <td colSpan={11} className="py-12 text-center text-aco">
                     <p className="text-sm font-medium">Nenhuma ordem de serviço encontrada.</p>
-                    <p className="text-xs text-slate-400 mt-1">Tente ajustar seus termos de busca ou filtros.</p>
+                    <p className="text-xs text-aco mt-1">Tente ajustar seus termos de busca ou filtros.</p>
                   </td>
                 </tr>
               ) : (
@@ -275,10 +275,10 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
                       onClick={() => onSelecionarOrdem(ordem)}
                       onKeyDown={ativarComTeclado(() => onSelecionarOrdem(ordem))}
                       tabIndex={0}
-                      className="hover:bg-slate-800/60 focus-visible:-outline-offset-2 transition-colors cursor-pointer group"
+                      className="hover:bg-parede focus-visible:-outline-offset-2 transition-colors cursor-pointer group"
                     >
                       {/* OS ID */}
-                      <td className="py-3 px-4 font-mono font-bold text-slate-400">
+                      <td className="py-3 px-4 font-placa tabular-nums font-bold text-aco">
                         #{String(ordem.id).padStart(5, '0')}
                       </td>
 
@@ -288,64 +288,64 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
                       </td>
 
                       {/* Modelo */}
-                      <td className="py-3 px-4 font-medium text-slate-100 max-w-[200px] truncate">
+                      <td className="py-3 px-4 font-medium text-grafite max-w-[200px] truncate">
                         {ordem.modelo}
                       </td>
 
                       {/* Origem */}
-                      <td className="py-3 px-4 text-slate-300">
+                      <td className="py-3 px-4 text-grafite">
                         {ordem.origemNome || '-'}
                       </td>
 
                       {/* Tipo Serviço */}
                       <td className="py-3 px-4">
-                        <span className="text-sky-400 font-medium">
+                        <span className="text-mercosul font-medium">
                           {ordem.tipoServicoNome || '-'}
                         </span>
                       </td>
 
                       {/* Etapa */}
                       <td className="py-3 px-4">
-                        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-800 text-slate-200 border border-slate-700">
+                        <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold bg-parede text-grafite border border-trilho">
                           {ordem.etapaDescricao}
                         </span>
                       </td>
 
                       {/* Data Entrada */}
-                      <td className="py-3 px-4 text-slate-400 font-mono">
+                      <td className="py-3 px-4 text-aco font-placa tabular-nums">
                         {formatarData(ordem.dataEntrada)}
                       </td>
 
                       {/* Dias no Pátio / SLA */}
                       <td className="py-3 px-4 text-center">
                         <span
-                          className={`inline-flex items-center gap-1 font-mono font-bold px-2 py-0.5 rounded-full text-[11px] ${
+                          className={`inline-flex items-center gap-1 font-placa tabular-nums font-bold px-2 py-0.5 rounded-full text-[11px] ${
                             isAtrasado
-                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                              ? 'bg-vermelho/10 text-vermelho border border-vermelho/40'
                               : isAtencao
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                              : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-amarelo/15 text-amarelo-tinta border border-amarelo/60'
+                              : 'bg-verde/10 text-verde border border-verde/40'
                           }`}
                         >
-                          {isAtrasado && <AlertTriangle className="w-3 h-3 text-rose-400" />}
+                          {isAtrasado && <AlertTriangle className="w-3 h-3 text-vermelho" />}
                           {ordem.diasNoPatio}d
                         </span>
                       </td>
 
                       {/* Orçamento */}
-                      <td className="py-3 px-4 text-right font-mono font-bold text-slate-100">
+                      <td className="py-3 px-4 text-right font-placa tabular-nums font-bold text-grafite">
                         {formatarMoeda(ordem.valorOrcamento)}
                       </td>
 
                       {/* Faturado */}
                       <td className="py-3 px-4 text-center">
                         {ordem.faturado ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-verde bg-verde/10 px-2 py-0.5 rounded-full border border-verde/40">
                             <CheckCircle2 className="w-3 h-3" />
                             Sim
                           </span>
                         ) : (
-                          <span className="text-[10px] text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] text-aco bg-parede px-2 py-0.5 rounded-full">
                             Não
                           </span>
                         )}
@@ -355,7 +355,7 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
                       <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => onSelecionarOrdem(ordem)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 transition-colors"
+                          className="p-1.5 rounded-lg text-aco hover:text-mercosul hover:bg-mercosul/10 transition-colors"
                           title="Abrir detalhes completos"
                         >
                           <ExternalLink className="w-4 h-4" />
@@ -370,11 +370,11 @@ export const TabelaOrdens: React.FC<TabelaOrdensProps> = ({
         </div>
 
         {/* Rodapé da tabela com contagem */}
-        <div className="p-3 bg-slate-950/80 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+        <div className="p-3 bg-parede/60 border-t border-trilho text-xs text-aco flex items-center justify-between">
           <span>
             Mostrando <strong>{ordensFiltradas.length}</strong> de <strong>{ordens.length}</strong> ordens de serviço
           </span>
-          <span className="text-slate-400 font-mono">R-Fleet Operacional</span>
+          <span className="text-aco font-placa tabular-nums">R-Fleet Operacional</span>
         </div>
       </div>
     </div>

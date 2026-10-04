@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Car, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
+import { Lock, Mail, AlertCircle } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
   const { login } = useAuth();
@@ -23,48 +23,36 @@ export const LoginView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center px-4 relative overflow-hidden">
-      {/* Background glow effects */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-sky-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-[300px] h-[300px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
-
-      <div className="w-full max-w-md z-10">
-        {/* Brand header */}
+    <div className="min-h-screen bg-parede flex flex-col justify-center items-center px-4">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 shadow-xl shadow-sky-500/20 mb-4 border border-sky-400/30">
-            <Car className="w-9 h-9 text-white" />
-          </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center justify-center gap-2">
-            R-Fleet <span className="text-xs uppercase bg-sky-500/20 text-sky-400 border border-sky-500/30 px-2 py-0.5 rounded font-mono font-semibold">v1.0</span>
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Gestão Operacional de Veículos e Oficina
-          </p>
+          <h1 className="font-placa text-[40px] leading-none font-bold text-grafite">R-Fleet</h1>
+          <p className="text-aco text-[15px] mt-2">Controle do pátio da oficina</p>
         </div>
 
         {/* Card */}
-        <div className="bg-slate-900/90 border border-slate-800 backdrop-blur-xl rounded-2xl p-7 shadow-2xl shadow-black/60">
+        <div className="bg-etiqueta border border-trilho backdrop-blur-xl rounded-2xl p-7 shadow-2xl">
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-slate-100">Acesso ao Sistema</h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <h2 className="text-lg font-semibold text-grafite">Acesso ao Sistema</h2>
+            <p className="text-xs text-aco mt-0.5">
               Entre com as credenciais do gestor responsável
             </p>
           </div>
 
           {erro && (
-            <div role="alert" className="mb-5 p-3.5 bg-rose-950/70 border border-rose-500/40 rounded-xl flex items-start gap-2.5 text-rose-300 text-sm">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+            <div role="alert" className="mb-5 p-3.5 bg-vermelho/10 border border-vermelho/40 rounded-xl flex items-start gap-2.5 text-vermelho text-sm">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-vermelho" />
               <span>{erro}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="login-email" className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider">
                 E-mail
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-aco">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
@@ -75,17 +63,17 @@ export const LoginView: React.FC = () => {
                   id="login-email"
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu.email@oficina.com.br"
-                  className="w-full bg-slate-950/70 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                  className="w-full bg-parede/60 border border-trilho rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-grafite placeholder-aco focus:outline-none focus:ring-2 focus:ring-mercosul focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="login-senha" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="login-senha" className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider">
                 Senha
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-aco">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
@@ -96,7 +84,7 @@ export const LoginView: React.FC = () => {
                   id="login-senha"
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-950/70 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                  className="w-full bg-parede/60 border border-trilho rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-grafite placeholder-aco focus:outline-none focus:ring-2 focus:ring-mercosul focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -104,22 +92,19 @@ export const LoginView: React.FC = () => {
             <button
               type="submit"
               disabled={carregando}
-              className="w-full mt-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-medium py-2.5 px-4 rounded-xl shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full mt-2 bg-mercosul hover:bg-mercosul/90 text-white font-medium py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {carregando ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <>
-                  <span>Entrar no R-Fleet</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                <span>Entrar</span>
               )}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-xs text-slate-400 mt-6">
-          R-Fleet &copy; {new Date().getFullYear()} &mdash; Controle de pátio e etapas mecânica/funilaria
+        <p className="text-center text-xs text-aco mt-6">
+          R-Fleet &copy; {new Date().getFullYear()}
         </p>
       </div>
     </div>

@@ -88,7 +88,7 @@ const AppContent: React.FC = () => {
       );
       // Recarregar métricas
       api.obterMetricas().then(setMetricas).catch(() => {});
-      adicionarToast(`Veículo ${atualizada.placa} movido para ${atualizada.etapaDescricao}!`);
+      adicionarToast(`${atualizada.placa} movido para ${atualizada.etapaDescricao}.`);
     } catch (err: any) {
       adicionarToast(err.message || 'Erro ao transicionar etapa.', 'erro');
     }
@@ -98,7 +98,7 @@ const AppContent: React.FC = () => {
     setModalEntradaAberto(false);
     setOrdens((prev) => [novaOrdem, ...prev]);
     api.obterMetricas().then(setMetricas).catch(() => {});
-    adicionarToast(`Entrada do veículo ${novaOrdem.placa} registrada com sucesso!`);
+    adicionarToast(`Entrada de ${novaOrdem.placa} registrada.`);
   };
 
   const handleSucessoImportacao = () => {
@@ -127,8 +127,8 @@ const AppContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400">
-        <div className="w-10 h-10 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mb-4" />
+      <div className="min-h-screen bg-parede flex flex-col items-center justify-center text-aco">
+        <div className="w-10 h-10 border-2 border-mercosul border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-sm font-medium">Iniciando R-Fleet...</p>
       </div>
     );
@@ -139,7 +139,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-parede text-grafite flex flex-col">
       {/* Barra de Navegação */}
       <Navbar
         abaAtiva={abaAtiva}
@@ -150,10 +150,10 @@ const AppContent: React.FC = () => {
       />
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-[1536px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {carregandoDados && ordens.length === 0 ? (
-          <div className="py-20 text-center text-slate-400">
-            <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="py-20 text-center text-aco">
+            <div className="w-8 h-8 border-2 border-mercosul border-t-transparent rounded-full animate-spin mx-auto mb-3" />
             <p className="text-sm">Sincronizando veículos e ordens de serviço...</p>
           </div>
         ) : (

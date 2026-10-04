@@ -112,8 +112,8 @@ const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecion
 
   if (meses === null) {
     return (
-      <div className="py-20 text-center text-slate-400">
-        <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+      <div className="py-20 text-center text-aco">
+        <div className="w-8 h-8 border-2 border-mercosul border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-sm">Carregando histórico...</p>
       </div>
     );
@@ -121,8 +121,8 @@ const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecion
 
   if (meses.length === 0) {
     return (
-      <div className="py-20 text-center text-slate-400">
-        <History className="w-10 h-10 mx-auto mb-3 text-slate-600" />
+      <div className="py-20 text-center text-aco">
+        <History className="w-10 h-10 mx-auto mb-3 text-trilho" />
         <p className="text-sm">Nenhum veículo entregue ainda.</p>
       </div>
     );
@@ -139,22 +139,22 @@ const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecion
             aria-pressed={mesmoMes(mesSelecionado, m)}
             className={`shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
               mesmoMes(mesSelecionado, m)
-                ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-                : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-slate-200'
+                ? 'bg-mercosul/10 text-mercosul border-mercosul/40'
+                : 'bg-etiqueta text-aco border-trilho hover:text-grafite'
             }`}
           >
             <span>{rotuloMesCurto(m.ano, m.mes)}</span>
-            <span className="font-mono text-[11px] px-1.5 rounded bg-slate-950/60">{m.quantidade}</span>
+            <span className="font-placa tabular-nums text-[11px] px-1.5 rounded bg-parede/60">{m.quantidade}</span>
           </button>
         ))}
       </div>
 
       {/* Tabela do mês */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-etiqueta border border-trilho rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/80 text-slate-400 font-semibold uppercase tracking-wider">
+              <tr className="border-b border-trilho bg-parede/60 text-aco font-semibold uppercase tracking-wider">
                 <th className="py-3.5 px-4">Placa</th>
                 <th className="py-3.5 px-4">Veículo / Modelo</th>
                 <th className="py-3.5 px-4">Origem</th>
@@ -167,10 +167,10 @@ const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecion
                 <th className="py-3.5 px-4">NF</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80">
+            <tbody className="divide-y divide-trilho">
               {carregandoOrdens ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-slate-400">
+                  <td colSpan={10} className="py-12 text-center text-aco">
                     Carregando veículos do mês...
                   </td>
                 </tr>
@@ -181,26 +181,26 @@ const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecion
                     onClick={() => onSelecionarOrdem(ordem)}
                     onKeyDown={ativarComTeclado(() => onSelecionarOrdem(ordem))}
                     tabIndex={0}
-                    className="hover:bg-slate-800/60 focus-visible:-outline-offset-2 transition-colors cursor-pointer"
+                    className="hover:bg-parede focus-visible:-outline-offset-2 transition-colors cursor-pointer"
                   >
                     <td className="py-3 px-4">
                       <PlacaBadge placa={ordem.placa} mercosul={ordem.mercosul} size="sm" />
                     </td>
-                    <td className="py-3 px-4 font-medium text-slate-100 max-w-[200px] truncate">{ordem.modelo}</td>
-                    <td className="py-3 px-4 text-slate-300">{ordem.origemNome || '-'}</td>
-                    <td className="py-3 px-4 text-sky-400 font-medium">{ordem.tipoServicoNome || '-'}</td>
-                    <td className="py-3 px-4 text-slate-400 font-mono">{formatarData(ordem.dataEntrada)}</td>
-                    <td className="py-3 px-4 text-slate-400 font-mono">{formatarData(ordem.dataSaida)}</td>
-                    <td className="py-3 px-4 text-center font-mono text-slate-300">{ordem.diasNoPatio}</td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-slate-100">
+                    <td className="py-3 px-4 font-medium text-grafite max-w-[200px] truncate">{ordem.modelo}</td>
+                    <td className="py-3 px-4 text-grafite">{ordem.origemNome || '-'}</td>
+                    <td className="py-3 px-4 text-mercosul font-medium">{ordem.tipoServicoNome || '-'}</td>
+                    <td className="py-3 px-4 text-aco font-placa tabular-nums">{formatarData(ordem.dataEntrada)}</td>
+                    <td className="py-3 px-4 text-aco font-placa tabular-nums">{formatarData(ordem.dataSaida)}</td>
+                    <td className="py-3 px-4 text-center font-placa tabular-nums text-grafite">{ordem.diasNoPatio}</td>
+                    <td className="py-3 px-4 text-right font-placa tabular-nums font-bold text-grafite">
                       {formatarMoeda(ordem.valorOrcamento)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className={ordem.faturado ? 'text-emerald-400 font-semibold' : 'text-slate-400'}>
+                      <span className={ordem.faturado ? 'text-verde font-semibold' : 'text-aco'}>
                         {ordem.faturado ? 'Sim' : 'Não'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-400 font-mono">{ordem.numeroNf || '-'}</td>
+                    <td className="py-3 px-4 text-aco font-placa tabular-nums">{ordem.numeroNf || '-'}</td>
                   </tr>
                 ))
               )}
@@ -210,27 +210,27 @@ const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecion
 
         {/* Rodapé com totais e exportação */}
         {mesSelecionado && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-t border-slate-800 bg-slate-950/60">
-            <span className="text-xs text-slate-300">
-              <strong className="text-slate-100">{rotuloMesLongo(mesSelecionado.ano, mesSelecionado.mes)}</strong>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-t border-trilho bg-parede/60">
+            <span className="text-xs text-grafite">
+              <strong className="text-grafite">{rotuloMesLongo(mesSelecionado.ano, mesSelecionado.mes)}</strong>
               {' — '}
               {mesSelecionado.quantidade} {mesSelecionado.quantidade === 1 ? 'veículo' : 'veículos'}
               {' — '}
-              <strong className="font-mono text-slate-100">{formatarMoeda(mesSelecionado.valorTotal)}</strong>
+              <strong className="font-placa tabular-nums text-grafite">{formatarMoeda(mesSelecionado.valorTotal)}</strong>
             </span>
             <div className="flex gap-2">
               <button
                 onClick={() => exportar('xlsx')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-trilho bg-parede hover:bg-trilho/50 text-grafite text-xs font-semibold transition-all cursor-pointer"
               >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                <FileSpreadsheet className="w-4 h-4 text-verde" />
                 <span>Exportar Excel</span>
               </button>
               <button
                 onClick={() => exportar('csv')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-trilho bg-parede hover:bg-trilho/50 text-grafite text-xs font-semibold transition-all cursor-pointer"
               >
-                <FileText className="w-4 h-4 text-sky-400" />
+                <FileText className="w-4 h-4 text-mercosul" />
                 <span>Exportar CSV</span>
               </button>
             </div>
@@ -247,8 +247,8 @@ export const HistoricoView: React.FC<HistoricoViewProps> = (props) => {
   const classeBotao = (ativo: boolean) =>
     `flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
       ativo
-        ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-        : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-slate-200'
+        ? 'bg-mercosul/10 text-mercosul border-mercosul/40'
+        : 'bg-etiqueta text-aco border-trilho hover:text-grafite'
     }`;
 
   return (
