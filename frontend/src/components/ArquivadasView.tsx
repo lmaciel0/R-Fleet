@@ -13,7 +13,7 @@ interface ArquivadasViewProps {
 
 /**
  * OS arquivadas, de qualquer etapa. Clicar abre o modal, onde está o motivo (Linha do Tempo)
- * e o botão de restaurar.
+ * e os botões de restaurar e de excluir de vez.
  */
 export const ArquivadasView: React.FC<ArquivadasViewProps> = ({ versaoDados, onSelecionarOrdem, onErro }) => {
   const [ordens, setOrdens] = useState<OrdemServico[] | null>(null);
@@ -101,7 +101,7 @@ export const ArquivadasView: React.FC<ArquivadasViewProps> = ({ versaoDados, onS
       </div>
       <div className="px-4 py-3 border-t border-slate-800 bg-slate-950/60 text-xs text-slate-400">
         {ordens.length} {ordens.length === 1 ? 'OS arquivada' : 'OS arquivadas'}. Clique numa linha para ver o
-        motivo ou restaurar.
+        motivo, restaurar ou excluir de vez.
       </div>
     </div>
   );

@@ -12,16 +12,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import jakarta.persistence.EntityManager;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,6 +46,12 @@ class ArquivamentoOrdemServicoTest {
 
     @Autowired
     private GestorDeTeste gestorDeTeste;
+
+    @Autowired
+    private EntityManager entityManager;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private String tokenJwt;
 
@@ -141,6 +153,56 @@ class ArquivamentoOrdemServicoTest {
     void deveRetornar404ParaOsInexistente() throws Exception {
         alterarArquivamento(999999999L, true, "Qualquer")
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Excluir OS arquivada apaga a OS, o histórico e os anexos, mas mantém o veículo")
+    void deveExcluirOsArquivada() throws Exception {
+        long id = registrarEntrada("ARQ1A07");
+        mockMvc.perform(multipart("/api/ordens-servico/" + id + "/anexos")
+                        .file(new MockMultipartFile("arquivo", "laudo.pdf", "application/pdf", new byte[]{1, 2, 3}))
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isCreated());
+        alterarArquivamento(id, true, "Lançada em duplicidade").andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/ordens-servico/" + id).header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isNoContent());
+        // O Hibernate só envia o DELETE no flush; as contagens abaixo são SQL puro e não disparam flush
+        entityManager.flush();
+
+        assertThat(contar("SELECT COUNT(*) FROM ordens_servico WHERE id = ?", id)).isZero();
+        assertThat(contar("SELECT COUNT(*) FROM historico_etapas WHERE ordem_servico_id = ?", id)).isZero();
+        assertThat(contar("SELECT COUNT(*) FROM anexos_os WHERE ordem_servico_id = ?", id)).isZero();
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM veiculos WHERE placa = 'ARQ1A07'", Integer.class)).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Excluir OS que não está arquivada retorna 409")
+    void deveRejeitarExclusaoDeOsAtiva() throws Exception {
+        long id = registrarEntrada("ARQ1A08");
+
+        mockMvc.perform(delete("/api/ordens-servico/" + id).header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.mensagem").value("Só é possível excluir uma ordem de serviço arquivada."));
+    }
+
+    @Test
+    @DisplayName("Excluir OS inexistente retorna 404")
+    void deveRetornar404AoExcluirOsInexistente() throws Exception {
+        mockMvc.perform(delete("/api/ordens-servico/999999999").header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Excluir OS sem token JWT retorna 401")
+    void deveRejeitarExclusaoSemToken() throws Exception {
+        mockMvc.perform(delete("/api/ordens-servico/1"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private int contar(String sql, long id) {
+        return jdbcTemplate.queryForObject(sql, Integer.class, id);
     }
 
     private long registrarEntrada(String placa) throws Exception {

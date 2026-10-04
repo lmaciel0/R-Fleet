@@ -302,6 +302,13 @@ export const api = {
     });
   },
 
+  // Exclusão definitiva: a API só aceita OS arquivada
+  async excluirOrdem(id: number): Promise<void> {
+    return request(`/ordens-servico/${idNaUrl(id)}`, {
+      method: 'DELETE',
+    });
+  },
+
   // Anexos
   async listarAnexos(ordemServicoId: number): Promise<AnexoOs[]> {
     return request(`/ordens-servico/${idNaUrl(ordemServicoId)}/anexos`);

@@ -126,4 +126,13 @@ public class OrdemServicoController {
         String email = userDetails != null ? userDetails.getUsername() : null;
         return ResponseEntity.ok(ordemServicoService.alterarArquivamento(id, request, email));
     }
+
+    /**
+     * Exclusão definitiva de uma OS arquivada (com o histórico e os anexos dela).
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        ordemServicoService.excluir(id);
+        return ResponseEntity.noContent().build();
+    }
 }
