@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rfleet.domain.EtapaOrdemServico;
 import com.rfleet.domain.OrdemServico;
 import com.rfleet.support.GestorDeTeste;
+import com.rfleet.dto.ArquivamentoRequest;
 import com.rfleet.dto.RegistrarEntradaRequest;
 import com.rfleet.repository.OrdemServicoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,9 +106,11 @@ class HistoricoControllerTest {
 
         // Arquivada: não entra no histórico
         Long arquivada = criarEntregue("HSM1A05", "7777.00", LocalDate.of(2020, 1, 15));
-        mockMvc.perform(delete("/api/ordens-servico/" + arquivada)
-                        .header("Authorization", "Bearer " + tokenJwt))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(patch("/api/ordens-servico/" + arquivada + "/arquivamento")
+                        .header("Authorization", "Bearer " + tokenJwt)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new ArquivamentoRequest(true, "Teste"))))
+                .andExpect(status().isOk());
 
         JsonNode meses = buscarMeses();
 

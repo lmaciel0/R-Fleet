@@ -118,15 +118,6 @@ const AppContent: React.FC = () => {
     adicionarToast(`Ordem de Serviço #${String(atualizada.id).padStart(5, '0')} atualizada.`);
   };
 
-  const handleVeiculoExcluido = (placa: string) => {
-    setOrdemSelecionadaId(null);
-    // As OS do veículo saíram junto: recarrega a operação, o Histórico e as métricas
-    api.listarOrdens({ ativo: true, ocultarEntreguesAnteriores: true }).then(setOrdens).catch(() => {});
-    setVersaoDados((v) => v + 1);
-    api.obterMetricas().then(setMetricas).catch(() => {});
-    adicionarToast(`Veículo ${placa} excluído.`);
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400">
@@ -221,7 +212,6 @@ const AppContent: React.FC = () => {
           ordemId={ordemSelecionadaId}
           onFechar={() => setOrdemSelecionadaId(null)}
           onAtualizada={handleOrdemAtualizada}
-          onVeiculoExcluido={handleVeiculoExcluido}
         />
       )}
 
