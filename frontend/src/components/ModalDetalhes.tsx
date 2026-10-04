@@ -32,6 +32,7 @@ interface ModalDetalhesProps {
   ordemId: number;
   onFechar: () => void;
   onAtualizada: (ordem: OrdemServico) => void;
+  onExcluida: (ordem: OrdemServico) => void;
 }
 
 const TODAS_ETAPAS: { etapa: EtapaOrdemServico; label: string }[] = [
@@ -48,6 +49,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   ordemId,
   onFechar,
   onAtualizada,
+  onExcluida,
 }) => {
   const [ordem, setOrdem] = useState<OrdemServico | null>(null);
   const [aba, setAba] = useState<'geral' | 'financeiro' | 'historico' | 'anexos'>('geral');
@@ -83,6 +85,11 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   const [confirmandoArquivamento, setConfirmandoArquivamento] = useState(false);
   const [motivoArquivamento, setMotivoArquivamento] = useState('');
   const [salvandoArquivamento, setSalvandoArquivamento] = useState(false);
+
+  // Exclusão definitiva (só OS arquivada): libera depois de digitar a placa
+  const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
+  const [placaConfirmacao, setPlacaConfirmacao] = useState('');
+  const [excluindo, setExcluindo] = useState(false);
 
   const carregarDados = async () => {
     try {
@@ -206,6 +213,21 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
       setErro(err.message || 'Falha ao alterar o arquivamento.');
     } finally {
       setSalvandoArquivamento(false);
+    }
+  };
+
+  const placaConfere = (digitada: string) =>
+    !!ordem && digitada.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === ordem.placa;
+
+  const handleExcluirOrdem = async () => {
+    if (!ordem || !placaConfere(placaConfirmacao)) return;
+    setExcluindo(true);
+    try {
+      await api.excluirOrdem(ordem.id);
+      onExcluida(ordem);
+    } catch (err: any) {
+      setErro(err.message || 'Falha ao excluir a OS.');
+      setExcluindo(false);
     }
   };
 
@@ -367,28 +389,86 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
           )}
 
           {!ordem.ativo && (
-            <div className="p-3 bg-amber-950/40 border border-amber-700/60 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-start gap-2 text-xs text-amber-200">
-                <Archive className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
-                <span>
-                  Esta OS está arquivada: não aparece na operação, no dashboard nem nas exportações. O motivo
-                  está na Linha do Tempo.
-                </span>
+            <div className="p-3 bg-amber-950/40 border border-amber-700/60 rounded-xl space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-2 text-xs text-amber-200">
+                  <Archive className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                  <span>
+                    Esta OS está arquivada: não aparece na operação, no dashboard nem nas exportações. O motivo
+                    está na Linha do Tempo.
+                  </span>
+                </div>
+                <div className="shrink-0 flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={() => handleAlterarArquivamento(false)}
+                    disabled={salvandoArquivamento || excluindo}
+                    className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                  >
+                    {salvandoArquivamento ? (
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <ArchiveRestore className="w-3.5 h-3.5" />
+                        <span>Restaurar OS</span>
+                      </>
+                    )}
+                  </button>
+                  {!confirmandoExclusao && (
+                    <button
+                      onClick={() => setConfirmandoExclusao(true)}
+                      disabled={salvandoArquivamento}
+                      className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-rose-300 border border-rose-700 hover:bg-rose-900/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Excluir de vez</span>
+                    </button>
+                  )}
+                </div>
               </div>
-              <button
-                onClick={() => handleAlterarArquivamento(false)}
-                disabled={salvandoArquivamento}
-                className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold text-white bg-sky-600 hover:bg-sky-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
-              >
-                {salvandoArquivamento ? (
-                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <ArchiveRestore className="w-3.5 h-3.5" />
-                    <span>Restaurar OS</span>
-                  </>
-                )}
-              </button>
+
+              {confirmandoExclusao && (
+                <div className="pt-3 border-t border-amber-800/50 space-y-3">
+                  <p className="text-xs text-rose-200">
+                    Isto apaga a OS #{String(ordem.id).padStart(5, '0')} com a linha do tempo e os anexos dela. Não
+                    tem como desfazer. O veículo continua cadastrado. Digite a placa{' '}
+                    <strong className="font-mono">{ordem.placa}</strong> para confirmar.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      value={placaConfirmacao}
+                      onChange={(e) => setPlacaConfirmacao(e.target.value)}
+                      placeholder={ordem.placa}
+                      autoFocus
+                      className="flex-1 bg-slate-900 border border-rose-800 rounded-xl px-3 py-2 text-xs font-mono uppercase text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    />
+                    <button
+                      onClick={() => {
+                        setConfirmandoExclusao(false);
+                        setPlacaConfirmacao('');
+                      }}
+                      disabled={excluindo}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition-all disabled:opacity-40 cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleExcluirOrdem}
+                      disabled={excluindo || !placaConfere(placaConfirmacao)}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                    >
+                      {excluindo ? (
+                        <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Excluir definitivamente</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

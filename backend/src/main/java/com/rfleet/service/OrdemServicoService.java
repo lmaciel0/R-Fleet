@@ -326,4 +326,18 @@ public class OrdemServicoService {
 
         return OrdemServicoDTO.fromEntity(salva, obterLimiteDiasSla(), LocalDate.now());
     }
+
+    /**
+     * Exclusão definitiva, só para OS arquivada. O banco apaga junto (ON DELETE CASCADE) o histórico
+     * de etapas e os anexos; o veículo fica, pois pode ter outras OS ou voltar à oficina.
+     */
+    @Transactional
+    public void excluir(Long id) {
+        OrdemServico os = ordemServicoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ordem de serviço não encontrada com ID: " + id));
+        if (Boolean.TRUE.equals(os.getAtivo())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Só é possível excluir uma ordem de serviço arquivada.");
+        }
+        ordemServicoRepository.delete(os);
+    }
 }

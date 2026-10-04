@@ -118,6 +118,13 @@ const AppContent: React.FC = () => {
     adicionarToast(`Ordem de Serviço #${String(atualizada.id).padStart(5, '0')} atualizada.`);
   };
 
+  const handleOrdemExcluida = (excluida: OrdemServico) => {
+    setOrdemSelecionadaId(null);
+    // Só OS arquivada pode ser excluída, então basta o Histórico (Arquivadas) buscar de novo
+    setVersaoDados((v) => v + 1);
+    adicionarToast(`Ordem de Serviço #${String(excluida.id).padStart(5, '0')} (${excluida.placa}) excluída.`);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400">
@@ -212,6 +219,7 @@ const AppContent: React.FC = () => {
           ordemId={ordemSelecionadaId}
           onFechar={() => setOrdemSelecionadaId(null)}
           onAtualizada={handleOrdemAtualizada}
+          onExcluida={handleOrdemExcluida}
         />
       )}
 
