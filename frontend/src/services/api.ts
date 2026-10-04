@@ -224,6 +224,13 @@ export const api = {
     return request(`/veiculos/buscar-placa/${sanitizada}`);
   },
 
+  // Apaga o veículo com todas as ordens de serviço, o histórico e os anexos dele
+  async excluirVeiculo(id: number): Promise<void> {
+    return request(`/veiculos/${idNaUrl(id)}`, {
+      method: 'DELETE',
+    });
+  },
+
   // Ordens de Serviço
   async listarOrdens(filtros: Record<string, any> = {}): Promise<OrdemServico[]> {
     const params = new URLSearchParams();

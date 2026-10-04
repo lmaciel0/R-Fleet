@@ -122,4 +122,15 @@ public class VeiculoService {
 
         return VeiculoDTO.fromEntity(veiculoRepository.save(veiculo));
     }
+
+    /**
+     * Exclusão definitiva. O banco apaga junto (ON DELETE CASCADE) as ordens de serviço do veículo,
+     * o histórico de etapas e os anexos delas.
+     */
+    @Transactional
+    public void excluir(Long id) {
+        Veiculo veiculo = veiculoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Veículo não encontrado com ID: " + id));
+        veiculoRepository.delete(veiculo);
+    }
 }

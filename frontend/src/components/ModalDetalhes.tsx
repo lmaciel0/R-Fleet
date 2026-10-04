@@ -30,6 +30,7 @@ interface ModalDetalhesProps {
   ordemId: number;
   onFechar: () => void;
   onAtualizada: (ordem: OrdemServico) => void;
+  onVeiculoExcluido: (placa: string) => void;
 }
 
 const TODAS_ETAPAS: { etapa: EtapaOrdemServico; label: string }[] = [
@@ -46,6 +47,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   ordemId,
   onFechar,
   onAtualizada,
+  onVeiculoExcluido,
 }) => {
   const [ordem, setOrdem] = useState<OrdemServico | null>(null);
   const [aba, setAba] = useState<'geral' | 'financeiro' | 'historico' | 'anexos'>('geral');
@@ -76,6 +78,11 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   const [dataFaturamento, setDataFaturamento] = useState('');
   const [numeroNf, setNumeroNf] = useState('');
   const [salvandoFaturamento, setSalvandoFaturamento] = useState(false);
+
+  // Exclusão do veículo: só libera depois de digitar a placa
+  const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
+  const [placaConfirmacao, setPlacaConfirmacao] = useState('');
+  const [excluindoVeiculo, setExcluindoVeiculo] = useState(false);
 
   const carregarDados = async () => {
     try {
@@ -177,6 +184,21 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
       setErro(err.message);
     } finally {
       setSalvandoFaturamento(false);
+    }
+  };
+
+  const placaConfere = (digitada: string) =>
+    !!ordem && digitada.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === ordem.placa;
+
+  const handleExcluirVeiculo = async () => {
+    if (!ordem || !placaConfere(placaConfirmacao)) return;
+    setExcluindoVeiculo(true);
+    try {
+      await api.excluirVeiculo(ordem.veiculoId);
+      onVeiculoExcluido(ordem.placa);
+    } catch (err: any) {
+      setErro(err.message || 'Falha ao excluir o veículo.');
+      setExcluindoVeiculo(false);
     }
   };
 
@@ -456,6 +478,66 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                     )}
                   </button>
                 </div>
+              </div>
+
+              {/* Exclusão definitiva do veículo */}
+              <div className="bg-rose-950/20 p-4 rounded-xl border border-rose-900/60 space-y-3">
+                {!confirmandoExclusao ? (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <p className="text-xs text-slate-400">
+                      Remove o veículo e todo o histórico dele do sistema.
+                    </p>
+                    <button
+                      onClick={() => setConfirmandoExclusao(true)}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-rose-300 border border-rose-700 hover:bg-rose-900/40 transition-all cursor-pointer flex items-center gap-1.5 justify-center"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Excluir veículo</span>
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-rose-200">
+                      Isto apaga o veículo <strong className="font-mono">{ordem.placa}</strong> e todas as
+                      ordens de serviço, o histórico e os anexos dele. Não tem como desfazer. Digite a placa
+                      para confirmar.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input
+                        type="text"
+                        value={placaConfirmacao}
+                        onChange={(e) => setPlacaConfirmacao(e.target.value)}
+                        placeholder={ordem.placa}
+                        autoFocus
+                        className="flex-1 bg-slate-900 border border-rose-800 rounded-xl px-3 py-2 text-xs font-mono uppercase text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                      />
+                      <button
+                        onClick={() => {
+                          setConfirmandoExclusao(false);
+                          setPlacaConfirmacao('');
+                        }}
+                        disabled={excluindoVeiculo}
+                        className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition-all disabled:opacity-40 cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={handleExcluirVeiculo}
+                        disabled={excluindoVeiculo || !placaConfere(placaConfirmacao)}
+                        className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
+                      >
+                        {excluindoVeiculo ? (
+                          <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Excluir definitivamente</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
