@@ -27,7 +27,7 @@ const GanchosVazios: React.FC = () => (
   </svg>
 );
 
-/** Quadro de chaves: cada coluna é um trilho com as etiquetas dos carros daquela etapa. */
+/** Quadro de chaves: cada coluna é uma raia com as etiquetas dos carros daquela etapa. */
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   ordens,
   onSelecionarOrdem,
@@ -93,7 +93,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   return (
     <div className="w-full overflow-x-auto pb-4 snap-x snap-mandatory md:snap-none">
-      <div className="flex gap-5 w-max">
+      <div className="flex gap-4 w-max">
         {ETAPAS.map((coluna) => {
           const ordensNaColuna = ordens.filter((o) => o.etapa === coluna.etapa);
           const parados = ordensNaColuna.filter((o) => o.statusSla === 'VERMELHO').length;
@@ -106,35 +106,34 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               onDragOver={(e) => handleDragOver(e, coluna.etapa)}
               onDragLeave={() => setDragOverCol(null)}
               onDrop={(e) => handleDrop(e, coluna.etapa)}
-              className={`w-[264px] shrink-0 snap-start flex flex-col rounded-md transition-colors ${
-                isDragOver ? 'bg-etiqueta/60' : ''
+              className={`relative w-[272px] shrink-0 snap-start flex flex-col rounded-xl border overflow-hidden transition-colors ${
+                isDragOver ? 'border-mercosul bg-mercosul/10' : 'border-trilho bg-etiqueta/45'
               }`}
             >
-              {/* Cabeçalho e trilho na cor da etapa */}
-              <div className="px-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-placa text-[18px] leading-tight font-semibold text-grafite">{coluna.titulo}</h3>
-                  <span
-                    className={`min-w-6 px-1.5 rounded-[3px] text-center font-placa tabular-nums text-[15px] font-semibold text-sobre-cor ${coluna.fundo}`}
-                  >
-                    {ordensNaColuna.length}
+              {/* Trilho na cor da etapa, no topo da raia */}
+              <div aria-hidden="true" className={`h-1 ${coluna.fundo}`} />
+
+              <div className="px-3 pt-2.5 pb-2.5 flex items-center gap-2 border-b border-trilho/70">
+                <span aria-hidden="true" className={`w-2.5 h-2.5 rounded-full shrink-0 ${coluna.fundo}`} />
+                <h3 className="font-placa text-[17px] leading-tight font-semibold text-grafite truncate">{coluna.titulo}</h3>
+                {parados > 0 && (
+                  <span className="ml-auto text-[13px] font-semibold text-vermelho shrink-0">
+                    {parados} {parados === 1 ? 'parado' : 'parados'}
                   </span>
-                  {parados > 0 && (
-                    <span className="ml-auto text-[13px] font-semibold text-vermelho">
-                      {parados} {parados === 1 ? 'parado' : 'parados'}
-                    </span>
-                  )}
-                </div>
-                <div
-                  aria-hidden="true"
-                  className={`mt-2 rounded-full transition-all ${coluna.fundo} ${isDragOver ? 'h-[6px]' : 'h-1'}`}
-                />
+                )}
+                <span
+                  className={`${parados > 0 ? '' : 'ml-auto'} min-w-6 px-1.5 rounded-[4px] text-center font-placa tabular-nums text-[15px] font-semibold text-sobre-cor shrink-0 ${coluna.fundo}`}
+                >
+                  {ordensNaColuna.length}
+                </span>
               </div>
 
-              {/* Etiquetas penduradas no trilho */}
-              <div className="px-1 pt-3 pb-2 space-y-3 overflow-y-auto max-h-[calc(100vh-190px)]">
+              {/* Etiquetas penduradas na raia */}
+              <div className="p-2.5 space-y-2.5 overflow-y-auto max-h-[calc(100vh-200px)]">
                 {ordensNaColuna.length === 0 ? (
-                  <p className="pt-1 text-[14px] text-aco">Nenhum carro</p>
+                  <p className="py-6 rounded-lg border border-dashed border-trilho text-center text-[14px] text-aco">
+                    Nenhum carro
+                  </p>
                 ) : (
                   ordensNaColuna.map((ordem) => (
                     <KanbanCard

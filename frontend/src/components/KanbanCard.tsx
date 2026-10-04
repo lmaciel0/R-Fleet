@@ -1,7 +1,7 @@
 import React from 'react';
 import { OrdemServico } from '../types';
 import { PlacaBadge } from './PlacaBadge';
-import { AlertTriangle, Check } from 'lucide-react';
+import { AlertTriangle, Building2, Check, ChevronRight, Wrench } from 'lucide-react';
 import { etapaInfo, ETAPAS } from '../utils/etapas';
 
 interface KanbanCardProps {
@@ -41,7 +41,7 @@ const SeloPrazo: React.FC<{ ordem: OrdemServico }> = ({ ordem }) => {
 /** Etiqueta de chave: um carro pendurado na etapa em que está. A cabeça tem a cor da etapa. */
 export const KanbanCard: React.FC<KanbanCardProps> = ({ ordem, onSelecionar, onAvancarEtapa, etapaSeguinte }) => {
   const etapa = etapaInfo(ordem.etapa);
-  const origemEServico = [ordem.origemNome, ordem.tipoServicoNome].filter(Boolean).join(', ');
+  const parado = ordem.statusSla === 'VERMELHO';
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('text/plain', String(ordem.id));
@@ -53,51 +53,79 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ ordem, onSelecionar, onA
       draggable
       onDragStart={handleDragStart}
       onClick={() => onSelecionar(ordem)}
-      className="group relative cursor-pointer select-none rounded-[2px] transition-transform active:scale-[0.98] has-[h4_button:focus-visible]:outline-2 has-[h4_button:focus-visible]:outline-offset-2 has-[h4_button:focus-visible]:outline-mercosul"
+      // A sombra vai num filtro do contêiner porque o clip-path do chanfro cortaria um box-shadow
+      className={`group relative cursor-pointer select-none rounded-[2px] transition-transform active:scale-[0.98] has-[h4_button:focus-visible]:outline-2 has-[h4_button:focus-visible]:outline-offset-2 has-[h4_button:focus-visible]:outline-mercosul ${
+        parado
+          ? 'drop-shadow-[0_0_10px_rgb(220_38_38/0.35)]'
+          : 'drop-shadow-[0_2px_3px_rgb(15_23_42/0.14)]'
+      }`}
     >
       {/* Ilhós: o furo reforçado por onde a etiqueta fica pendurada */}
       <span
         aria-hidden="true"
-        className="absolute top-[7px] left-1/2 -translate-x-1/2 z-10 w-3 h-3 rounded-full bg-parede ring-[2.5px] ring-white/70"
+        className="absolute top-[3px] left-1/2 -translate-x-1/2 z-10 w-2.5 h-2.5 rounded-full bg-parede ring-2 ring-white/60"
       />
 
-      <div className="etiqueta-borda bg-trilho p-px transition-colors group-hover:bg-aco">
+      <div
+        className={`etiqueta-borda p-px transition-colors ${
+          parado ? 'bg-vermelho/80 group-hover:bg-vermelho' : 'bg-trilho group-hover:bg-aco'
+        }`}
+      >
         <div className="etiqueta-face bg-etiqueta">
-          <div aria-hidden="true" className={`h-[26px] ${etapa.fundo}`} />
+          <div aria-hidden="true" className={`h-4 ${etapa.fundo}`} />
 
-          <div className="px-3.5 pt-3">
-            <div className="flex justify-center">
-              <PlacaBadge placa={ordem.placa} mercosul={ordem.mercosul} size="lg" />
+          <div className="px-3 pt-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-placa tabular-nums text-[14px] font-semibold text-aco">
+                OS {String(ordem.id).padStart(5, '0')}
+              </span>
+              <PlacaBadge placa={ordem.placa} mercosul={ordem.mercosul} size="md" />
             </div>
 
-            <h4 className="mt-3 text-[16px] leading-snug font-semibold text-grafite line-clamp-1">
+            <h4 className="mt-2 text-[16px] leading-snug font-semibold text-grafite line-clamp-1">
               {/* Botão para o teclado: o clique dele sobe até a etiqueta. O contorno de foco vai na etiqueta inteira
                   (has-[...] no contêiner), porque o clip-path do chanfro cortaria um contorno desenhado aqui dentro */}
               <button type="button" className="text-left cursor-pointer focus-visible:outline-none">
                 {ordem.modelo}
               </button>
             </h4>
-            {origemEServico && <p className="text-[13px] text-aco line-clamp-1">{origemEServico}</p>}
 
-            <div className="mt-2.5">
+            {(ordem.origemNome || ordem.tipoServicoNome) && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {ordem.origemNome && (
+                  <span className="inline-flex items-center gap-1 max-w-full px-1.5 py-0.5 rounded-[4px] border border-trilho bg-parede/60 text-[12px] font-medium text-aco">
+                    <Building2 className="w-3 h-3 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{ordem.origemNome}</span>
+                  </span>
+                )}
+                {ordem.tipoServicoNome && (
+                  <span className="inline-flex items-center gap-1 max-w-full px-1.5 py-0.5 rounded-[4px] border border-mercosul/25 bg-mercosul/8 text-[12px] font-medium text-mercosul">
+                    <Wrench className="w-3 h-3 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{ordem.tipoServicoNome}</span>
+                  </span>
+                )}
+              </div>
+            )}
+
+            <div className="mt-2.5 pt-2 pb-2.5 border-t border-trilho/70 flex items-center justify-between gap-2">
               <SeloPrazo ordem={ordem} />
-            </div>
-
-            <div className="mt-2 pb-3 flex items-baseline justify-between gap-2">
-              {ordem.valorOrcamento > 0 ? (
-                <span className="font-placa tabular-nums text-[17px] font-semibold text-grafite">
-                  {formatarMoeda(ordem.valorOrcamento)}
-                </span>
-              ) : (
-                <span className="text-[14px] text-aco">Sem orçamento</span>
-              )}
-              {ordem.valorOrcamento <= 0 ? null : ordem.faturado ? (
+              {ordem.valorOrcamento > 0 && ordem.faturado ? (
                 <span className="inline-flex items-center gap-0.5 text-[13px] font-medium text-verde">
                   <Check className="w-3.5 h-3.5" aria-hidden="true" />
                   Faturado
                 </span>
-              ) : (
+              ) : ordem.valorOrcamento > 0 ? (
                 <span className="text-[13px] text-aco">A faturar</span>
+              ) : null}
+            </div>
+
+            <div className="pb-2.5">
+              {ordem.valorOrcamento > 0 ? (
+                <span className="font-placa tabular-nums text-[18px] font-semibold text-grafite">
+                  {formatarMoeda(ordem.valorOrcamento)}
+                </span>
+              ) : (
+                <span className="text-[14px] text-aco">Sem orçamento</span>
               )}
             </div>
           </div>
@@ -109,9 +137,11 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ ordem, onSelecionar, onA
                 e.stopPropagation();
                 onAvancarEtapa(ordem);
               }}
-              className={`w-full border-t border-trilho px-3.5 py-2.5 text-left text-[14px] font-semibold ${etapaSeguinte.texto} hover:bg-parede/60 focus-visible:-outline-offset-4 cursor-pointer`}
+              className={`w-full flex items-center gap-2 border-t border-trilho px-3 py-2 text-left text-[14px] font-semibold ${etapaSeguinte.texto} hover:bg-parede/60 focus-visible:-outline-offset-4 cursor-pointer`}
             >
-              Mover para {etapaSeguinte.titulo}
+              <span aria-hidden="true" className={`w-2 h-2 rounded-full shrink-0 ${etapaSeguinte.fundo}`} />
+              <span className="truncate">Mover para {etapaSeguinte.titulo}</span>
+              <ChevronRight className="w-4 h-4 ml-auto shrink-0 opacity-60 group-hover:opacity-100" aria-hidden="true" />
             </button>
           )}
         </div>

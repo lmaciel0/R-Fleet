@@ -10,12 +10,25 @@
   /* Placas, nomes de etapa e números (sempre com tabular-nums) */
   --font-placa: 'Barlow Semi Condensed', 'Barlow', sans-serif;
 
-  --color-parede: #e2e5e3;
+  --color-parede: #e3e8ef;
   --color-etiqueta: #ffffff;
-  --color-grafite: #23272b;
-  --color-aco: #566064;
-  --color-trilho: #bfc5c7;
+  --color-grafite: #1b2333;
+  --color-aco: #515e73;
+  --color-trilho: #c2cad7;
   --color-mercosul: #003399;
+
+  /*
+   * Noite: o azul-marinho do R-Fleet original. Fica igual nos dois temas na navbar e no login,
+   * para o sistema ter a mesma cara de dia e de noite.
+   */
+  --color-noite: #0b1426;
+  --color-noite-alto: #15213a;
+  --color-noite-borda: #26355a;
+  --color-noite-texto: #e9eef7;
+  --color-noite-suave: #9eacc4;
+  /* Ação sobre a noite: azul da placa clareado, com texto branco (5,2:1) */
+  --color-acao: #2563eb;
+  --color-alerta-noite: #ff8f86;
 
   /* Semáforo da planilha original */
   --color-verde: #1b7340;
@@ -36,19 +49,21 @@
   --color-etapa-entregue: #4a5056;
 
   /* Furos do painel perfurado no fundo */
-  --color-furo: rgb(35 39 43 / 0.09);
+  --color-furo: rgb(27 35 51 / 0.1);
 }
 
 /* Tema escuro: escolhido pelo usuário ou pelo sistema (script no index.html define data-tema antes de pintar) */
 :root[data-tema='escuro'] {
   color-scheme: dark;
 
-  --color-parede: #171c20;
-  --color-etiqueta: #232a30;
-  --color-grafite: #e6eaec;
-  --color-aco: #a2acb2;
-  --color-trilho: #3a444b;
+  --color-parede: #080d1a;
+  --color-etiqueta: #111a2e;
+  --color-grafite: #e9eef7;
+  --color-aco: #9aa8bd;
+  --color-trilho: #26324b;
   --color-mercosul: #7ea2ff;
+
+  --color-noite: #0c1527;
 
   --color-verde: #5cc98a;
   --color-amarelo: #f0b847;
@@ -65,7 +80,7 @@
   --color-etapa-retirada: #5cc98a;
   --color-etapa-entregue: #aeb5ba;
 
-  --color-furo: rgb(0 0 0 / 0.32);
+  --color-furo: rgb(148 163 184 / 0.07);
 }
 
 * {
@@ -101,7 +116,17 @@ body {
 @layer components {
   .etiqueta-borda,
   .etiqueta-face {
-    clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%, 0 14px);
+    clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%, 0 10px);
+  }
+
+  /* Fundo do login: a noite com o brilho azul do R-Fleet original e o mesmo painel perfurado */
+  .fundo-noite {
+    background-color: var(--color-noite);
+    background-image:
+      radial-gradient(ellipse 60% 45% at 50% 22%, rgb(37 99 235 / 0.22), transparent 70%),
+      radial-gradient(ellipse 35% 35% at 88% 92%, rgb(99 102 241 / 0.12), transparent 70%),
+      radial-gradient(circle, rgb(148 163 184 / 0.08) 1.3px, transparent 1.8px);
+    background-size: auto, auto, 18px 18px;
   }
 }
 
