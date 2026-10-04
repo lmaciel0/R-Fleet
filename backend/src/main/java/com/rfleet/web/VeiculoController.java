@@ -44,4 +44,13 @@ public class VeiculoController {
     public ResponseEntity<VeiculoDTO> salvar(@Valid @RequestBody SalvarVeiculoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(veiculoService.salvar(request));
     }
+
+    /**
+     * Apaga o veículo com todas as ordens de serviço, o histórico e os anexos dele.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        veiculoService.excluir(id);
+        return ResponseEntity.noContent().build();
+    }
 }
