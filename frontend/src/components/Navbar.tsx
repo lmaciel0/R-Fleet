@@ -10,6 +10,7 @@ import {
   LogOut,
   AlertTriangle,
   History,
+  LucideIcon,
 } from 'lucide-react';
 import { AbaApp, DashboardMetricas } from '../types';
 
@@ -20,6 +21,14 @@ interface NavbarProps {
   onAbrirImportar: () => void;
   metricas?: DashboardMetricas | null;
 }
+
+// Rótulos curtos para caber numa linha; o nome completo fica no tooltip
+const ABAS: { aba: AbaApp; icone: LucideIcon; rotulo: string; rotuloMobile: string; titulo: string }[] = [
+  { aba: 'kanban', icone: LayoutGrid, rotulo: 'Kanban', rotuloMobile: 'Kanban', titulo: 'Quadro Kanban' },
+  { aba: 'tabela', icone: ListFilter, rotulo: 'Tabela', rotuloMobile: 'Tabela', titulo: 'Tabela Operacional' },
+  { aba: 'dashboard', icone: BarChart3, rotulo: 'Dashboard', rotuloMobile: 'Métricas', titulo: 'Dashboard Executivo' },
+  { aba: 'historico', icone: History, rotulo: 'Histórico', rotuloMobile: 'Histórico', titulo: 'Histórico' },
+];
 
 export const Navbar: React.FC<NavbarProps> = ({
   abaAtiva,
@@ -35,17 +44,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 whitespace-nowrap">
         {/* Lado Esquerdo: Marca & Navegação */}
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-5 min-w-0">
+          <div className="flex items-center gap-2.5 shrink-0">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 border border-sky-400/30">
               <Car className="w-6 h-6 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-white text-lg tracking-tight">R-Fleet</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider bg-sky-500/20 text-sky-400 border border-sky-500/30 px-1.5 py-0.2 rounded font-mono">
+                <span className="font-extrabold text-white text-lg tracking-tight leading-tight">R-Fleet</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider bg-sky-500/20 text-sky-400 border border-sky-500/30 px-1.5 rounded font-mono">
                   PRO
                 </span>
               </div>
@@ -53,64 +62,32 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Abas */}
+          {/* Abas: só ícones em telas médias, ícone + rótulo a partir de lg */}
           <nav className="hidden md:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
-            <button
-              onClick={() => setAbaAtiva('kanban')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                abaAtiva === 'kanban'
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-              }`}
-            >
-              <LayoutGrid className="w-4 h-4" />
-              <span>Quadro Kanban</span>
-            </button>
-
-            <button
-              onClick={() => setAbaAtiva('tabela')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                abaAtiva === 'tabela'
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-              }`}
-            >
-              <ListFilter className="w-4 h-4" />
-              <span>Tabela Operacional</span>
-            </button>
-
-            <button
-              onClick={() => setAbaAtiva('dashboard')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                abaAtiva === 'dashboard'
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Dashboard Executivo</span>
-            </button>
-
-            <button
-              onClick={() => setAbaAtiva('historico')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                abaAtiva === 'historico'
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-              }`}
-            >
-              <History className="w-4 h-4" />
-              <span>Histórico</span>
-            </button>
+            {ABAS.map(({ aba, icone: Icone, rotulo, titulo }) => (
+              <button
+                key={aba}
+                onClick={() => setAbaAtiva(aba)}
+                title={titulo}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                  abaAtiva === aba
+                    ? 'bg-sky-500/20 text-sky-300 border-sky-500/30 shadow-sm'
+                    : 'text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-800/50'
+                }`}
+              >
+                <Icone className="w-4 h-4 shrink-0" />
+                <span className="hidden lg:inline">{rotulo}</span>
+              </button>
+            ))}
           </nav>
         </div>
 
         {/* Lado Direito: Pílulas de Status e Ações */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           {/* Badge de Pátio e Atraso */}
-          <div className="hidden lg:flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+          <div className="hidden xl:flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
             <span className="text-slate-400">
-              No pátio: <strong className="text-slate-100 font-mono font-bold">{totalPatio}</strong>
+              Pátio <strong className="text-slate-100 font-mono font-bold">{totalPatio}</strong>
             </span>
             <span className="text-slate-700">|</span>
             <span className={`flex items-center gap-1 ${emAtraso > 0 ? 'text-rose-400 font-semibold' : 'text-slate-400'}`}>
@@ -120,46 +97,42 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
                 </span>
               )}
-              {emAtraso > 0 ? (
-                <>
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-                  <span>{emAtraso} em atraso</span>
-                </>
-              ) : (
-                <span>0 em atraso</span>
-              )}
+              {emAtraso > 0 && <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />}
+              <span>
+                <strong className={`font-mono font-bold ${emAtraso > 0 ? '' : 'text-slate-100'}`}>{emAtraso}</strong> em
+                atraso
+              </span>
             </span>
           </div>
 
           {/* Botão Importar Planilha */}
           <button
             onClick={onAbrirImportar}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all cursor-pointer"
             title="Importar dados de planilha Excel ou CSV antiga"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-            <span className="hidden sm:inline">Importar</span>
+            <span className="hidden lg:inline">Importar</span>
           </button>
 
           {/* Botão Nova Entrada (< 30s) */}
           <button
             onClick={onAbrirNovaEntrada}
+            title="Registrar a entrada de um veículo"
             className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-lg shadow-emerald-500/20 border border-emerald-400/30 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Nova Entrada</span>
+            <span className="hidden sm:inline">Nova Entrada</span>
           </button>
 
           {/* Perfil & Logout */}
           <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
-            <div className="hidden sm:flex flex-col text-right">
-              <span className="text-xs font-semibold text-slate-200 leading-tight">
-                {usuario?.nome || 'Gestor'}
-              </span>
-              <span className="text-[10px] text-slate-400 leading-none">
-                {usuario?.email || ''}
-              </span>
-            </div>
+            <span
+              className="hidden xl:block text-xs font-semibold text-slate-200 truncate max-w-[140px]"
+              title={usuario?.email || ''}
+            >
+              {usuario?.nome || 'Gestor'}
+            </span>
             <button
               onClick={logout}
               title="Sair do sistema"
@@ -173,42 +146,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Navegação Mobile (abaixo da barra em telas pequenas) */}
       <div className="md:hidden flex items-center justify-around border-t border-slate-800/80 bg-slate-950/80 px-2 py-1.5">
-        <button
-          onClick={() => setAbaAtiva('kanban')}
-          className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
-            abaAtiva === 'kanban' ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
-          }`}
-        >
-          <LayoutGrid className="w-4 h-4" />
-          <span>Kanban</span>
-        </button>
-        <button
-          onClick={() => setAbaAtiva('tabela')}
-          className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
-            abaAtiva === 'tabela' ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
-          }`}
-        >
-          <ListFilter className="w-4 h-4" />
-          <span>Tabela</span>
-        </button>
-        <button
-          onClick={() => setAbaAtiva('dashboard')}
-          className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
-            abaAtiva === 'dashboard' ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4" />
-          <span>Métricas</span>
-        </button>
-        <button
-          onClick={() => setAbaAtiva('historico')}
-          className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
-            abaAtiva === 'historico' ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
-          }`}
-        >
-          <History className="w-4 h-4" />
-          <span>Histórico</span>
-        </button>
+        {ABAS.map(({ aba, icone: Icone, rotuloMobile }) => (
+          <button
+            key={aba}
+            onClick={() => setAbaAtiva(aba)}
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
+              abaAtiva === aba ? 'bg-sky-500/20 text-sky-300 font-bold' : 'text-slate-400'
+            }`}
+          >
+            <Icone className="w-4 h-4" />
+            <span>{rotuloMobile}</span>
+          </button>
+        ))}
       </div>
     </header>
   );
