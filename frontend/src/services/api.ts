@@ -35,7 +35,7 @@ function idNaUrl(id: number): string {
 }
 
 function getToken(): string | null {
-  return localStorage.getItem('rfleet_token');
+  return sessionStorage.getItem('rfleet_token');
 }
 
 /**
@@ -44,8 +44,8 @@ function getToken(): string | null {
  */
 async function lancarErroDaResposta(response: Response, sessaoAtiva: boolean): Promise<never> {
   if (response.status === 401 && sessaoAtiva) {
-    localStorage.removeItem('rfleet_token');
-    localStorage.removeItem('rfleet_user');
+    sessionStorage.removeItem('rfleet_token');
+    sessionStorage.removeItem('rfleet_user');
     window.dispatchEvent(new Event('auth:unauthorized'));
     throw new ApiError('Sessão expirada. Faça login novamente.', 401);
   }
