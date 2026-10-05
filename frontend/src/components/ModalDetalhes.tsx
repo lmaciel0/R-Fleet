@@ -7,6 +7,7 @@ import {
 } from '../types';
 import { api } from '../services/api';
 import { PlacaBadge } from './PlacaBadge';
+import { hojeNaOficina, rotuloMesLongo } from '../utils/meses';
 import { useDialogo } from '../utils/acessibilidade';
 import {
   X,
@@ -68,6 +69,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   // Ação de transição
   const [novaEtapa, setNovaEtapa] = useState<EtapaOrdemServico>('AGUARDANDO_ORCAMENTO');
   const [obsTransicao, setObsTransicao] = useState('');
+  const [dataEntrega, setDataEntrega] = useState(hojeNaOficina);
   const [salvandoTransicao, setSalvandoTransicao] = useState(false);
 
   // Edição de Orçamento
@@ -98,6 +100,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
       const data = await api.obterOrdem(ordemId);
       setOrdem(data);
       setNovaEtapa(data.etapa);
+      setDataEntrega(hojeNaOficina());
       setFaturado(Boolean(data.faturado));
       setDataFaturamento(data.dataFaturamento || '');
       setNumeroNf(data.numeroNf || '');
@@ -141,14 +144,29 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
     if (aba === 'anexos') carregarAnexos();
   }, [aba]);
 
+  // Entrega: a data vem de hoje, mas pode ser trocada pelo calendário (entre a entrada e hoje)
+  const hoje = hojeNaOficina();
+  const entregando = novaEtapa === 'ENTREGUE';
+  const dataEntregaValida =
+    /^\d{4}-\d{2}-\d{2}$/.test(dataEntrega) &&
+    dataEntrega <= hoje &&
+    (!ordem?.dataEntrada || dataEntrega >= ordem.dataEntrada);
+  const entregaEmMesAnterior = entregando && dataEntregaValida && dataEntrega.slice(0, 7) < hoje.slice(0, 7);
+
   const handleTransicionarEtapa = async () => {
     if (!ordem) return;
     setSalvandoTransicao(true);
     try {
-      const atualizada = await api.transicionarEtapa(ordem.id, novaEtapa, obsTransicao.trim() || undefined);
+      const atualizada = await api.transicionarEtapa(
+        ordem.id,
+        novaEtapa,
+        obsTransicao.trim() || undefined,
+        novaEtapa === 'ENTREGUE' ? dataEntrega : undefined
+      );
       setOrdem(atualizada);
       onAtualizada(atualizada);
       setObsTransicao('');
+      setDataEntrega(hojeNaOficina());
       carregarHistorico();
     } catch (err: any) {
       setErro(err.message);
@@ -594,6 +612,24 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       ))}
                     </select>
 
+                    {entregando && (
+                      <div className="sm:w-44 flex flex-col gap-1">
+                        <label htmlFor="detalhes-data-entrega" className="text-[11px] font-semibold text-aco">
+                          Data de entrega
+                        </label>
+                        <input
+                          type="date"
+                          id="detalhes-data-entrega"
+                          value={dataEntrega}
+                          min={ordem.dataEntrada || undefined}
+                          max={hoje}
+                          onChange={(e) => setDataEntrega(e.target.value)}
+                          aria-invalid={!dataEntregaValida}
+                          className="bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs font-placa tabular-nums text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
+                        />
+                      </div>
+                    )}
+
                     <input
                       type="text"
                       value={obsTransicao}
@@ -605,7 +641,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
                     <button
                       onClick={handleTransicionarEtapa}
-                      disabled={salvandoTransicao || novaEtapa === ordem.etapa}
+                      disabled={salvandoTransicao || novaEtapa === ordem.etapa || (entregando && !dataEntregaValida)}
                       className="px-4 py-2 rounded-xl text-xs font-bold text-sobre-cor bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 justify-center"
                     >
                       {salvandoTransicao ? (
@@ -618,6 +654,18 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       )}
                     </button>
                   </div>
+
+                  {entregando && !dataEntregaValida && (
+                    <p role="alert" className="text-xs text-vermelho">
+                      Escolha uma data entre a entrada do veículo e hoje.
+                    </p>
+                  )}
+                  {entregaEmMesAnterior && (
+                    <p className="text-xs text-amarelo-tinta">
+                      Este veículo vai direto para o Histórico de{' '}
+                      {rotuloMesLongo(Number(dataEntrega.slice(0, 4)), Number(dataEntrega.slice(5, 7)))}.
+                    </p>
+                  )}
                 </div>
               )}
 

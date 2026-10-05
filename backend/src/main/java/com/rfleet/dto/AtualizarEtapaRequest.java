@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -17,4 +19,7 @@ public class AtualizarEtapaRequest {
     private EtapaOrdemServico novaEtapa;
 
     private String observacao;
+
+    /** Data da entrega ao cliente; só vale para a etapa ENTREGUE (vazia = hoje). */
+    private LocalDate dataSaida;
 }

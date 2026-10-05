@@ -40,3 +40,8 @@ export function nomeMesAtual(): string {
     timeZone: 'America/Sao_Paulo',
   }).format(new Date());
 }
+
+/** Hoje no fuso da oficina em ISO (aaaa-mm-dd), o mesmo dia que o backend usa como "hoje". */
+export function hojeNaOficina(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+}
