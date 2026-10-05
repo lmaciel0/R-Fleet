@@ -28,6 +28,8 @@
   --color-noite-suave: #9eacc4;
   /* Ação sobre a noite: azul da placa clareado, com texto branco (5,2:1) */
   --color-acao: #2563eb;
+  /* Hover e toque do botão de ação: mais escuro que a ação, para o texto branco seguir acima de 4,5:1 (6,7:1) */
+  --color-acao-forte: #1d4ed8;
   /* Ícone em destaque sobre a noite (dock do celular) */
   --color-acao-noite: #7ea2ff;
   /* Fundo da dock do celular: o oval escuro da aba ativa precisa ficar mais escuro que ele nos dois temas */
@@ -132,6 +134,11 @@ body {
   .etiqueta-borda,
   .etiqueta-face {
     clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%, 0 10px);
+  }
+
+  /* Foco sobre a noite: o anel Mercosul (#003399) some no marinho (1,7:1); este tem 7,4:1 nos dois temas */
+  .foco-noite :focus-visible {
+    outline-color: var(--color-acao-noite);
   }
 
   /* Fundo do login: a noite com o brilho azul do R-Fleet original e o mesmo painel perfurado */
