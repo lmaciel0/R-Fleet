@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -156,10 +157,15 @@ public class OrdemServicoService {
             return OrdemServicoDTO.fromEntity(os, obterLimiteDiasSla(), LocalDate.now());
         }
 
-        // Data de saída automática: toda entrega (inclusive a de uma OS reaberta) sai com a data de hoje,
-        // senão uma saída antiga mandaria o veículo direto para um mês passado do histórico
+        // Data de saída: a informada pelo usuário ou, sem ela, a de hoje. Toda entrega (inclusive a de uma OS
+        // reaberta) regrava a data, senão uma saída antiga mandaria o veículo direto para um mês passado do histórico
+        LocalDate hoje = DataOficina.hoje();
+        LocalDate dataSaidaInformada = request.getDataSaida();
+        if (dataSaidaInformada != null) {
+            validarDataDeSaida(os, etapaNova, dataSaidaInformada, hoje);
+        }
         if (etapaNova == EtapaOrdemServico.ENTREGUE) {
-            os.setDataSaida(DataOficina.hoje());
+            os.setDataSaida(dataSaidaInformada != null ? dataSaidaInformada : hoje);
         }
 
         os.setEtapa(etapaNova);
@@ -174,14 +180,41 @@ public class OrdemServicoService {
                 .etapaNova(etapaNova)
                 .usuario(usuario)
                 .valorOrcamentoMomento(os.getValorOrcamento())
-                .observacao(request.getObservacao() != null && !request.getObservacao().isBlank()
-                        ? request.getObservacao()
-                        : "Transição da etapa " + etapaAnterior.getDescricao() + " para " + etapaNova.getDescricao())
+                .observacao(observacaoDaTransicao(request, etapaAnterior, etapaNova, dataSaidaInformada, hoje))
                 .build();
 
         historicoEtapaRepository.save(historico);
 
         return OrdemServicoDTO.fromEntity(os, obterLimiteDiasSla(), LocalDate.now());
+    }
+
+    private static void validarDataDeSaida(OrdemServico os, EtapaOrdemServico etapaNova, LocalDate dataSaida, LocalDate hoje) {
+        if (etapaNova != EtapaOrdemServico.ENTREGUE) {
+            throw new IllegalArgumentException("A data de saída só vale para a etapa Entregue.");
+        }
+        if (dataSaida.isAfter(hoje)) {
+            throw new IllegalArgumentException("A data de entrega não pode ser no futuro.");
+        }
+        if (os.getDataEntrada() != null && dataSaida.isBefore(os.getDataEntrada())) {
+            throw new IllegalArgumentException("A data de entrega não pode ser anterior à entrada do veículo.");
+        }
+    }
+
+    /** Nota da linha do tempo; quando a entrega não é de hoje, registra também o dia em que ela aconteceu. */
+    private static String observacaoDaTransicao(
+            AtualizarEtapaRequest request,
+            EtapaOrdemServico etapaAnterior,
+            EtapaOrdemServico etapaNova,
+            LocalDate dataSaidaInformada,
+            LocalDate hoje
+    ) {
+        String nota = request.getObservacao() != null && !request.getObservacao().isBlank()
+                ? request.getObservacao()
+                : "Transição da etapa " + etapaAnterior.getDescricao() + " para " + etapaNova.getDescricao();
+        if (dataSaidaInformada != null && !dataSaidaInformada.equals(hoje)) {
+            nota += " (Entregue em " + dataSaidaInformada.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ")";
+        }
+        return nota;
     }
 
     /**

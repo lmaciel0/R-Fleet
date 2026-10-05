@@ -265,10 +265,15 @@ export const api = {
     });
   },
 
-  async transicionarEtapa(id: number, novaEtapa: string, observacao?: string): Promise<OrdemServico> {
+  async transicionarEtapa(
+    id: number,
+    novaEtapa: string,
+    observacao?: string,
+    dataSaida?: string
+  ): Promise<OrdemServico> {
     return request(`/ordens-servico/${idNaUrl(id)}/etapa`, {
       method: 'PATCH',
-      body: JSON.stringify({ novaEtapa, observacao }),
+      body: JSON.stringify({ novaEtapa, observacao, dataSaida }),
     });
   },
 
