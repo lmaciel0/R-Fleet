@@ -166,30 +166,33 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Navegação do celular: barra fixa no rodapé, ao alcance do polegar. O conteúdo reserva o espaço dela (ver App.tsx). */}
-      <nav
-        aria-label="Seções"
-        className="md:hidden fixed bottom-0 inset-x-0 z-30 grid grid-cols-4 bg-noite border-t border-noite-borda pb-[env(safe-area-inset-bottom)]"
-      >
-        {ABAS.map(({ aba, icone: Icone, rotulo }) => {
-          const ativa = abaAtiva === aba;
-          return (
-            <button
-              key={aba}
-              onClick={() => setAbaAtiva(aba)}
-              aria-current={ativa ? 'page' : undefined}
-              className={`flex flex-col items-center justify-center gap-0.5 min-h-14 border-t-2 text-xs touch-manipulation cursor-pointer transition-colors ${
-                ativa
-                  ? 'border-acao bg-acao/20 text-noite-texto font-semibold'
-                  : 'border-transparent text-noite-suave active:bg-noite-alto'
-              }`}
-            >
-              <Icone className="w-5 h-5 shrink-0" aria-hidden="true" />
-              <span>{rotulo}</span>
-            </button>
-          );
-        })}
-      </nav>
+      {/* Navegação do celular: dock em pílula, solta das bordas e fixa embaixo, ao alcance do polegar.
+          A aba ativa vira um oval escuro. O conteúdo reserva o espaço dela (ver App.tsx). */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-30 flex justify-center px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pointer-events-none">
+        <nav
+          aria-label="Seções"
+          className="pointer-events-auto flex w-full max-w-sm items-center gap-1 p-2 rounded-full bg-dock border border-trilho shadow-[0_10px_30px_-8px_rgb(0_0_0/0.35)]"
+        >
+          {ABAS.map(({ aba, icone: Icone, rotulo }) => {
+            const ativa = abaAtiva === aba;
+            return (
+              <button
+                key={aba}
+                onClick={() => setAbaAtiva(aba)}
+                aria-label={rotulo}
+                aria-current={ativa ? 'page' : undefined}
+                className={`flex flex-1 items-center justify-center h-12 rounded-full border touch-manipulation cursor-pointer transition-colors ${
+                  ativa
+                    ? 'bg-noite border-noite-borda text-acao-noite'
+                    : 'border-transparent text-aco active:bg-parede'
+                }`}
+              >
+                <Icone className="w-6 h-6 shrink-0" aria-hidden="true" />
+              </button>
+            );
+          })}
+        </nav>
+      </div>
     </header>
   );
 };
