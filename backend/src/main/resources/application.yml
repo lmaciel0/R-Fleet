@@ -43,6 +43,10 @@ app:
   jwt:
     secret: ${JWT_SECRET:}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000} # 24 horas
+  login:
+    # Senhas erradas seguidas para o mesmo e-mail, na janela, travam o login até a janela acabar
+    max-falhas: ${LOGIN_MAX_FALHAS:5}
+    janela-minutos: ${LOGIN_JANELA_MINUTOS:15}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174}
   gestor:
