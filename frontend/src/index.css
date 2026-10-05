@@ -28,6 +28,10 @@
   --color-noite-suave: #9eacc4;
   /* Ação sobre a noite: azul da placa clareado, com texto branco (5,2:1) */
   --color-acao: #2563eb;
+  /* Ícone em destaque sobre a noite (dock do celular) */
+  --color-acao-noite: #7ea2ff;
+  /* Fundo da dock do celular: o oval escuro da aba ativa precisa ficar mais escuro que ele nos dois temas */
+  --color-dock: #ffffff;
   --color-alerta-noite: #ff8f86;
 
   /* Semáforo da planilha original */
@@ -64,6 +68,7 @@
   --color-mercosul: #7ea2ff;
 
   --color-noite: #0c1527;
+  --color-dock: #1a2744;
 
   --color-verde: #5cc98a;
   --color-amarelo: #f0b847;
@@ -93,7 +98,7 @@ html {
 }
 @media (max-width: 767px) {
   html {
-    scroll-padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
 }
 

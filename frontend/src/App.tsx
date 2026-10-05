@@ -183,7 +183,7 @@ const AppContent: React.FC = () => {
       />
 
       {/* Conteúdo Principal */}
-      <main className={`flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6 ${abaAtiva === 'kanban' ? '' : 'max-w-[1536px]'}`}>
+      <main className={`flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-6 ${abaAtiva === 'kanban' ? '' : 'max-w-[1536px]'}`}>
         {carregandoDados && ordens.length === 0 && abaAtiva === 'kanban' ? (
           <QuadroFantasma />
         ) : carregandoDados && ordens.length === 0 ? (
