@@ -3,6 +3,8 @@ package com.rfleet.service;
 import com.rfleet.domain.EtapaOrdemServico;
 import com.rfleet.domain.OrdemServico;
 import com.rfleet.dto.DashboardMetricasDTO;
+import com.rfleet.dto.FaturamentoAgregado;
+import com.rfleet.dto.FaturamentoMesDTO;
 import com.rfleet.repository.ConfiguracaoRepository;
 import com.rfleet.repository.OrdemServicoRepository;
 import com.rfleet.util.DataOficina;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -76,9 +79,7 @@ public class DashboardService {
 
         // Comissão mensal sobre o faturado no mês
         BigDecimal comissaoPercentual = obterPercentualComissao();
-        BigDecimal comissaoMesAtual = faturamentoMesAtual
-                .multiply(comissaoPercentual)
-                .divide(CEM, 2, RoundingMode.HALF_UP);
+        BigDecimal comissaoMesAtual = calcularComissao(faturamentoMesAtual, comissaoPercentual);
 
         BigDecimal totalFaturadoGeral = todasAtivas.stream()
                 .filter(os -> Boolean.TRUE.equals(os.getFaturado()))
@@ -125,6 +126,33 @@ public class DashboardService {
                 .distribuicaoPorEtapa(distribuicaoEtapas)
                 .distribuicaoPorOrigem(distribuicaoOrigem)
                 .build();
+    }
+
+    /**
+     * Faturado no mês escolhido (OS ativas com faturado = true e data de faturamento dentro do mês),
+     * mais a comissão sobre ele e o total faturado de todos os meses.
+     */
+    @Transactional(readOnly = true)
+    public FaturamentoMesDTO obterFaturamentoDoMes(int ano, int mes) {
+        if (mes < 1 || mes > 12 || ano < 1900 || ano > 9999) {
+            throw new IllegalArgumentException("Mês inválido.");
+        }
+        YearMonth anoMes = YearMonth.of(ano, mes);
+        FaturamentoAgregado doMes = ordemServicoRepository.somarFaturadoEntre(anoMes.atDay(1), anoMes.atEndOfMonth());
+        FaturamentoAgregado geral = ordemServicoRepository.somarFaturadoGeral();
+        BigDecimal percentual = obterPercentualComissao();
+
+        return new FaturamentoMesDTO(
+                doMes.total(),
+                doMes.quantidade(),
+                percentual,
+                calcularComissao(doMes.total(), percentual),
+                geral.total()
+        );
+    }
+
+    private static BigDecimal calcularComissao(BigDecimal faturamento, BigDecimal percentual) {
+        return faturamento.multiply(percentual).divide(CEM, 2, RoundingMode.HALF_UP);
     }
 
     /**

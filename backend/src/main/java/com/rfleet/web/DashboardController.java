@@ -1,6 +1,7 @@
 package com.rfleet.web;
 
 import com.rfleet.dto.DashboardMetricasDTO;
+import com.rfleet.dto.FaturamentoMesDTO;
 import com.rfleet.service.DashboardService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -26,5 +27,10 @@ public class DashboardController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataReferencia
     ) {
         return ResponseEntity.ok(dashboardService.obterMetricas(dataReferencia));
+    }
+
+    @GetMapping("/faturamento")
+    public ResponseEntity<FaturamentoMesDTO> obterFaturamentoDoMes(@RequestParam int ano, @RequestParam int mes) {
+        return ResponseEntity.ok(dashboardService.obterFaturamentoDoMes(ano, mes));
     }
 }
