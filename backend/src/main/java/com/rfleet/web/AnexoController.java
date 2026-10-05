@@ -4,6 +4,8 @@ import com.rfleet.domain.AnexoOs;
 import com.rfleet.dto.AnexoOsDTO;
 import com.rfleet.service.AnexoService;
 import org.springframework.core.io.Resource;
+import com.rfleet.util.TiposDeAnexo;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -48,12 +49,15 @@ public class AnexoController {
         AnexoOs anexo = anexoService.obterEntidadePorId(id);
         Resource recurso = anexoService.carregarConteudo(anexo);
 
-        String nomeCodificado = URLEncoder.encode(anexo.getNomeArquivo(), StandardCharsets.UTF_8).replace("+", "%20");
+        // Tipo e nome saem tratados, não como chegaram: anexos antigos podem ter vindo com tipo livre
+        ContentDisposition disposicao = ContentDisposition.attachment()
+                .filename(TiposDeAnexo.nomeSeguro(anexo.getNomeArquivo()), StandardCharsets.UTF_8)
+                .build();
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(anexo.getTipoConteudo()))
+                .contentType(MediaType.parseMediaType(TiposDeAnexo.tipoParaDownload(anexo.getNomeArquivo())))
                 .contentLength(recurso.contentLength())
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + anexo.getNomeArquivo() + "\"; filename*=UTF-8''" + nomeCodificado)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposicao.toString())
                 .body(recurso);
     }
 

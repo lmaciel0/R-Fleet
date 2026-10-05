@@ -891,6 +891,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                 <input
                   type="file"
                   id="file-upload"
+                  accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.doc,.docx,.xls,.xlsx,.txt"
                   onChange={handleUploadArquivo}
                   disabled={enviandoAnexo}
                   className="sr-only"

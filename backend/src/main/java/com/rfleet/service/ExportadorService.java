@@ -122,10 +122,22 @@ public class ExportadorService {
         if (value == null) {
             return "";
         }
-        String v = value.replace("\"", "\"\"");
+        String v = neutralizarFormula(value).replace("\"", "\"\"");
         if (v.contains(";") || v.contains("\n") || v.contains("\r") || v.contains("\"")) {
             return "\"" + v + "\"";
         }
         return v;
+    }
+
+    /**
+     * O Excel executa como fórmula uma célula de CSV que começa com = + - @ (ou tab/CR). O texto das
+     * ordens vem de digitação e de planilhas importadas, então ganha um apóstrofo na frente.
+     * No XLSX não é preciso: setCellValue(String) grava texto, nunca fórmula.
+     */
+    private static String neutralizarFormula(String valor) {
+        if (!valor.isEmpty() && "=+-@\t\r".indexOf(valor.charAt(0)) >= 0) {
+            return "'" + valor;
+        }
+        return valor;
     }
 }
