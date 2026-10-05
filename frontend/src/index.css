@@ -87,6 +87,16 @@
   box-sizing: border-box;
 }
 
+/* Barras fixas não podem cobrir o controle que recebeu o foco pelo teclado */
+html {
+  scroll-padding-top: 4rem;
+}
+@media (max-width: 767px) {
+  html {
+    scroll-padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--color-parede);

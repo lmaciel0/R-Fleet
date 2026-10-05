@@ -4,6 +4,7 @@ import { LayoutGrid, ListFilter, BarChart3, Plus, FileSpreadsheet, LogOut, Histo
 import { AbaApp, DashboardMetricas } from '../types';
 import { useTema } from '../utils/tema';
 import { Marca } from './Marca';
+import { MenuMais } from './MenuMais';
 
 interface NavbarProps {
   abaAtiva: AbaApp;
@@ -22,10 +23,8 @@ const ABAS: { aba: AbaApp; icone: LucideIcon; rotulo: string }[] = [
 ];
 
 // Abas em pílula, como no R-Fleet original: a ativa acende em azul
-const classeAba = (ativa: boolean, celular = false) =>
-  `flex items-center justify-center rounded-md border cursor-pointer transition-colors ${
-    celular ? 'gap-1.5 px-1 py-1.5 text-[13px]' : 'gap-2 px-3 py-1.5 text-[14px]'
-  } ${
+const classeAba = (ativa: boolean) =>
+  `flex items-center justify-center gap-2 px-3 py-1.5 text-[14px] rounded-md border cursor-pointer transition-colors ${
     ativa
       ? 'bg-acao/25 border-acao/50 text-noite-texto font-semibold'
       : 'border-transparent text-noite-suave hover:text-noite-texto hover:bg-noite-alto'
@@ -81,7 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="Buscar placa (Ctrl+K)"
             aria-label="Buscar placa"
             aria-keyshortcuts="Control+K"
-            className="flex items-center gap-2 p-2 2xl:pl-3 2xl:pr-2 2xl:w-52 rounded-md border border-noite-borda bg-black/25 text-noite-suave hover:text-noite-texto hover:border-noite-suave/50 transition-colors cursor-pointer"
+            className="flex items-center justify-center md:justify-start gap-2 w-11 h-11 md:w-auto md:h-auto p-2 2xl:pl-3 2xl:pr-2 2xl:w-52 rounded-md border border-noite-borda bg-black/25 text-noite-suave hover:text-noite-texto hover:border-noite-suave/50 transition-colors cursor-pointer"
           >
             <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="hidden 2xl:inline text-[14px]">Buscar placa</span>
@@ -116,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onAbrirImportar}
             title="Importar planilha Excel ou CSV"
             aria-label="Importar planilha"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-md border border-noite-borda bg-noite-alto/60 text-noite-texto text-[14px] font-medium hover:bg-noite-alto hover:border-noite-suave/50 transition-colors cursor-pointer"
+            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-md border border-noite-borda bg-noite-alto/60 text-noite-texto text-[14px] font-medium hover:bg-noite-alto hover:border-noite-suave/50 transition-colors cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 text-[#5cc98a]" aria-hidden="true" />
             <span className="hidden lg:inline">Importar planilha</span>
@@ -125,13 +124,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onAbrirNovaEntrada}
             aria-label="Registrar entrada"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-acao hover:bg-[#3b74f0] text-white text-[14px] font-semibold border border-white/15 shadow-[0_0_22px_-6px_rgb(37_99_235/0.9)] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-1.5 w-11 h-11 sm:w-auto sm:h-auto sm:px-3.5 sm:py-2 rounded-md bg-acao hover:bg-[#3b74f0] text-white text-[14px] font-semibold border border-white/15 shadow-[0_0_22px_-6px_rgb(37_99_235/0.9)] transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" aria-hidden="true" />
             <span className="hidden sm:inline">Registrar entrada</span>
           </button>
 
-          <div className="flex items-center gap-1 pl-3 border-l border-noite-borda">
+          <MenuMais
+            tema={tema}
+            nome={usuario?.nome || 'Gestor'}
+            email={usuario?.email || ''}
+            onImportar={onAbrirImportar}
+            onAlternarTema={alternar}
+            onSair={logout}
+          />
+
+          <div className="hidden md:flex items-center gap-1 pl-3 border-l border-noite-borda">
             <span
               className="hidden xl:block mr-1 text-[14px] font-medium text-noite-texto truncate max-w-[140px]"
               title={usuario?.email || ''}
@@ -158,22 +166,29 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Navegação no celular, logo abaixo da barra */}
+      {/* Navegação do celular: barra fixa no rodapé, ao alcance do polegar. O conteúdo reserva o espaço dela (ver App.tsx). */}
       <nav
         aria-label="Seções"
-        className="md:hidden grid grid-cols-4 gap-1 border-t border-noite-borda bg-black/20 px-2 py-1.5"
+        className="md:hidden fixed bottom-0 inset-x-0 z-30 grid grid-cols-4 bg-noite border-t border-noite-borda pb-[env(safe-area-inset-bottom)]"
       >
-        {ABAS.map(({ aba, icone: Icone, rotulo }) => (
-          <button
-            key={aba}
-            onClick={() => setAbaAtiva(aba)}
-            aria-current={abaAtiva === aba ? 'page' : undefined}
-            className={classeAba(abaAtiva === aba, true)}
-          >
-            <Icone className="w-4 h-4 shrink-0" aria-hidden="true" />
-            <span>{rotulo}</span>
-          </button>
-        ))}
+        {ABAS.map(({ aba, icone: Icone, rotulo }) => {
+          const ativa = abaAtiva === aba;
+          return (
+            <button
+              key={aba}
+              onClick={() => setAbaAtiva(aba)}
+              aria-current={ativa ? 'page' : undefined}
+              className={`flex flex-col items-center justify-center gap-0.5 min-h-14 border-t-2 text-xs touch-manipulation cursor-pointer transition-colors ${
+                ativa
+                  ? 'border-acao bg-acao/20 text-noite-texto font-semibold'
+                  : 'border-transparent text-noite-suave active:bg-noite-alto'
+              }`}
+            >
+              <Icone className="w-5 h-5 shrink-0" aria-hidden="true" />
+              <span>{rotulo}</span>
+            </button>
+          );
+        })}
       </nav>
     </header>
   );
