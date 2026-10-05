@@ -2,6 +2,7 @@ import {
   AnexoOs,
   BuscarPlacaResultado,
   DashboardMetricas,
+  FaturamentoMes,
   EtapaOrdemServico,
   HistoricoEtapa,
   HistoricoMes,
@@ -337,6 +338,10 @@ export const api = {
   async obterMetricas(dataReferencia?: string): Promise<DashboardMetricas> {
     const qs = dataReferencia ? `?dataReferencia=${encodeURIComponent(dataReferencia)}` : '';
     return request(`/dashboard/metricas${qs}`);
+  },
+
+  async obterFaturamentoMes(ano: number, mes: number): Promise<FaturamentoMes> {
+    return request(`/dashboard/faturamento?ano=${encodeURIComponent(ano)}&mes=${encodeURIComponent(mes)}`);
   },
 
   // Importação e Exportação

@@ -232,4 +232,87 @@ class DashboardControllerTest {
 
         assertThat(buscarMetricas().get("distribuicaoPorEtapa").get("ENTREGUE").asLong()).isEqualTo(antes + 1);
     }
+
+    private JsonNode buscarFaturamento(int ano, int mes) throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/dashboard/faturamento")
+                        .param("ano", String.valueOf(ano))
+                        .param("mes", String.valueOf(mes))
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readTree(result.getResponse().getContentAsString());
+    }
+
+    @Test
+    @DisplayName("Faturamento de um mês soma só as OS faturadas naquele mês, pela data de faturamento")
+    void deveSomarFaturadoDoMesEscolhido() throws Exception {
+        faturar(criarOs("DSH1B01", EtapaOrdemServico.ENTREGUE, "1000.00"), LocalDate.of(2020, 3, 5));
+        faturar(criarOs("DSH1B02", EtapaOrdemServico.ENTREGUE, "333.33"), LocalDate.of(2020, 3, 31));
+        faturar(criarOs("DSH1B03", EtapaOrdemServico.ENTREGUE, "500.00"), LocalDate.of(2020, 4, 1));
+        criarOs("DSH1B04", EtapaOrdemServico.ENTREGUE, "200.00"); // não faturada
+
+        JsonNode marco = buscarFaturamento(2020, 3);
+
+        assertThat(marco.get("total").decimalValue()).isEqualByComparingTo("1333.33");
+        assertThat(marco.get("quantidade").asLong()).isEqualTo(2);
+        assertThat(marco.get("comissaoPercentual").decimalValue()).isEqualByComparingTo("2");
+        assertThat(marco.get("comissao").decimalValue()).isEqualByComparingTo("26.67");
+        assertThat(marco.get("totalGeral").decimalValue())
+                .isEqualByComparingTo(buscarMetricas().get("totalFaturadoGeral").decimalValue())
+                .isGreaterThanOrEqualTo(new BigDecimal("1833.33"));
+
+        assertThat(buscarFaturamento(2020, 4).get("total").decimalValue()).isEqualByComparingTo("500.00");
+    }
+
+    @Test
+    @DisplayName("Carro que entrou num mês e foi faturado no seguinte conta no mês do faturamento")
+    void deveContarNoMesDoFaturamentoEnaoNoDaEntrada() throws Exception {
+        faturar(criarOs("DSH1B05", EtapaOrdemServico.ENTREGUE, "800.00"), LocalDate.of(2020, 1, 10));
+
+        assertThat(buscarFaturamento(2019, 12).get("quantidade").asLong()).isZero();
+        assertThat(buscarFaturamento(2020, 1).get("total").decimalValue()).isEqualByComparingTo("800.00");
+    }
+
+    @Test
+    @DisplayName("Mês sem faturamento devolve zeros, e OS arquivada não conta")
+    void deveDevolverZeroEignorarArquivada() throws Exception {
+        JsonNode vazio = buscarFaturamento(2018, 1);
+        assertThat(vazio.get("total").decimalValue()).isEqualByComparingTo("0");
+        assertThat(vazio.get("quantidade").asLong()).isZero();
+        assertThat(vazio.get("comissao").decimalValue()).isEqualByComparingTo("0");
+
+        Long id = criarOs("DSH1B06", EtapaOrdemServico.ENTREGUE, "900.00");
+        faturar(id, LocalDate.of(2018, 2, 10));
+        OrdemServico os = ordemServicoRepository.findById(id).orElseThrow();
+        os.setAtivo(false);
+        ordemServicoRepository.saveAndFlush(os);
+
+        assertThat(buscarFaturamento(2018, 2).get("quantidade").asLong()).isZero();
+    }
+
+    @Test
+    @DisplayName("Comissão do mês usa o percentual configurado")
+    void deveUsarPercentualConfiguradoNaComissaoDoMes() throws Exception {
+        faturar(criarOs("DSH1B07", EtapaOrdemServico.ENTREGUE, "10000.00"), LocalDate.of(2017, 6, 15));
+        configuracaoRepository.saveAndFlush(Configuracao.builder()
+                .chave("COMISSAO_PERCENTUAL")
+                .valor("2.5")
+                .descricao("teste")
+                .build());
+
+        JsonNode junho = buscarFaturamento(2017, 6);
+
+        assertThat(junho.get("comissaoPercentual").decimalValue()).isEqualByComparingTo("2.5");
+        assertThat(junho.get("comissao").decimalValue()).isEqualByComparingTo("250.00");
+    }
+
+    @Test
+    @DisplayName("Mês fora de 1 a 12 é rejeitado com 400")
+    void deveRejeitarMesInvalido() throws Exception {
+        mockMvc.perform(get("/api/dashboard/faturamento")
+                        .param("ano", "2026")
+                        .param("mes", "13")
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isBadRequest());
+    }
 }

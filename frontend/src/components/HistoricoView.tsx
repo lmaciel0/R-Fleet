@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { PlacaBadge } from './PlacaBadge';
 import { ativarComTeclado } from '../utils/acessibilidade';
 import { ArquivadasView } from './ArquivadasView';
+import { CardFaturamentoMes } from './CardFaturamentoMes';
 import { intervaloDoMes, rotuloMesCurto, rotuloMesLongo } from '../utils/meses';
 
 interface HistoricoViewProps {
@@ -148,6 +149,8 @@ const EntreguesPorMes: React.FC<HistoricoViewProps> = ({ versaoDados, onSelecion
           </button>
         ))}
       </div>
+
+      {mesSelecionado && <CardFaturamentoMes mes={mesSelecionado} onErro={onErro} />}
 
       {/* Tabela do mês */}
       <div className="bg-etiqueta border border-trilho rounded-2xl overflow-hidden">

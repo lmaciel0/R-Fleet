@@ -93,6 +93,14 @@ export interface DashboardMetricas {
   distribuicaoPorOrigem: Record<string, number>;
 }
 
+export interface FaturamentoMes {
+  total: number;
+  quantidade: number;
+  comissaoPercentual: number;
+  comissao: number;
+  totalGeral: number;
+}
+
 export interface BuscarPlacaResultado {
   encontrado: boolean;
   placa: string;
