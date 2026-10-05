@@ -1,6 +1,8 @@
 package com.rfleet.web;
 
 import org.springframework.beans.factory.annotation.Value;
+import com.rfleet.security.MuitasTentativasException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -35,6 +37,16 @@ public class RestExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos.");
+    }
+
+    @ExceptionHandler(MuitasTentativasException.class)
+    public ResponseEntity<Map<String, Object>> handleMuitasTentativas(MuitasTentativasException ex) {
+        long segundos = ex.getSegundosRestantes();
+        long minutos = (segundos + 59) / 60;
+        String mensagem = "Muitas tentativas de login. Tente novamente em " + minutos + (minutos == 1 ? " minuto." : " minutos.");
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(segundos))
+                .body(buildResponse(HttpStatus.TOO_MANY_REQUESTS, mensagem).getBody());
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)

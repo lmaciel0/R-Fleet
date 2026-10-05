@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -84,6 +85,28 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Depois de 5 senhas erradas para o mesmo e-mail, o login responde 429 com Retry-After")
+    void deveTravarLoginDepoisDeMuitasFalhas() throws Exception {
+        // E-mail só deste teste: o limitador é compartilhado entre os testes e não pode travar o do gestor
+        LoginRequest request = LoginRequest.builder()
+                .email("forca.bruta." + UUID.randomUUID() + "@oficina.com")
+                .senha(UUID.randomUUID().toString())
+                .build();
+        String corpo = objectMapper.writeValueAsString(request);
+
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(corpo))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().exists("Retry-After"))
+                .andExpect(jsonPath("$.status").value(429))
+                .andExpect(jsonPath("$.mensagem").value(org.hamcrest.Matchers.startsWith("Muitas tentativas de login.")));
     }
 
     @Test
