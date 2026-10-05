@@ -8,13 +8,13 @@ import com.rfleet.repository.AnexoConteudoRepository;
 import com.rfleet.repository.AnexoOsRepository;
 import com.rfleet.repository.OrdemServicoRepository;
 import com.rfleet.repository.UsuarioRepository;
+import com.rfleet.util.TiposDeAnexo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -65,7 +65,10 @@ public class AnexoService {
             usuario = usuarioRepository.findByEmail(emailUsuario).orElse(null);
         }
 
-        String nomeOriginal = StringUtils.cleanPath(arquivo.getOriginalFilename() != null ? arquivo.getOriginalFilename() : "arquivo");
+        String nomeOriginal = TiposDeAnexo.nomeSeguro(arquivo.getOriginalFilename());
+        String tipoConteudo = TiposDeAnexo.tipoPorNome(nomeOriginal)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                        "Tipo de arquivo não permitido. Envie " + TiposDeAnexo.DESCRICAO_PERMITIDOS + "."));
 
         byte[] dados;
         try {
@@ -77,7 +80,7 @@ public class AnexoService {
         AnexoOs anexo = AnexoOs.builder()
                 .ordemServico(os)
                 .nomeArquivo(nomeOriginal)
-                .tipoConteudo(arquivo.getContentType() != null ? arquivo.getContentType() : "application/octet-stream")
+                .tipoConteudo(tipoConteudo)
                 .tamanhoBytes((long) dados.length)
                 .usuario(usuario)
                 .build();
