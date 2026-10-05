@@ -14,12 +14,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import com.rfleet.util.DataOficina;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -257,5 +262,92 @@ class OrdemServicoControllerTest {
                         .header("Authorization", "Bearer " + tokenJwt))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    private Long criarOsEntradaEm(String placa, LocalDate dataEntrada) throws Exception {
+        RegistrarEntradaRequest request = RegistrarEntradaRequest.builder()
+                .placa(placa)
+                .modelo("Teste Data de Entrega")
+                .valorOrcamento(new BigDecimal("1000.00"))
+                .dataEntrada(dataEntrada)
+                .build();
+
+        MvcResult result = mockMvc.perform(post("/api/ordens-servico")
+                        .header("Authorization", "Bearer " + tokenJwt)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        return objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asLong();
+    }
+
+    private ResultActions transicionar(Long id, EtapaOrdemServico etapa, LocalDate dataSaida) throws Exception {
+        AtualizarEtapaRequest request = AtualizarEtapaRequest.builder()
+                .novaEtapa(etapa)
+                .dataSaida(dataSaida)
+                .build();
+
+        return mockMvc.perform(patch("/api/ordens-servico/" + id + "/etapa")
+                .header("Authorization", "Bearer " + tokenJwt)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
+    }
+
+    @Test
+    @DisplayName("Entregar com data informada grava essa data de saída e a registra na linha do tempo")
+    void deveEntregarComDataInformada() throws Exception {
+        LocalDate hoje = DataOficina.hoje();
+        Long id = criarOsEntradaEm("RFL2A01", hoje.minusDays(40));
+        LocalDate saida = hoje.minusDays(10);
+
+        transicionar(id, EtapaOrdemServico.ENTREGUE, saida)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.etapa").value("ENTREGUE"))
+                .andExpect(jsonPath("$.dataSaida").value(saida.toString()));
+
+        String dataBr = String.format("%02d/%02d/%d", saida.getDayOfMonth(), saida.getMonthValue(), saida.getYear());
+        mockMvc.perform(get("/api/ordens-servico/" + id + "/historico")
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].observacao").value(hasItem(containsString("Entregue em " + dataBr))));
+    }
+
+    @Test
+    @DisplayName("Entregar sem informar a data usa hoje, no fuso da oficina")
+    void deveEntregarSemDataUsandoHoje() throws Exception {
+        Long id = criarOsEntradaEm("RFL2A02", DataOficina.hoje().minusDays(3));
+
+        transicionar(id, EtapaOrdemServico.ENTREGUE, null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.dataSaida").value(DataOficina.hoje().toString()));
+    }
+
+    @Test
+    @DisplayName("Data de entrega antes da entrada do veículo é rejeitada com 400")
+    void deveRejeitarEntregaAntesDaEntrada() throws Exception {
+        LocalDate hoje = DataOficina.hoje();
+        Long id = criarOsEntradaEm("RFL2A03", hoje.minusDays(5));
+
+        transicionar(id, EtapaOrdemServico.ENTREGUE, hoje.minusDays(6))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Data de entrega no futuro é rejeitada com 400")
+    void deveRejeitarEntregaNoFuturo() throws Exception {
+        Long id = criarOsEntradaEm("RFL2A04", DataOficina.hoje().minusDays(5));
+
+        transicionar(id, EtapaOrdemServico.ENTREGUE, DataOficina.hoje().plusDays(1))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Data de saída só vale para a etapa Entregue")
+    void deveRejeitarDataDeSaidaEmOutraEtapa() throws Exception {
+        Long id = criarOsEntradaEm("RFL2A05", DataOficina.hoje().minusDays(5));
+
+        transicionar(id, EtapaOrdemServico.EM_SERVICO, DataOficina.hoje())
+                .andExpect(status().isBadRequest());
     }
 }
