@@ -15,22 +15,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(() => {
-    const saved = localStorage.getItem('rfleet_user');
+    const saved = sessionStorage.getItem('rfleet_user');
     return saved ? JSON.parse(saved) : null;
   });
   const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('rfleet_token');
+    return sessionStorage.getItem('rfleet_token');
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    // A sessão vive só na aba (sessionStorage); apaga a que versões antigas deixaram no localStorage
+    localStorage.removeItem('rfleet_token');
+    localStorage.removeItem('rfleet_user');
+
     const checkAuth = async () => {
-      const storedToken = localStorage.getItem('rfleet_token');
+      const storedToken = sessionStorage.getItem('rfleet_token');
       if (storedToken) {
         try {
           const me = await api.getMe();
           setUsuario(me);
-          localStorage.setItem('rfleet_user', JSON.stringify(me));
+          sessionStorage.setItem('rfleet_user', JSON.stringify(me));
         } catch {
           logout();
         }
@@ -52,15 +56,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const response = await api.login(email, senha);
     setToken(response.token);
     setUsuario(response.usuario);
-    localStorage.setItem('rfleet_token', response.token);
-    localStorage.setItem('rfleet_user', JSON.stringify(response.usuario));
+    sessionStorage.setItem('rfleet_token', response.token);
+    sessionStorage.setItem('rfleet_user', JSON.stringify(response.usuario));
   };
 
   const logout = () => {
     setToken(null);
     setUsuario(null);
-    localStorage.removeItem('rfleet_token');
-    localStorage.removeItem('rfleet_user');
+    sessionStorage.removeItem('rfleet_token');
+    sessionStorage.removeItem('rfleet_user');
   };
 
   return (
