@@ -23,6 +23,8 @@ import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -205,6 +207,57 @@ class AnexoControllerTest {
                         .header("Authorization", "Bearer " + tokenJwt))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.mensagem").value("Conteúdo do anexo não encontrado: antigo.pdf"));
+    }
+
+    @Test
+    @DisplayName("Rejeita tipo de arquivo fora da lista (HTML, SVG, executável) com 415")
+    void deveRejeitarTipoNaoPermitido() throws Exception {
+        MockMultipartFile html = new MockMultipartFile("arquivo", "pagina.html", "text/html", "<script>alert(1)</script>".getBytes());
+
+        mockMvc.perform(multipart("/api/ordens-servico/" + ordemServicoId + "/anexos")
+                        .file(html)
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.mensagem").value(startsWith("Tipo de arquivo não permitido.")));
+    }
+
+    @Test
+    @DisplayName("O tipo guardado e devolvido vem da extensão, não do Content-Type enviado pelo cliente")
+    void deveUsarOTipoDaExtensao() throws Exception {
+        MockMultipartFile mentiroso = new MockMultipartFile("arquivo", "laudo.pdf", "text/html", new byte[]{1, 2, 3});
+
+        Long anexoId = enviarAnexo(mentiroso);
+
+        mockMvc.perform(get("/api/anexos/" + anexoId + "/download")
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pdf"));
+    }
+
+    @Test
+    @DisplayName("Aspas no nome do arquivo não chegam ao Content-Disposition")
+    void deveTirarAspasDoNomeNoDownload() throws Exception {
+        Long anexoId = enviarAnexo(new MockMultipartFile("arquivo", "laudo\"; x=\".pdf", "application/pdf", new byte[]{1}));
+
+        mockMvc.perform(get("/api/anexos/" + anexoId + "/download")
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition", not(containsString("x=\""))));
+    }
+
+    @Test
+    @DisplayName("Anexo antigo de tipo livre (ex.: HTML) é baixado como binário genérico")
+    void deveBaixarAnexoAntigoComoBinarioGenerico() throws Exception {
+        Long anexoId = jdbcTemplate.queryForObject(
+                "INSERT INTO anexos_os (ordem_servico_id, nome_arquivo, tipo_conteudo, tamanho_bytes) "
+                        + "VALUES (?, 'antigo.html', 'text/html', 3) RETURNING id",
+                Long.class, ordemServicoId);
+        jdbcTemplate.update("INSERT INTO anexos_conteudo (anexo_id, dados) VALUES (?, ?)", anexoId, new byte[]{1, 2, 3});
+
+        mockMvc.perform(get("/api/anexos/" + anexoId + "/download")
+                        .header("Authorization", "Bearer " + tokenJwt))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/octet-stream"));
     }
 
     @Test
