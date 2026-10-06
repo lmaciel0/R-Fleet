@@ -179,7 +179,7 @@ flowchart TD
 * **Tarefas:**
   1. Criação do script de seed com veículos e ordens de serviço realistas distribuídos em todas as etapas (inclusive com carros atrasados para demonstrar o alerta vermelho).
   2. Criação da conta de demonstração do gestor:
-     * `gestor@rfleet.com.br` / `admin123`
+     * e-mail e senha definidos pelas variáveis `RFLEET_GESTOR_*` (nunca versionados)
   3. Elaboração do `README.md` completo: instruções para rodar com Docker Compose ou localmente, variáveis de ambiente, portas e guia rápido de uso.
   4. Revisão dos critérios de aceite do MVP (seção 8 do prompt original).
 * **Critério de Aceite:** Qualquer desenvolvedor ou usuário consegue subir o projeto com 1 comando e testar todos os fluxos com dados prontos.
