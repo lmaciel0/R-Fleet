@@ -69,3 +69,10 @@ scratch/
 .env
 .env.*
 !.env.example
+
+# Ferramentas de IA e planos internos (não vão para o repositório público)
+.claude/
+.superpowers/
+docs/superpowers/
+PROMPT-R-Fleet.md
+backend/uploads/
