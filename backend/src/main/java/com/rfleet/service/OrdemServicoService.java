@@ -15,7 +15,9 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -247,6 +249,94 @@ public class OrdemServicoService {
         historicoEtapaRepository.save(historico);
 
         return OrdemServicoDTO.fromEntity(os, obterLimiteDiasSla(), LocalDate.now());
+    }
+
+    /**
+     * Corrige placa, modelo e origem (que ficam no veículo) e o tipo de serviço (que fica na OS),
+     * registrando na linha do tempo o que mudou. Sem nenhuma mudança, não grava nada.
+     */
+    @Transactional
+    public OrdemServicoDTO atualizarDados(Long id, AtualizarDadosVeiculoRequest request, String emailUsuario) {
+        OrdemServico os = ordemServicoRepository.findByIdComDetalhes(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ordem de serviço não encontrada com ID: " + id));
+        Veiculo veiculo = os.getVeiculo();
+
+        String novaPlaca = PlacaUtils.sanitizar(request.getPlaca());
+        String novoModelo = request.getModelo().trim().toUpperCase();
+
+        if (!novaPlaca.equals(veiculo.getPlaca())) {
+            veiculoRepository.findByPlaca(novaPlaca).ifPresent(outro -> {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Já existe outro veículo cadastrado com a placa " + PlacaUtils.formatar(novaPlaca) + ".");
+            });
+        }
+
+        Origem novaOrigem = null;
+        if (request.getOrigemId() != null) {
+            novaOrigem = origemRepository.findById(request.getOrigemId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Origem não encontrada com ID: " + request.getOrigemId()));
+        }
+        TipoServico novoTipo = null;
+        if (request.getTipoServicoId() != null) {
+            novoTipo = tipoServicoRepository.findById(request.getTipoServicoId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de serviço não encontrado com ID: " + request.getTipoServicoId()));
+        }
+
+        Origem origemAtual = veiculo.getOrigemPadrao();
+        TipoServico tipoAtual = os.getTipoServico();
+
+        List<String> mudancas = new ArrayList<>();
+        if (!novaPlaca.equals(veiculo.getPlaca())) {
+            mudancas.add("placa " + PlacaUtils.formatar(veiculo.getPlaca()) + " → " + PlacaUtils.formatar(novaPlaca));
+        }
+        if (!novoModelo.equals(veiculo.getModelo())) {
+            mudancas.add("modelo " + veiculo.getModelo() + " → " + novoModelo);
+        }
+        if (!Objects.equals(idDe(origemAtual), idDe(novaOrigem))) {
+            mudancas.add("origem " + nomeDe(origemAtual, "não informada") + " → " + nomeDe(novaOrigem, "não informada"));
+        }
+        if (!Objects.equals(idDe(tipoAtual), idDe(novoTipo))) {
+            mudancas.add("tipo de serviço " + nomeDe(tipoAtual, "não informado") + " → " + nomeDe(novoTipo, "não informado"));
+        }
+
+        if (mudancas.isEmpty()) {
+            return OrdemServicoDTO.fromEntity(os, obterLimiteDiasSla(), LocalDate.now());
+        }
+
+        veiculo.setPlaca(novaPlaca);
+        veiculo.setModelo(novoModelo);
+        veiculo.setOrigemPadrao(novaOrigem);
+        veiculoRepository.save(veiculo);
+        os.setTipoServico(novoTipo);
+        os = ordemServicoRepository.save(os);
+
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElse(null);
+        historicoEtapaRepository.save(HistoricoEtapa.builder()
+                .ordemServico(os)
+                .etapaAnterior(os.getEtapa())
+                .etapaNova(os.getEtapa())
+                .usuario(usuario)
+                .valorOrcamentoMomento(os.getValorOrcamento())
+                .observacao("Dados corrigidos: " + String.join("; ", mudancas) + ".")
+                .build());
+
+        return OrdemServicoDTO.fromEntity(os, obterLimiteDiasSla(), LocalDate.now());
+    }
+
+    private static Long idDe(Origem origem) {
+        return origem != null ? origem.getId() : null;
+    }
+
+    private static Long idDe(TipoServico tipo) {
+        return tipo != null ? tipo.getId() : null;
+    }
+
+    private static String nomeDe(Origem origem, String semValor) {
+        return origem != null ? origem.getNome() : semValor;
+    }
+
+    private static String nomeDe(TipoServico tipo, String semValor) {
+        return tipo != null ? tipo.getNome() : semValor;
     }
 
     /**

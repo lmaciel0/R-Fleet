@@ -4,6 +4,8 @@ import {
   EtapaOrdemServico,
   HistoricoEtapa,
   AnexoOs,
+  Origem,
+  TipoServico,
 } from '../types';
 import { api } from '../services/api';
 import { PlacaBadge } from './PlacaBadge';
@@ -32,6 +34,8 @@ const TAMANHO_MAXIMO_ANEXO = 8 * 1024 * 1024;
 
 interface ModalDetalhesProps {
   ordemId: number;
+  origens: Origem[];
+  tiposServico: TipoServico[];
   onFechar: () => void;
   onAtualizada: (ordem: OrdemServico) => void;
   onExcluida: (ordem: OrdemServico) => void;
@@ -49,6 +53,8 @@ const TODAS_ETAPAS: { etapa: EtapaOrdemServico; label: string }[] = [
 
 export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   ordemId,
+  origens,
+  tiposServico,
   onFechar,
   onAtualizada,
   onExcluida,
@@ -71,6 +77,15 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
   const [obsTransicao, setObsTransicao] = useState('');
   const [dataEntrega, setDataEntrega] = useState(hojeNaOficina);
   const [salvandoTransicao, setSalvandoTransicao] = useState(false);
+
+  // Correção dos dados da entrada (placa, modelo, origem, tipo de serviço)
+  const [editandoDados, setEditandoDados] = useState(false);
+  const [placaEdit, setPlacaEdit] = useState('');
+  const [modeloEdit, setModeloEdit] = useState('');
+  const [origemEdit, setOrigemEdit] = useState('');
+  const [tipoEdit, setTipoEdit] = useState('');
+  const [salvandoDados, setSalvandoDados] = useState(false);
+  const [erroDados, setErroDados] = useState<string | null>(null);
 
   // Edição de Orçamento
   const [editandoOrcamento, setEditandoOrcamento] = useState(false);
@@ -191,6 +206,52 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
       setErro(err.message);
     } finally {
       setSalvandoOrcamento(false);
+    }
+  };
+
+  const abrirEdicaoDados = () => {
+    if (!ordem) return;
+    setPlacaEdit(ordem.placa);
+    setModeloEdit(ordem.modelo);
+    setOrigemEdit(ordem.origemId ? String(ordem.origemId) : '');
+    setTipoEdit(ordem.tipoServicoId ? String(ordem.tipoServicoId) : '');
+    setErroDados(null);
+    setEditandoDados(true);
+  };
+
+  const cancelarEdicaoDados = () => {
+    setEditandoDados(false);
+    setErroDados(null);
+  };
+
+  const placaEditValida = /^([A-Z]{3}[0-9]{4}|[A-Z]{3}[0-9][A-Z][0-9]{2})$/.test(placaEdit);
+  const dadosAlterados =
+    !!ordem &&
+    (placaEdit !== ordem.placa ||
+      modeloEdit.trim().toUpperCase() !== ordem.modelo ||
+      origemEdit !== (ordem.origemId ? String(ordem.origemId) : '') ||
+      tipoEdit !== (ordem.tipoServicoId ? String(ordem.tipoServicoId) : ''));
+
+  const handleSalvarDados = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ordem || !placaEditValida || !modeloEdit.trim() || !dadosAlterados) return;
+    setSalvandoDados(true);
+    setErroDados(null);
+    try {
+      const atualizada = await api.atualizarDados(ordem.id, {
+        placa: placaEdit,
+        modelo: modeloEdit.trim().toUpperCase(),
+        origemId: origemEdit ? Number(origemEdit) : null,
+        tipoServicoId: tipoEdit ? Number(tipoEdit) : null,
+      });
+      setOrdem(atualizada);
+      onAtualizada(atualizada);
+      setEditandoDados(false);
+      carregarHistorico();
+    } catch (err: any) {
+      setErroDados(err.message || 'Falha ao salvar a correção.');
+    } finally {
+      setSalvandoDados(false);
     }
   };
 
@@ -557,31 +618,156 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
               {/* Informações detalhadas do veículo */}
               <div className="bg-parede/60 p-4 rounded-xl border border-trilho space-y-3">
-                <h4 className="text-xs font-bold text-grafite uppercase tracking-wider">
-                  Detalhes Operacionais
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                  <div>
-                    <span className="text-aco block">Origem</span>
-                    <span className="font-semibold text-grafite">{ordem.origemNome || 'Não informada'}</span>
-                  </div>
-                  <div>
-                    <span className="text-aco block">Tipo de Serviço</span>
-                    <span className="font-semibold text-mercosul">{ordem.tipoServicoNome || 'Geral'}</span>
-                  </div>
-                  <div>
-                    <span className="text-aco block">Data de Entrada</span>
-                    <span className="font-placa tabular-nums text-grafite">
-                      {ordem.dataEntrada ? ordem.dataEntrada.split('-').reverse().join('/') : '-'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-aco block">Data de Saída</span>
-                    <span className="font-placa tabular-nums text-grafite">
-                      {ordem.dataSaida ? ordem.dataSaida.split('-').reverse().join('/') : 'Em aberto'}
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="text-xs font-bold text-grafite uppercase tracking-wider">
+                    {editandoDados ? 'Corrigir dados da entrada' : 'Detalhes Operacionais'}
+                  </h4>
+                  {!editandoDados && (
+                    <button
+                      onClick={abrirEdicaoDados}
+                      className="flex items-center gap-1.5 text-xs text-mercosul font-semibold px-3 py-1.5 rounded-lg bg-mercosul/10 border border-mercosul/40 hover:bg-mercosul/15 transition-colors cursor-pointer"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>Editar dados</span>
+                    </button>
+                  )}
                 </div>
+
+                {editandoDados ? (
+                  <form onSubmit={handleSalvarDados} className="space-y-3">
+                    {erroDados && (
+                      <div role="alert" className="p-3 bg-vermelho/10 border border-vermelho/40 rounded-xl text-vermelho text-xs flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 shrink-0 text-vermelho mt-0.5" />
+                        <span>{erroDados}</span>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label htmlFor="detalhes-placa" className="block text-xs font-semibold text-grafite mb-1">
+                          Placa *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={7}
+                          value={placaEdit}
+                          id="detalhes-placa"
+                          onChange={(e) =>
+                            setPlacaEdit(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7))
+                          }
+                          aria-invalid={placaEdit.length > 0 && !placaEditValida}
+                          autoFocus
+                          className="w-full bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs font-placa tabular-nums font-bold tracking-widest uppercase text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
+                        />
+                        {placaEdit.length > 0 && !placaEditValida && (
+                          <p className="text-[11px] text-vermelho mt-1">
+                            Use o formato ABC1234 ou Mercosul (ABC1D23).
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label htmlFor="detalhes-modelo" className="block text-xs font-semibold text-grafite mb-1">
+                          Modelo *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={100}
+                          value={modeloEdit}
+                          id="detalhes-modelo"
+                          onChange={(e) => setModeloEdit(e.target.value)}
+                          className="w-full bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs uppercase text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="detalhes-origem" className="block text-xs font-semibold text-grafite mb-1">
+                          Origem / Locadora
+                        </label>
+                        <select
+                          value={origemEdit}
+                          id="detalhes-origem"
+                          onChange={(e) => setOrigemEdit(e.target.value)}
+                          className="w-full bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
+                        >
+                          <option value="">Não informada</option>
+                          {origens.map((origem) => (
+                            <option key={origem.id} value={origem.id}>
+                              {origem.nome}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="detalhes-tipo-servico" className="block text-xs font-semibold text-grafite mb-1">
+                          Tipo de Serviço
+                        </label>
+                        <select
+                          value={tipoEdit}
+                          id="detalhes-tipo-servico"
+                          onChange={(e) => setTipoEdit(e.target.value)}
+                          className="w-full bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
+                        >
+                          <option value="">Geral (sem tipo)</option>
+                          {tiposServico.map((tipo) => (
+                            <option key={tipo.id} value={tipo.id}>
+                              {tipo.nome}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-aco">
+                      Placa, modelo e origem são do veículo: a correção vale para todas as OS dele. O que mudar
+                      fica registrado na Linha do Tempo.
+                    </p>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="submit"
+                        disabled={salvandoDados || !placaEditValida || !modeloEdit.trim() || !dadosAlterados}
+                        className="px-4 py-2 rounded-xl text-xs font-bold text-sobre-cor bg-mercosul hover:bg-mercosul/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        {salvandoDados ? 'Salvando...' : 'Salvar correção'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelarEdicaoDados}
+                        disabled={salvandoDados}
+                        className="px-3 py-2 text-aco hover:text-grafite text-xs font-medium cursor-pointer disabled:opacity-40"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                    <div>
+                      <span className="text-aco block">Origem</span>
+                      <span className="font-semibold text-grafite">{ordem.origemNome || 'Não informada'}</span>
+                    </div>
+                    <div>
+                      <span className="text-aco block">Tipo de Serviço</span>
+                      <span className="font-semibold text-mercosul">{ordem.tipoServicoNome || 'Geral'}</span>
+                    </div>
+                    <div>
+                      <span className="text-aco block">Data de Entrada</span>
+                      <span className="font-placa tabular-nums text-grafite">
+                        {ordem.dataEntrada ? ordem.dataEntrada.split('-').reverse().join('/') : '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-aco block">Data de Saída</span>
+                      <span className="font-placa tabular-nums text-grafite">
+                        {ordem.dataSaida ? ordem.dataSaida.split('-').reverse().join('/') : 'Em aberto'}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {ordem.observacoes && (
                   <div className="pt-2 border-t border-trilho">
