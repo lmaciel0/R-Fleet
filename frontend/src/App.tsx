@@ -259,6 +259,8 @@ const AppContent: React.FC = () => {
         <ModalDetalhes
           key={ordemSelecionadaId}
           ordemId={ordemSelecionadaId}
+          origens={origens}
+          tiposServico={tiposServico}
           onFechar={fecharOs}
           onAtualizada={handleOrdemAtualizada}
           onExcluida={handleOrdemExcluida}

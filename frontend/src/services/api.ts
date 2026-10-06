@@ -284,6 +284,17 @@ export const api = {
     });
   },
 
+  // Corrige placa, modelo, origem e tipo de serviço; origem/tipo nulos limpam o campo
+  async atualizarDados(
+    id: number,
+    dados: { placa: string; modelo: string; origemId: number | null; tipoServicoId: number | null }
+  ): Promise<OrdemServico> {
+    return request(`/ordens-servico/${idNaUrl(id)}/dados`, {
+      method: 'PATCH',
+      body: JSON.stringify(dados),
+    });
+  },
+
   async atualizarFaturamento(
     id: number,
     faturado: boolean,

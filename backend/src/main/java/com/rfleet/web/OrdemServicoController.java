@@ -96,6 +96,19 @@ public class OrdemServicoController {
     }
 
     /**
+     * Correção de placa, modelo, origem e tipo de serviço lançados na entrada, com registro na linha do tempo.
+     */
+    @PatchMapping("/{id}/dados")
+    public ResponseEntity<OrdemServicoDTO> atualizarDados(
+            @PathVariable Long id,
+            @Valid @RequestBody AtualizarDadosVeiculoRequest request,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String email = userDetails != null ? userDetails.getUsername() : null;
+        return ResponseEntity.ok(ordemServicoService.atualizarDados(id, request, email));
+    }
+
+    /**
      * Alternância do status de faturamento (Sim/Não), data e NF.
      */
     @PatchMapping("/{id}/faturamento")
