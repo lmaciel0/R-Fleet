@@ -9,6 +9,14 @@ interface CardFaturamentoMesProps {
   onErro: (mensagem: string) => void;
 }
 
+/** Reserva o espaço do valor enquanto a API responde, para o card não mudar de altura. */
+const Esqueleto: React.FC<{ className: string }> = ({ className }) => (
+  <span
+    aria-hidden="true"
+    className={`inline-block rounded-md bg-trilho/70 animate-pulse motion-reduce:animate-none ${className}`}
+  />
+);
+
 const formatarMoeda = (val: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
 
@@ -63,17 +71,18 @@ export const CardFaturamentoMes: React.FC<CardFaturamentoMesProps> = ({ mes, onE
         </span>
       </div>
       <span className="shrink-0 text-sm font-placa tabular-nums font-bold text-grafite">
-        {faturamento ? formatarMoeda(comissao ?? 0) : '—'}
+        {faturamento ? formatarMoeda(comissao ?? 0) : <Esqueleto className="h-4 w-16 align-middle" />}
       </span>
     </div>
   );
 
   return (
-    <div
-      className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-      aria-live="polite"
-      aria-busy={faturamento === null}
-    >
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" aria-busy={faturamento === null}>
+      <p role="status" className="sr-only">
+        {faturamento
+          ? `Faturado em ${rotulo}: ${formatarMoeda(faturamento.total)}. Comissão total: ${formatarMoeda(faturamento.comissao)}.`
+          : `Carregando o faturamento de ${rotulo}.`}
+      </p>
       <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
         <div className="flex items-start justify-between gap-3 text-aco mb-2">
           <span className="min-w-0 text-xs font-semibold uppercase tracking-wider leading-tight">
@@ -84,9 +93,9 @@ export const CardFaturamentoMes: React.FC<CardFaturamentoMesProps> = ({ mes, onE
           </div>
         </div>
         <div className="text-2xl font-extrabold text-verde font-placa tabular-nums truncate">
-          {faturamento ? formatarMoeda(faturamento.total) : '—'}
+          {faturamento ? formatarMoeda(faturamento.total) : <Esqueleto className="h-7 w-40 align-middle" />}
         </div>
-        <div className="text-xs text-aco mt-1">
+        <div className="text-xs text-aco mt-1 min-h-4">
           {faturamento ? (
             <span>
               {faturamento.quantidade} {faturamento.quantidade === 1 ? 'OS faturada' : 'OS faturadas'} no mês
@@ -94,7 +103,7 @@ export const CardFaturamentoMes: React.FC<CardFaturamentoMesProps> = ({ mes, onE
               <strong className="font-placa tabular-nums text-grafite">{formatarMoeda(faturamento.totalGeral)}</strong>
             </span>
           ) : (
-            <span>Calculando...</span>
+            <Esqueleto className="h-3 w-56 max-w-full" />
           )}
         </div>
       </div>
@@ -109,7 +118,7 @@ export const CardFaturamentoMes: React.FC<CardFaturamentoMesProps> = ({ mes, onE
           </div>
         </div>
         <div className="text-2xl font-extrabold text-amarelo-tinta font-placa tabular-nums truncate">
-          {faturamento ? formatarMoeda(faturamento.comissao) : '—'}
+          {faturamento ? formatarMoeda(faturamento.comissao) : <Esqueleto className="h-7 w-32 align-middle" />}
         </div>
         <div className="mt-2 pt-2 border-t border-trilho space-y-1.5">
           {linhaComissao(
