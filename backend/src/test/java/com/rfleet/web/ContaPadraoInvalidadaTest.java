@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,18 +55,27 @@ class ContaPadraoInvalidadaTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    /** Hash BCrypt semeado pela V2, lido do próprio arquivo da migration (não é repetido no código). */
-    private static String hashVazadoDaV2() throws IOException {
+    /**
+     * Hash BCrypt semeado pela V2, lido do próprio arquivo da migration (não é repetido no código).
+     * Depois da limpeza do repositório a V2 já semeia o marcador de senha invalidada, então não há hash: vazio.
+     */
+    private static Optional<String> hashVazadoDaV2() throws IOException {
         String sql = new ClassPathResource("db/migration/V2__dados_iniciais_padrao.sql")
                 .getContentAsString(StandardCharsets.UTF_8);
         Matcher hash = Pattern.compile("'(\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53})'").matcher(sql);
-        assertThat(hash.find()).as("hash BCrypt na V2").isTrue();
-        return hash.group(1);
+        return hash.find() ? Optional.of(hash.group(1)) : Optional.empty();
     }
 
     /** Vale tanto com a conta ainda revogada quanto depois de o gestor cadastrar uma senha nova nela. */
     private void assertSenhaVazadaRevogada(Usuario padrao) throws IOException {
-        assertThat(padrao.getSenhaHash()).isNotEqualTo(hashVazadoDaV2());
+        Optional<String> vazado = hashVazadoDaV2();
+        if (vazado.isPresent()) {
+            assertThat(padrao.getSenhaHash()).isNotEqualTo(vazado.get());
+        } else {
+            // Sem hash na V2, a conta nasce com o marcador e nenhum hash conhecido pode estar no repositório
+            assertThat(new ClassPathResource("db/migration/V2__dados_iniciais_padrao.sql")
+                    .getContentAsString(StandardCharsets.UTF_8)).contains(Usuario.SENHA_INVALIDADA);
+        }
     }
 
     @Test
