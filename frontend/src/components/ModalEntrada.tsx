@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   Building2,
   Wrench,
-  DollarSign,
+  Package,
   Calendar,
   FileText,
 } from 'lucide-react';
@@ -266,28 +266,29 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
             </div>
           </div>
 
-          {/* Grid: Etapa Inicial, mão de obra e peças */}
+          {/* Etapa Inicial */}
+          <div>
+            <label htmlFor="entrada-etapa" className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider">
+              Etapa Inicial
+            </label>
+            <select
+              value={etapa}
+              id="entrada-etapa"
+              onChange={(e) => setEtapa(e.target.value as EtapaOrdemServico)}
+              className="w-full min-h-11 bg-parede/60 border border-trilho rounded-xl px-3 py-2.5 text-base sm:text-sm text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
+            >
+              <option value="AGUARDANDO_ORCAMENTO">Aguardando Orçamento</option>
+              <option value="ORCAMENTO">Orçamento</option>
+              <option value="APROVADO">Aprovado</option>
+              <option value="EM_SERVICO">Em Serviço</option>
+            </select>
+          </div>
+
+          {/* Orçamento: mão de obra + peças */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="entrada-etapa" className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider">
-                Etapa Inicial
-              </label>
-              <select
-                value={etapa}
-                id="entrada-etapa"
-                onChange={(e) => setEtapa(e.target.value as EtapaOrdemServico)}
-                className="w-full bg-parede/60 border border-trilho rounded-xl px-3 py-2.5 text-sm text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
-              >
-                <option value="AGUARDANDO_ORCAMENTO">Aguardando Orçamento</option>
-                <option value="ORCAMENTO">Orçamento</option>
-                <option value="APROVADO">Aprovado</option>
-                <option value="EM_SERVICO">Em Serviço</option>
-              </select>
-            </div>
-
-            <div>
               <label htmlFor="entrada-mao-de-obra" className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider flex items-center gap-1">
-                <DollarSign className="w-3.5 h-3.5 text-verde" />
+                <Wrench className="w-3.5 h-3.5 text-verde" aria-hidden="true" />
                 Mão de Obra (R$)
               </label>
               <div className="relative">
@@ -300,17 +301,14 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
                   value={valorMaoDeObra}
                   id="entrada-mao-de-obra"
                   onChange={(e) => setValorMaoDeObra(mascararMoeda(e.target.value))}
-                  className="w-full bg-parede/60 border border-trilho rounded-xl pl-10 pr-3.5 py-2.5 text-sm font-placa tabular-nums font-bold text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
+                  className="w-full min-h-11 bg-parede/60 border border-trilho rounded-xl pl-10 pr-3.5 py-2.5 text-base sm:text-sm font-placa tabular-nums font-bold text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
                 />
               </div>
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="entrada-pecas" className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider flex items-center gap-1">
-                <DollarSign className="w-3.5 h-3.5 text-verde" />
-                Peças (R$)
+                <Package className="w-3.5 h-3.5 text-verde" aria-hidden="true" />
+                Peças (R$) · opcional
               </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-placa tabular-nums font-bold text-aco">
@@ -322,19 +320,17 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
                   value={valorPecas}
                   id="entrada-pecas"
                   onChange={(e) => setValorPecas(mascararMoeda(e.target.value))}
-                  className="w-full bg-parede/60 border border-trilho rounded-xl pl-10 pr-3.5 py-2.5 text-sm font-placa tabular-nums font-bold text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
+                  className="w-full min-h-11 bg-parede/60 border border-trilho rounded-xl pl-10 pr-3.5 py-2.5 text-base sm:text-sm font-placa tabular-nums font-bold text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
                 />
               </div>
             </div>
-            <div>
-              <span className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider">
-                Valor Orçado (soma)
-              </span>
-              <div className="w-full bg-parede/30 border border-trilho rounded-xl px-3.5 py-2.5 text-sm font-placa tabular-nums font-bold text-verde">
-                {formatarMoeda(lerMoeda(valorMaoDeObra) + lerMoeda(valorPecas))}
-              </div>
-            </div>
           </div>
+          <p className="text-xs text-aco -mt-2" aria-live="polite">
+            Valor orçado (mão de obra + peças):{' '}
+            <strong className="font-placa tabular-nums text-sm text-verde">
+              {formatarMoeda(lerMoeda(valorMaoDeObra) + lerMoeda(valorPecas))}
+            </strong>
+          </p>
 
           {/* Data de Entrada */}
           <div>
