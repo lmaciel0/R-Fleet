@@ -9,6 +9,9 @@ import {
   Building2,
   Layers,
   CheckCircle2,
+  Wrench,
+  Package,
+  type LucideIcon,
 } from 'lucide-react';
 import { nomeMesAtual } from '../utils/meses';
 import { ETAPAS } from '../utils/etapas';
@@ -36,6 +39,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ metricas, onFiltra
   };
 
   const formatarPercentual = (val: number) => `${(val ?? 0).toLocaleString('pt-BR')}%`;
+
+  const linhaComissao = (Icone: LucideIcon, parte: string, percentual: number, base: number, comissao: number) => (
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0 flex items-start gap-2 text-xs text-aco">
+        <Icone className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+        <span className="min-w-0">
+          {parte} · {formatarPercentual(percentual)} de{' '}
+          <span className="font-placa tabular-nums">{formatarMoeda(base)}</span>
+        </span>
+      </div>
+      <span className="shrink-0 text-sm font-placa tabular-nums font-bold text-grafite">{formatarMoeda(comissao)}</span>
+    </div>
+  );
 
   const totalPatio = metricas.totalVeiculosPatio;
   const emAtraso = metricas.veiculosEmAtraso;
@@ -102,23 +118,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ metricas, onFiltra
           <div className="text-2xl font-extrabold text-amarelo-tinta font-placa tabular-nums truncate">
             {formatarMoeda(metricas.comissaoMesAtual)}
           </div>
-          <div className="text-xs text-aco mt-1 space-y-0.5">
-            <div>
-              Mão de obra: {formatarPercentual(metricas.comissaoPercentualMaoDeObra)} de{' '}
-              {formatarMoeda(metricas.faturamentoMaoDeObraMesAtual)} ={' '}
-              <strong className="font-placa tabular-nums text-grafite">
-                {formatarMoeda(metricas.comissaoMaoDeObraMesAtual)}
-              </strong>
-            </div>
-            <div>
-              Peças: {formatarPercentual(metricas.comissaoPercentualPecas)} de{' '}
-              {formatarMoeda(metricas.faturamentoPecasMesAtual)} ={' '}
-              <strong className="font-placa tabular-nums text-grafite">
-                {formatarMoeda(metricas.comissaoPecasMesAtual)}
-              </strong>
-            </div>
-            <div>faturado em {nomeMesAtual()}</div>
+          <div className="mt-2 pt-2 border-t border-trilho space-y-1.5">
+            {linhaComissao(
+              Wrench,
+              'Mão de obra',
+              metricas.comissaoPercentualMaoDeObra,
+              metricas.faturamentoMaoDeObraMesAtual,
+              metricas.comissaoMaoDeObraMesAtual
+            )}
+            {linhaComissao(
+              Package,
+              'Peças',
+              metricas.comissaoPercentualPecas,
+              metricas.faturamentoPecasMesAtual,
+              metricas.comissaoPecasMesAtual
+            )}
           </div>
+          <div className="text-xs text-aco mt-2">faturado em {nomeMesAtual()}</div>
         </div>
 
         {/* 4. Faturamento Mês Atual */}
