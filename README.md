@@ -30,7 +30,7 @@
 - **Exportação de Relatórios:**
   - Exportação instantânea dos dados filtrados para Excel `.xlsx` estilizado ou `.csv` com BOM UTF-8.
 - **Dashboard Executivo:**
-  - Indicadores em tempo real: veículos no pátio, taxa de atraso SLA, comissão mensal (2% sobre o faturado no mês, configurável em `COMISSAO_PERCENTUAL`), faturamento do mês e valor orçado em produção.
+  - Indicadores em tempo real: veículos no pátio, taxa de atraso SLA, comissão mensal (1% sobre a mão de obra e 1% sobre as peças faturadas no mês, configuráveis em `COMISSAO_PERCENTUAL_MAO_DE_OBRA` e `COMISSAO_PERCENTUAL_PECAS`), faturamento do mês e valor orçado em produção.
 
 ---
 

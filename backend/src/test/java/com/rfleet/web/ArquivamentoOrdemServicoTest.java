@@ -209,7 +209,7 @@ class ArquivamentoOrdemServicoTest {
         RegistrarEntradaRequest request = RegistrarEntradaRequest.builder()
                 .placa(placa)
                 .modelo("Fiat Uno")
-                .valorOrcamento(new BigDecimal("100.00"))
+                .valorMaoDeObra(new BigDecimal("100.00"))
                 .build();
         String corpo = mockMvc.perform(post("/api/ordens-servico")
                         .header("Authorization", "Bearer " + tokenJwt)

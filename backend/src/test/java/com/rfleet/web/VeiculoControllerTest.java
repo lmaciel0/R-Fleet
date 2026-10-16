@@ -126,7 +126,7 @@ class VeiculoControllerTest {
         RegistrarEntradaRequest entrada = RegistrarEntradaRequest.builder()
                 .placa("EXC1A01")
                 .modelo("Fiat Mobi")
-                .valorOrcamento(new BigDecimal("500.00"))
+                .valorMaoDeObra(new BigDecimal("500.00"))
                 .build();
 
         MvcResult osResult = mockMvc.perform(post("/api/ordens-servico")

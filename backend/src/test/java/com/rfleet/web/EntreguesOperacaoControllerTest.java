@@ -60,7 +60,7 @@ class EntreguesOperacaoControllerTest {
                 .placa(placa)
                 .modelo("Teste Historico")
                 .etapa(etapa)
-                .valorOrcamento(new BigDecimal("1000.00"))
+                .valorMaoDeObra(new BigDecimal("1000.00"))
                 .dataEntrada(LocalDate.of(2019, 12, 1))
                 .build();
 

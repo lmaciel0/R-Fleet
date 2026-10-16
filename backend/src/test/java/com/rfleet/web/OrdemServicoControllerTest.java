@@ -59,7 +59,7 @@ class OrdemServicoControllerTest {
                 .modelo("Toyota Corolla Cross")
                 .origemId(1L) // Localiza
                 .tipoServicoId(1L) // Mecânica
-                .valorOrcamento(new BigDecimal("1500.00"))
+                .valorMaoDeObra(new BigDecimal("1500.00"))
                 .dataEntrada(LocalDate.now())
                 .observacoes("Revisão de freios e suspensão")
                 .build();
@@ -98,7 +98,7 @@ class OrdemServicoControllerTest {
                 .modelo("Fiat Strada Freedom")
                 .origemId(2L) // Unidas
                 .tipoServicoId(2L) // Funilaria
-                .valorOrcamento(new BigDecimal("800.00"))
+                .valorMaoDeObra(new BigDecimal("800.00"))
                 .build();
 
         // 1ª Entrada - Sucesso
@@ -131,7 +131,7 @@ class OrdemServicoControllerTest {
                 .modelo("Jeep Compass Longitude")
                 .origemId(3L)
                 .tipoServicoId(1L)
-                .valorOrcamento(new BigDecimal("2200.00"))
+                .valorMaoDeObra(new BigDecimal("2200.00"))
                 .build();
 
         MvcResult result = mockMvc.perform(post("/api/ordens-servico")
@@ -177,12 +177,63 @@ class OrdemServicoControllerTest {
     }
 
     @Test
+    @DisplayName("Entrada com mão de obra e peças grava o orçamento como a soma dos dois")
+    void deveSomarMaoDeObraEPecasNaEntrada() throws Exception {
+        RegistrarEntradaRequest request = RegistrarEntradaRequest.builder()
+                .placa("RFL1A09")
+                .modelo("Fiat Mobi")
+                .valorMaoDeObra(new BigDecimal("800.00"))
+                .valorPecas(new BigDecimal("250.25"))
+                .build();
+
+        mockMvc.perform(post("/api/ordens-servico")
+                        .header("Authorization", "Bearer " + tokenJwt)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.valorMaoDeObra").value(800.00))
+                .andExpect(jsonPath("$.valorPecas").value(250.25))
+                .andExpect(jsonPath("$.valorOrcamento").value(1050.25));
+    }
+
+    @Test
+    @DisplayName("Peças em R$ 0,00 são aceitas, e valor negativo de peças é rejeitado com 400")
+    void devePermitirPecasZeroERejeitarNegativo() throws Exception {
+        RegistrarEntradaRequest request = RegistrarEntradaRequest.builder()
+                .placa("RFL1A08")
+                .modelo("Fiat Mobi")
+                .valorMaoDeObra(new BigDecimal("300.00"))
+                .valorPecas(BigDecimal.ZERO)
+                .build();
+
+        MvcResult result = mockMvc.perform(post("/api/ordens-servico")
+                        .header("Authorization", "Bearer " + tokenJwt)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.valorOrcamento").value(300.00))
+                .andReturn();
+        Long id = objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asLong();
+
+        AtualizarOrcamentoRequest negativo = AtualizarOrcamentoRequest.builder()
+                .valorMaoDeObra(new BigDecimal("300.00"))
+                .valorPecas(new BigDecimal("-1.00"))
+                .build();
+
+        mockMvc.perform(patch("/api/ordens-servico/" + id + "/orcamento")
+                        .header("Authorization", "Bearer " + tokenJwt)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(negativo)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Deve atualizar orçamento e registrar auditoria no histórico imutável")
     void deveAtualizarOrcamentoEAuditar() throws Exception {
         RegistrarEntradaRequest request = RegistrarEntradaRequest.builder()
                 .placa("RFL1A04")
                 .modelo("Hyundai HB20")
-                .valorOrcamento(new BigDecimal("500.00"))
+                .valorMaoDeObra(new BigDecimal("500.00"))
                 .build();
 
         MvcResult result = mockMvc.perform(post("/api/ordens-servico")
@@ -199,7 +250,8 @@ class OrdemServicoControllerTest {
 
         // Atualizar orçamento
         AtualizarOrcamentoRequest orcamentoRequest = AtualizarOrcamentoRequest.builder()
-                .valor(new BigDecimal("750.50"))
+                .valorMaoDeObra(new BigDecimal("600.50"))
+                .valorPecas(new BigDecimal("150.00"))
                 .justificativa("Inclusão de troca da pastilha de freio traseira")
                 .build();
 
@@ -208,6 +260,8 @@ class OrdemServicoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(orcamentoRequest)))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.valorMaoDeObra").value(600.50))
+                .andExpect(jsonPath("$.valorPecas").value(150.00))
                 .andExpect(jsonPath("$.valorOrcamento").value(750.50));
 
         // Verificar registro de auditoria no histórico
@@ -215,7 +269,7 @@ class OrdemServicoControllerTest {
                         .header("Authorization", "Bearer " + tokenJwt))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].observacao").value("Valor do orçamento alterado de R$ 500.00 para R$ 750.50. Motivo: Inclusão de troca da pastilha de freio traseira"));
+                .andExpect(jsonPath("$[0].observacao").value("Orçamento alterado: mão de obra de R$ 500.00 para R$ 600.50 e peças de R$ 0.00 para R$ 150.00 (total R$ 750.50). Motivo: Inclusão de troca da pastilha de freio traseira"));
     }
 
     @Test
@@ -224,7 +278,7 @@ class OrdemServicoControllerTest {
         RegistrarEntradaRequest request = RegistrarEntradaRequest.builder()
                 .placa("RFL1A05")
                 .modelo("Volkswagen Polo Track")
-                .valorOrcamento(new BigDecimal("1200.00"))
+                .valorMaoDeObra(new BigDecimal("1200.00"))
                 .build();
 
         MvcResult result = mockMvc.perform(post("/api/ordens-servico")
@@ -268,7 +322,7 @@ class OrdemServicoControllerTest {
         RegistrarEntradaRequest request = RegistrarEntradaRequest.builder()
                 .placa(placa)
                 .modelo("Teste Data de Entrega")
-                .valorOrcamento(new BigDecimal("1000.00"))
+                .valorMaoDeObra(new BigDecimal("1000.00"))
                 .dataEntrada(dataEntrada)
                 .build();
 

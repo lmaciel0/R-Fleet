@@ -102,11 +102,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ metricas, onFiltra
           <div className="text-2xl font-extrabold text-amarelo-tinta font-placa tabular-nums truncate">
             {formatarMoeda(metricas.comissaoMesAtual)}
           </div>
-          <div className="text-xs text-aco mt-1">
-            <span>
-              {formatarPercentual(metricas.comissaoPercentual)} de{' '}
-              {formatarMoeda(metricas.faturamentoMesAtual)} faturado em {nomeMesAtual()}
-            </span>
+          <div className="text-xs text-aco mt-1 space-y-0.5">
+            <div>
+              Mão de obra: {formatarPercentual(metricas.comissaoPercentualMaoDeObra)} de{' '}
+              {formatarMoeda(metricas.faturamentoMaoDeObraMesAtual)} ={' '}
+              <strong className="font-placa tabular-nums text-grafite">
+                {formatarMoeda(metricas.comissaoMaoDeObraMesAtual)}
+              </strong>
+            </div>
+            <div>
+              Peças: {formatarPercentual(metricas.comissaoPercentualPecas)} de{' '}
+              {formatarMoeda(metricas.faturamentoPecasMesAtual)} ={' '}
+              <strong className="font-placa tabular-nums text-grafite">
+                {formatarMoeda(metricas.comissaoPecasMesAtual)}
+              </strong>
+            </div>
+            <div>faturado em {nomeMesAtual()}</div>
           </div>
         </div>
 

@@ -255,7 +255,8 @@ export const api = {
     origemId?: number;
     tipoServicoId?: number;
     etapa?: string;
-    valorOrcamento?: number;
+    valorMaoDeObra?: number;
+    valorPecas?: number;
     dataEntrada?: string;
     observacoes?: string;
   }): Promise<OrdemServico> {
@@ -277,10 +278,15 @@ export const api = {
     });
   },
 
-  async atualizarOrcamento(id: number, valor: number, justificativa?: string): Promise<OrdemServico> {
+  async atualizarOrcamento(
+    id: number,
+    valorMaoDeObra: number,
+    valorPecas: number,
+    justificativa?: string
+  ): Promise<OrdemServico> {
     return request(`/ordens-servico/${idNaUrl(id)}/orcamento`, {
       method: 'PATCH',
-      body: JSON.stringify({ valor, justificativa }),
+      body: JSON.stringify({ valorMaoDeObra, valorPecas, justificativa }),
     });
   },
 

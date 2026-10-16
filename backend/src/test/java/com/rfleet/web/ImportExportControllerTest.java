@@ -46,7 +46,7 @@ class ImportExportControllerTest {
                 .modelo("Hyundai HB20 1.0 Sense")
                 .origemId(5L)
                 .tipoServicoId(1L)
-                .valorOrcamento(new BigDecimal("1800.00"))
+                .valorMaoDeObra(new BigDecimal("1800.00"))
                 .build();
 
         mockMvc.perform(post("/api/ordens-servico")

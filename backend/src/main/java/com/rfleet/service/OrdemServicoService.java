@@ -117,7 +117,8 @@ public class OrdemServicoService {
                 .veiculo(veiculo)
                 .tipoServico(tipoServico)
                 .etapa(etapaInicial)
-                .valorOrcamento(request.getValorOrcamento() != null ? request.getValorOrcamento() : BigDecimal.ZERO)
+                .valorMaoDeObra(request.getValorMaoDeObra() != null ? request.getValorMaoDeObra() : BigDecimal.ZERO)
+                .valorPecas(request.getValorPecas() != null ? request.getValorPecas() : BigDecimal.ZERO)
                 .faturado(false)
                 .dataEntrada(dataEntrada)
                 .observacoes(request.getObservacoes())
@@ -227,8 +228,9 @@ public class OrdemServicoService {
         OrdemServico os = ordemServicoRepository.findByIdComDetalhes(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ordem de serviço não encontrada com ID: " + id));
 
-        BigDecimal valorAnterior = os.getValorOrcamento();
-        os.setValorOrcamento(request.getValor());
+        BigDecimal maoDeObraAnterior = os.getValorMaoDeObra();
+        BigDecimal pecasAnterior = os.getValorPecas();
+        os.definirValores(request.getValorMaoDeObra(), request.getValorPecas());
         os = ordemServicoRepository.save(os);
 
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario).orElse(null);
@@ -242,13 +244,20 @@ public class OrdemServicoService {
                 .etapaAnterior(os.getEtapa())
                 .etapaNova(os.getEtapa())
                 .usuario(usuario)
-                .valorOrcamentoMomento(request.getValor())
-                .observacao("Valor do orçamento alterado de R$ " + valorAnterior + " para R$ " + request.getValor() + ". Motivo: " + motivo)
+                .valorOrcamentoMomento(os.getValorOrcamento())
+                .observacao("Orçamento alterado: mão de obra de R$ " + duasCasas(maoDeObraAnterior)
+                        + " para R$ " + duasCasas(os.getValorMaoDeObra())
+                        + " e peças de R$ " + duasCasas(pecasAnterior) + " para R$ " + duasCasas(os.getValorPecas())
+                        + " (total R$ " + duasCasas(os.getValorOrcamento()) + "). Motivo: " + motivo)
                 .build();
 
         historicoEtapaRepository.save(historico);
 
         return OrdemServicoDTO.fromEntity(os, obterLimiteDiasSla(), LocalDate.now());
+    }
+
+    private static String duasCasas(BigDecimal valor) {
+        return (valor != null ? valor : BigDecimal.ZERO).setScale(2, java.math.RoundingMode.HALF_UP).toPlainString();
     }
 
     /**
