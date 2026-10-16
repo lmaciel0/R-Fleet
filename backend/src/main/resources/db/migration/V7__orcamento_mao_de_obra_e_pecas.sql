@@ -8,7 +8,9 @@ ALTER TABLE ordens_servico
     ADD COLUMN valor_mao_de_obra NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
     ADD COLUMN valor_pecas NUMERIC(12, 2) NOT NULL DEFAULT 0.00;
 
-UPDATE ordens_servico SET valor_mao_de_obra = valor_orcamento, valor_pecas = 0.00;
+-- valor_orcamento é NOT NULL: o WHERE abrange todas as linhas (e satisfaz a regra do Sonar contra UPDATE sem WHERE)
+UPDATE ordens_servico SET valor_mao_de_obra = valor_orcamento, valor_pecas = 0.00
+ WHERE valor_orcamento IS NOT NULL;
 
 INSERT INTO configuracoes (chave, valor, descricao) VALUES
     ('COMISSAO_PERCENTUAL_MAO_DE_OBRA', '1', 'Percentual de comissão mensal sobre a mão de obra faturada no mês'),
