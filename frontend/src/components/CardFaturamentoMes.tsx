@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { DollarSign, HandCoins } from 'lucide-react';
+import { DollarSign, HandCoins, Package, Wrench, type LucideIcon } from 'lucide-react';
 import { FaturamentoMes, HistoricoMes } from '../types';
 import { api } from '../services/api';
 import { rotuloMesLongo } from '../utils/meses';
@@ -41,85 +41,93 @@ export const CardFaturamentoMes: React.FC<CardFaturamentoMesProps> = ({ mes, onE
 
   const percentual = (valor: number) => `${valor.toLocaleString('pt-BR')}%`;
 
-  const cartaoComissao = (
-    titulo: string,
-    comissao: number | undefined,
+  const linhaComissao = (
+    Icone: LucideIcon,
+    parte: string,
     percentualParte: number | undefined,
     base: number | undefined,
-    parte: string
+    comissao: number | undefined
   ) => (
-    <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
-      <div className="flex items-center justify-between text-aco mb-2">
-        <span className="text-xs font-semibold uppercase tracking-wider">
-          {titulo} de {rotulo}
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0 flex items-start gap-2 text-xs text-aco">
+        <Icone className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+        <span className="min-w-0">
+          {parte}
+          {faturamento && (
+            <>
+              {' · '}
+              {percentual(percentualParte ?? 0)} de{' '}
+              <span className="font-placa tabular-nums">{formatarMoeda(base ?? 0)}</span>
+            </>
+          )}
         </span>
-        <div className="w-8 h-8 rounded-xl bg-amarelo/15 border border-amarelo/60 flex items-center justify-center text-amarelo-tinta">
-          <HandCoins className="w-4 h-4" />
-        </div>
       </div>
-      <div className="text-2xl font-extrabold text-amarelo-tinta font-placa tabular-nums truncate">
+      <span className="shrink-0 text-sm font-placa tabular-nums font-bold text-grafite">
         {faturamento ? formatarMoeda(comissao ?? 0) : '—'}
-      </div>
-      <div className="text-xs text-aco mt-1">
-        {faturamento ? (
-          <span>
-            {percentual(percentualParte ?? 0)} de {formatarMoeda(base ?? 0)} em {parte}
-          </span>
-        ) : (
-          <span>Calculando...</span>
-        )}
-      </div>
+      </span>
     </div>
   );
 
   return (
-    <div className="space-y-4" aria-live="polite" aria-busy={faturamento === null}>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
-          <div className="flex items-center justify-between text-aco mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Faturado em {rotulo}</span>
-            <div className="w-8 h-8 rounded-xl bg-verde/10 border border-verde/40 flex items-center justify-center text-verde">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-extrabold text-verde font-placa tabular-nums truncate">
-            {faturamento ? formatarMoeda(faturamento.total) : '—'}
-          </div>
-          <div className="text-xs text-aco mt-1">
-            {faturamento ? (
-              <span>
-                {faturamento.quantidade} {faturamento.quantidade === 1 ? 'OS faturada' : 'OS faturadas'} no mês
-                {' · '}Total geral{' '}
-                <strong className="font-placa tabular-nums text-grafite">{formatarMoeda(faturamento.totalGeral)}</strong>
-              </span>
-            ) : (
-              <span>Calculando...</span>
-            )}
+    <div
+      className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+      aria-live="polite"
+      aria-busy={faturamento === null}
+    >
+      <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
+        <div className="flex items-start justify-between gap-3 text-aco mb-2">
+          <span className="min-w-0 text-xs font-semibold uppercase tracking-wider leading-tight">
+            Faturado em {rotulo}
+          </span>
+          <div className="w-8 h-8 shrink-0 rounded-xl bg-verde/10 border border-verde/40 flex items-center justify-center text-verde">
+            <DollarSign className="w-4 h-4" />
           </div>
         </div>
-
-        {cartaoComissao(
-          'Comissão de mão de obra',
-          faturamento?.comissaoMaoDeObra,
-          faturamento?.percentualMaoDeObra,
-          faturamento?.totalMaoDeObra,
-          'mão de obra'
-        )}
-        {cartaoComissao(
-          'Comissão de peças',
-          faturamento?.comissaoPecas,
-          faturamento?.percentualPecas,
-          faturamento?.totalPecas,
-          'peças'
-        )}
+        <div className="text-2xl font-extrabold text-verde font-placa tabular-nums truncate">
+          {faturamento ? formatarMoeda(faturamento.total) : '—'}
+        </div>
+        <div className="text-xs text-aco mt-1">
+          {faturamento ? (
+            <span>
+              {faturamento.quantidade} {faturamento.quantidade === 1 ? 'OS faturada' : 'OS faturadas'} no mês
+              {' · '}Total geral{' '}
+              <strong className="font-placa tabular-nums text-grafite">{formatarMoeda(faturamento.totalGeral)}</strong>
+            </span>
+          ) : (
+            <span>Calculando...</span>
+          )}
+        </div>
       </div>
 
-      {faturamento && (
-        <p className="text-xs text-aco">
-          Comissão total de {rotulo}:{' '}
-          <strong className="font-placa tabular-nums text-amarelo-tinta">{formatarMoeda(faturamento.comissao)}</strong>
-        </p>
-      )}
+      <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
+        <div className="flex items-start justify-between gap-3 text-aco mb-2">
+          <span className="min-w-0 text-xs font-semibold uppercase tracking-wider leading-tight">
+            Comissão de {rotulo}
+          </span>
+          <div className="w-8 h-8 shrink-0 rounded-xl bg-amarelo/15 border border-amarelo/60 flex items-center justify-center text-amarelo-tinta">
+            <HandCoins className="w-4 h-4" />
+          </div>
+        </div>
+        <div className="text-2xl font-extrabold text-amarelo-tinta font-placa tabular-nums truncate">
+          {faturamento ? formatarMoeda(faturamento.comissao) : '—'}
+        </div>
+        <div className="mt-2 pt-2 border-t border-trilho space-y-1.5">
+          {linhaComissao(
+            Wrench,
+            'Mão de obra',
+            faturamento?.percentualMaoDeObra,
+            faturamento?.totalMaoDeObra,
+            faturamento?.comissaoMaoDeObra
+          )}
+          {linhaComissao(
+            Package,
+            'Peças',
+            faturamento?.percentualPecas,
+            faturamento?.totalPecas,
+            faturamento?.comissaoPecas
+          )}
+        </div>
+      </div>
     </div>
   );
 };
