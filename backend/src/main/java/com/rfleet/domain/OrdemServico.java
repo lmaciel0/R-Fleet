@@ -41,6 +41,14 @@ public class OrdemServico {
     @Builder.Default
     private BigDecimal valorOrcamento = BigDecimal.ZERO;
 
+    @Column(name = "valor_mao_de_obra", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal valorMaoDeObra = BigDecimal.ZERO;
+
+    @Column(name = "valor_pecas", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal valorPecas = BigDecimal.ZERO;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean faturado = false;
@@ -71,6 +79,23 @@ public class OrdemServico {
     @UpdateTimestamp
     @Column(name = "atualizado_em", nullable = false)
     private ZonedDateTime atualizadoEm;
+
+    /**
+     * O orçamento é sempre mão de obra + peças; valor nulo conta como zero.
+     */
+    @PrePersist
+    @PreUpdate
+    void sincronizarOrcamento() {
+        valorMaoDeObra = valorMaoDeObra != null ? valorMaoDeObra : BigDecimal.ZERO;
+        valorPecas = valorPecas != null ? valorPecas : BigDecimal.ZERO;
+        valorOrcamento = valorMaoDeObra.add(valorPecas);
+    }
+
+    public void definirValores(BigDecimal maoDeObra, BigDecimal pecas) {
+        this.valorMaoDeObra = maoDeObra != null ? maoDeObra : BigDecimal.ZERO;
+        this.valorPecas = pecas != null ? pecas : BigDecimal.ZERO;
+        this.valorOrcamento = this.valorMaoDeObra.add(this.valorPecas);
+    }
 
     /**
      * Regra de negócio: 'Serviço Concluído' é derivado da etapa.

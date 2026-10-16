@@ -34,9 +34,13 @@ public class RegistrarEntradaRequest {
     @Builder.Default
     private EtapaOrdemServico etapa = EtapaOrdemServico.AGUARDANDO_ORCAMENTO;
 
-    @PositiveOrZero(message = "O valor do orçamento deve ser zero ou positivo")
+    @PositiveOrZero(message = "O valor da mão de obra deve ser zero ou positivo")
     @Builder.Default
-    private BigDecimal valorOrcamento = BigDecimal.ZERO;
+    private BigDecimal valorMaoDeObra = BigDecimal.ZERO;
+
+    @PositiveOrZero(message = "O valor das peças deve ser zero ou positivo")
+    @Builder.Default
+    private BigDecimal valorPecas = BigDecimal.ZERO;
 
     private LocalDate dataEntrada;
 

@@ -41,6 +41,8 @@ public class OrdemServicoDTO {
 
     // Financeiro
     private BigDecimal valorOrcamento;
+    private BigDecimal valorMaoDeObra;
+    private BigDecimal valorPecas;
     private Boolean faturado;
     private LocalDate dataFaturamento;
     private String numeroNf;
@@ -79,6 +81,8 @@ public class OrdemServicoDTO {
                 .etapaDescricao(os.getEtapa() != null ? os.getEtapa().getDescricao() : "")
                 .servicoConcluido(os.isServicoConcluido())
                 .valorOrcamento(os.getValorOrcamento())
+                .valorMaoDeObra(os.getValorMaoDeObra())
+                .valorPecas(os.getValorPecas())
                 .faturado(os.getFaturado())
                 .dataFaturamento(os.getDataFaturamento())
                 .numeroNf(os.getNumeroNf())

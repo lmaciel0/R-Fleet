@@ -218,7 +218,7 @@ class EdicaoDadosVeiculoTest {
                 .modelo(modelo)
                 .origemId(origem.getId())
                 .tipoServicoId(tipo.getId())
-                .valorOrcamento(new BigDecimal("100.00"))
+                .valorMaoDeObra(new BigDecimal("100.00"))
                 .build();
         String corpo = mockMvc.perform(post("/api/ordens-servico")
                         .header("Authorization", "Bearer " + tokenJwt)

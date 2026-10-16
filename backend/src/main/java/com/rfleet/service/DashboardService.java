@@ -23,8 +23,9 @@ import java.util.stream.Collectors;
 @Service
 public class DashboardService {
 
-    private static final String CHAVE_COMISSAO_PERCENTUAL = "COMISSAO_PERCENTUAL";
-    private static final BigDecimal PERCENTUAL_COMISSAO_PADRAO = new BigDecimal("2");
+    private static final String CHAVE_COMISSAO_MAO_DE_OBRA = "COMISSAO_PERCENTUAL_MAO_DE_OBRA";
+    private static final String CHAVE_COMISSAO_PECAS = "COMISSAO_PERCENTUAL_PECAS";
+    private static final BigDecimal PERCENTUAL_COMISSAO_PADRAO = BigDecimal.ONE;
     private static final BigDecimal CEM = new BigDecimal("100");
 
     private final OrdemServicoRepository ordemServicoRepository;
@@ -65,21 +66,9 @@ public class DashboardService {
                 .map(os -> os.getValorOrcamento() != null ? os.getValorOrcamento() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Faturamento no mês atual
-        int mesAtual = hoje.getMonthValue();
-        int anoAtual = hoje.getYear();
-
-        BigDecimal faturamentoMesAtual = todasAtivas.stream()
-                .filter(os -> Boolean.TRUE.equals(os.getFaturado()))
-                .filter(os -> os.getDataFaturamento() != null
-                        && os.getDataFaturamento().getMonthValue() == mesAtual
-                        && os.getDataFaturamento().getYear() == anoAtual)
-                .map(os -> os.getValorOrcamento() != null ? os.getValorOrcamento() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // Comissão mensal sobre o faturado no mês
-        BigDecimal comissaoPercentual = obterPercentualComissao();
-        BigDecimal comissaoMesAtual = calcularComissao(faturamentoMesAtual, comissaoPercentual);
+        // Faturamento no mês atual, dividido em mão de obra e peças, e a comissão de cada parte
+        FaturamentoAgregado doMes = ordemServicoRepository.somarFaturadoEntre(inicioMes, YearMonth.from(hoje).atEndOfMonth());
+        Comissao comissao = calcularComissao(doMes);
 
         BigDecimal totalFaturadoGeral = todasAtivas.stream()
                 .filter(os -> Boolean.TRUE.equals(os.getFaturado()))
@@ -115,9 +104,14 @@ public class DashboardService {
         return DashboardMetricasDTO.builder()
                 .totalVeiculosPatio(totalPatio)
                 .veiculosEmAtraso(emAtraso)
-                .faturamentoMesAtual(faturamentoMesAtual)
-                .comissaoPercentual(comissaoPercentual)
-                .comissaoMesAtual(comissaoMesAtual)
+                .faturamentoMesAtual(doMes.total())
+                .faturamentoMaoDeObraMesAtual(doMes.maoDeObra())
+                .faturamentoPecasMesAtual(doMes.pecas())
+                .comissaoPercentualMaoDeObra(comissao.percentualMaoDeObra())
+                .comissaoPercentualPecas(comissao.percentualPecas())
+                .comissaoMaoDeObraMesAtual(comissao.maoDeObra())
+                .comissaoPecasMesAtual(comissao.pecas())
+                .comissaoMesAtual(comissao.total())
                 .totalOrcadoPatio(totalOrcadoPatio)
                 .totalFaturadoGeral(totalFaturadoGeral)
                 .totalFaturadas(totalFaturadas)
@@ -140,19 +134,46 @@ public class DashboardService {
         YearMonth anoMes = YearMonth.of(ano, mes);
         FaturamentoAgregado doMes = ordemServicoRepository.somarFaturadoEntre(anoMes.atDay(1), anoMes.atEndOfMonth());
         FaturamentoAgregado geral = ordemServicoRepository.somarFaturadoGeral();
-        BigDecimal percentual = obterPercentualComissao();
+        Comissao comissao = calcularComissao(doMes);
 
         return new FaturamentoMesDTO(
                 doMes.total(),
                 doMes.quantidade(),
-                percentual,
-                calcularComissao(doMes.total(), percentual),
+                doMes.maoDeObra(),
+                doMes.pecas(),
+                comissao.percentualMaoDeObra(),
+                comissao.percentualPecas(),
+                comissao.maoDeObra(),
+                comissao.pecas(),
+                comissao.total(),
                 geral.total()
         );
     }
 
-    private static BigDecimal calcularComissao(BigDecimal faturamento, BigDecimal percentual) {
-        return faturamento.multiply(percentual).divide(CEM, 2, RoundingMode.HALF_UP);
+    /**
+     * Comissão do mês: um percentual sobre a mão de obra e outro sobre as peças, cada parte arredondada
+     * em 2 casas (HALF_UP). O total é a soma das duas partes já arredondadas.
+     */
+    private Comissao calcularComissao(FaturamentoAgregado faturado) {
+        BigDecimal percentualMaoDeObra = obterPercentual(CHAVE_COMISSAO_MAO_DE_OBRA);
+        BigDecimal percentualPecas = obterPercentual(CHAVE_COMISSAO_PECAS);
+        return new Comissao(
+                percentualMaoDeObra,
+                percentualPecas,
+                aplicarPercentual(faturado.maoDeObra(), percentualMaoDeObra),
+                aplicarPercentual(faturado.pecas(), percentualPecas)
+        );
+    }
+
+    private static BigDecimal aplicarPercentual(BigDecimal valor, BigDecimal percentual) {
+        return valor.multiply(percentual).divide(CEM, 2, RoundingMode.HALF_UP);
+    }
+
+    private record Comissao(BigDecimal percentualMaoDeObra, BigDecimal percentualPecas,
+                            BigDecimal maoDeObra, BigDecimal pecas) {
+        BigDecimal total() {
+            return maoDeObra.add(pecas);
+        }
     }
 
     /**
@@ -164,8 +185,8 @@ public class DashboardService {
                 && os.getDataSaida().isBefore(inicioMes);
     }
 
-    private BigDecimal obterPercentualComissao() {
-        return configuracaoRepository.findById(CHAVE_COMISSAO_PERCENTUAL)
+    private BigDecimal obterPercentual(String chave) {
+        return configuracaoRepository.findById(chave)
                 .map(c -> {
                     try {
                         return new BigDecimal(c.getValor().trim());

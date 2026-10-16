@@ -39,55 +39,87 @@ export const CardFaturamentoMes: React.FC<CardFaturamentoMesProps> = ({ mes, onE
 
   const rotulo = rotuloMesLongo(mes.ano, mes.mes);
 
+  const percentual = (valor: number) => `${valor.toLocaleString('pt-BR')}%`;
+
+  const cartaoComissao = (
+    titulo: string,
+    comissao: number | undefined,
+    percentualParte: number | undefined,
+    base: number | undefined,
+    parte: string
+  ) => (
+    <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
+      <div className="flex items-center justify-between text-aco mb-2">
+        <span className="text-xs font-semibold uppercase tracking-wider">
+          {titulo} de {rotulo}
+        </span>
+        <div className="w-8 h-8 rounded-xl bg-amarelo/15 border border-amarelo/60 flex items-center justify-center text-amarelo-tinta">
+          <HandCoins className="w-4 h-4" />
+        </div>
+      </div>
+      <div className="text-2xl font-extrabold text-amarelo-tinta font-placa tabular-nums truncate">
+        {faturamento ? formatarMoeda(comissao ?? 0) : '—'}
+      </div>
+      <div className="text-xs text-aco mt-1">
+        {faturamento ? (
+          <span>
+            {percentual(percentualParte ?? 0)} de {formatarMoeda(base ?? 0)} em {parte}
+          </span>
+        ) : (
+          <span>Calculando...</span>
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div
-      className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-      aria-live="polite"
-      aria-busy={faturamento === null}
-    >
-      <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
-        <div className="flex items-center justify-between text-aco mb-2">
-          <span className="text-xs font-semibold uppercase tracking-wider">Faturado em {rotulo}</span>
-          <div className="w-8 h-8 rounded-xl bg-verde/10 border border-verde/40 flex items-center justify-center text-verde">
-            <DollarSign className="w-4 h-4" />
+    <div className="space-y-4" aria-live="polite" aria-busy={faturamento === null}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
+          <div className="flex items-center justify-between text-aco mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider">Faturado em {rotulo}</span>
+            <div className="w-8 h-8 rounded-xl bg-verde/10 border border-verde/40 flex items-center justify-center text-verde">
+              <DollarSign className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-extrabold text-verde font-placa tabular-nums truncate">
+            {faturamento ? formatarMoeda(faturamento.total) : '—'}
+          </div>
+          <div className="text-xs text-aco mt-1">
+            {faturamento ? (
+              <span>
+                {faturamento.quantidade} {faturamento.quantidade === 1 ? 'OS faturada' : 'OS faturadas'} no mês
+                {' · '}Total geral{' '}
+                <strong className="font-placa tabular-nums text-grafite">{formatarMoeda(faturamento.totalGeral)}</strong>
+              </span>
+            ) : (
+              <span>Calculando...</span>
+            )}
           </div>
         </div>
-        <div className="text-2xl font-extrabold text-verde font-placa tabular-nums truncate">
-          {faturamento ? formatarMoeda(faturamento.total) : '—'}
-        </div>
-        <div className="text-xs text-aco mt-1">
-          {faturamento ? (
-            <span>
-              {faturamento.quantidade} {faturamento.quantidade === 1 ? 'OS faturada' : 'OS faturadas'} no mês
-              {' · '}Total geral{' '}
-              <strong className="font-placa tabular-nums text-grafite">{formatarMoeda(faturamento.totalGeral)}</strong>
-            </span>
-          ) : (
-            <span>Calculando...</span>
-          )}
-        </div>
+
+        {cartaoComissao(
+          'Comissão de mão de obra',
+          faturamento?.comissaoMaoDeObra,
+          faturamento?.percentualMaoDeObra,
+          faturamento?.totalMaoDeObra,
+          'mão de obra'
+        )}
+        {cartaoComissao(
+          'Comissão de peças',
+          faturamento?.comissaoPecas,
+          faturamento?.percentualPecas,
+          faturamento?.totalPecas,
+          'peças'
+        )}
       </div>
 
-      <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
-        <div className="flex items-center justify-between text-aco mb-2">
-          <span className="text-xs font-semibold uppercase tracking-wider">Comissão de {rotulo}</span>
-          <div className="w-8 h-8 rounded-xl bg-amarelo/15 border border-amarelo/60 flex items-center justify-center text-amarelo-tinta">
-            <HandCoins className="w-4 h-4" />
-          </div>
-        </div>
-        <div className="text-2xl font-extrabold text-amarelo-tinta font-placa tabular-nums truncate">
-          {faturamento ? formatarMoeda(faturamento.comissao) : '—'}
-        </div>
-        <div className="text-xs text-aco mt-1">
-          {faturamento ? (
-            <span>
-              {`${faturamento.comissaoPercentual.toLocaleString('pt-BR')}%`} de {formatarMoeda(faturamento.total)}
-            </span>
-          ) : (
-            <span>Calculando...</span>
-          )}
-        </div>
-      </div>
+      {faturamento && (
+        <p className="text-xs text-aco">
+          Comissão total de {rotulo}:{' '}
+          <strong className="font-placa tabular-nums text-amarelo-tinta">{formatarMoeda(faturamento.comissao)}</strong>
+        </p>
+      )}
     </div>
   );
 };

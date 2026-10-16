@@ -19,7 +19,12 @@ public class DashboardMetricasDTO {
     private long veiculosEmAtraso;
 
     private BigDecimal faturamentoMesAtual;
-    private BigDecimal comissaoPercentual;
+    private BigDecimal faturamentoMaoDeObraMesAtual;
+    private BigDecimal faturamentoPecasMesAtual;
+    private BigDecimal comissaoPercentualMaoDeObra;
+    private BigDecimal comissaoPercentualPecas;
+    private BigDecimal comissaoMaoDeObraMesAtual;
+    private BigDecimal comissaoPecasMesAtual;
     private BigDecimal comissaoMesAtual;
     private BigDecimal totalOrcadoPatio;
     private BigDecimal totalFaturadoGeral;

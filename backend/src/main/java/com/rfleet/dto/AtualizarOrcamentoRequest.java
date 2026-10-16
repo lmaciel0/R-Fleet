@@ -15,9 +15,13 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class AtualizarOrcamentoRequest {
 
-    @NotNull(message = "O valor do orçamento é obrigatório")
-    @PositiveOrZero(message = "O valor deve ser positivo ou zero")
-    private BigDecimal valor;
+    @NotNull(message = "O valor da mão de obra é obrigatório")
+    @PositiveOrZero(message = "O valor da mão de obra deve ser positivo ou zero")
+    private BigDecimal valorMaoDeObra;
+
+    @NotNull(message = "O valor das peças é obrigatório (use 0,00 quando não houver)")
+    @PositiveOrZero(message = "O valor das peças deve ser positivo ou zero")
+    private BigDecimal valorPecas;
 
     private String justificativa;
 }

@@ -41,6 +41,8 @@ export interface OrdemServico {
   etapaDescricao: string;
   servicoConcluido: boolean;
   valorOrcamento: number;
+  valorMaoDeObra: number;
+  valorPecas: number;
   faturado: boolean;
   dataFaturamento?: string;
   numeroNf?: string;
@@ -82,7 +84,12 @@ export interface DashboardMetricas {
   totalVeiculosPatio: number;
   veiculosEmAtraso: number;
   faturamentoMesAtual: number;
-  comissaoPercentual: number;
+  faturamentoMaoDeObraMesAtual: number;
+  faturamentoPecasMesAtual: number;
+  comissaoPercentualMaoDeObra: number;
+  comissaoPercentualPecas: number;
+  comissaoMaoDeObraMesAtual: number;
+  comissaoPecasMesAtual: number;
   comissaoMesAtual: number;
   totalOrcadoPatio: number;
   totalFaturadoGeral: number;
@@ -96,7 +103,12 @@ export interface DashboardMetricas {
 export interface FaturamentoMes {
   total: number;
   quantidade: number;
-  comissaoPercentual: number;
+  totalMaoDeObra: number;
+  totalPecas: number;
+  percentualMaoDeObra: number;
+  percentualPecas: number;
+  comissaoMaoDeObra: number;
+  comissaoPecas: number;
   comissao: number;
   totalGeral: number;
 }

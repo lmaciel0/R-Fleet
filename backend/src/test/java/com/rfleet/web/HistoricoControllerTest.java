@@ -55,7 +55,7 @@ class HistoricoControllerTest {
                 .placa(placa)
                 .modelo("Teste Historico")
                 .etapa(EtapaOrdemServico.ENTREGUE)
-                .valorOrcamento(new BigDecimal(valor))
+                .valorMaoDeObra(new BigDecimal(valor))
                 .dataEntrada(LocalDate.of(2019, 12, 1))
                 .build();
 

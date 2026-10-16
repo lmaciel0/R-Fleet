@@ -59,7 +59,7 @@ class AnexoControllerTest {
         RegistrarEntradaRequest request = RegistrarEntradaRequest.builder()
                 .placa("ANX1A01")
                 .modelo("Renault Kwid")
-                .valorOrcamento(new BigDecimal("900.00"))
+                .valorMaoDeObra(new BigDecimal("900.00"))
                 .build();
 
         MvcResult osResult = mockMvc.perform(post("/api/ordens-servico")

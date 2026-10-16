@@ -64,11 +64,16 @@ class DashboardControllerTest {
     }
 
     private Long criarOs(String placa, EtapaOrdemServico etapa, String valor) throws Exception {
+        return criarOs(placa, etapa, valor, "0.00");
+    }
+
+    private Long criarOs(String placa, EtapaOrdemServico etapa, String maoDeObra, String pecas) throws Exception {
         RegistrarEntradaRequest request = RegistrarEntradaRequest.builder()
                 .placa(placa)
                 .modelo("Teste Comissao")
                 .etapa(etapa)
-                .valorOrcamento(new BigDecimal(valor))
+                .valorMaoDeObra(new BigDecimal(maoDeObra))
+                .valorPecas(new BigDecimal(pecas))
                 .dataEntrada(LocalDate.of(2019, 12, 1))
                 .build();
 
@@ -108,7 +113,7 @@ class DashboardControllerTest {
         RegistrarEntradaRequest osAtrasada = RegistrarEntradaRequest.builder()
                 .placa("DSH1A01")
                 .modelo("Chevrolet Onix Plus")
-                .valorOrcamento(new BigDecimal("3500.00"))
+                .valorMaoDeObra(new BigDecimal("3500.00"))
                 .dataEntrada(LocalDate.now().minusDays(10))
                 .build();
 
@@ -123,7 +128,7 @@ class DashboardControllerTest {
                 .placa("DSH1A02")
                 .modelo("Fiat Argo")
                 .etapa(EtapaOrdemServico.FINALIZADO)
-                .valorOrcamento(new BigDecimal("1200.00"))
+                .valorMaoDeObra(new BigDecimal("1200.00"))
                 .dataEntrada(LocalDate.now().minusDays(30))
                 .build();
 
@@ -144,7 +149,8 @@ class DashboardControllerTest {
                 .andExpect(jsonPath("$.veiculosEmAtraso").isNumber())
                 .andExpect(jsonPath("$.tempoMedioPatioDias").doesNotExist())
                 .andExpect(jsonPath("$.comissaoMesAtual").isNumber())
-                .andExpect(jsonPath("$.comissaoPercentual").value(2))
+                .andExpect(jsonPath("$.comissaoPercentualMaoDeObra").value(1))
+                .andExpect(jsonPath("$.comissaoPercentualPecas").value(1))
                 .andExpect(jsonPath("$.totalOrcadoPatio").isNumber())
                 .andExpect(jsonPath("$.distribuicaoPorEtapa").isMap())
                 .andExpect(jsonPath("$.distribuicaoPorEtapa.AGUARDANDO_ORCAMENTO").isNumber())
@@ -171,34 +177,45 @@ class DashboardControllerTest {
     }
 
     @Test
-    @DisplayName("Comissão mensal é o percentual configurado sobre o faturado no mês, com 2 casas HALF_UP")
-    void deveCalcularComissaoSobreFaturadoDoMes() throws Exception {
-        Long id = criarOs("DSH1A03", EtapaOrdemServico.FINALIZADO, "10000.00");
-        faturar(id, DataOficina.hoje());
+    @DisplayName("Comissão mensal é 1% da mão de obra mais 1% das peças, cada parte com 2 casas HALF_UP")
+    void deveCalcularComissaoSobreMaoDeObraEPecas() throws Exception {
+        JsonNode antes = buscarMetricas();
 
-        // Valor quebrado para exercitar o arredondamento
-        Long quebrado = criarOs("DSH1A04", EtapaOrdemServico.FINALIZADO, "333.33");
-        faturar(quebrado, DataOficina.hoje());
+        faturar(criarOs("DSH1A03", EtapaOrdemServico.FINALIZADO, "10000.00", "2000.00"), DataOficina.hoje());
+        // Valores quebrados para exercitar o arredondamento de cada parte; peças em zero não rende comissão
+        faturar(criarOs("DSH1A04", EtapaOrdemServico.FINALIZADO, "333.33", "0.00"), DataOficina.hoje());
 
         JsonNode metricas = buscarMetricas();
-        BigDecimal faturamento = metricas.get("faturamentoMesAtual").decimalValue();
-        BigDecimal comissao = metricas.get("comissaoMesAtual").decimalValue();
+        BigDecimal maoDeObra = metricas.get("faturamentoMaoDeObraMesAtual").decimalValue();
+        BigDecimal pecas = metricas.get("faturamentoPecasMesAtual").decimalValue();
 
-        assertThat(faturamento).isGreaterThanOrEqualTo(new BigDecimal("10333.33"));
-        assertThat(metricas.get("comissaoPercentual").decimalValue()).isEqualByComparingTo("2");
-        assertThat(comissao).isEqualByComparingTo(comissaoEsperada(faturamento, "2"));
-        assertThat(comissao.scale()).isLessThanOrEqualTo(2);
+        assertThat(maoDeObra.subtract(antes.get("faturamentoMaoDeObraMesAtual").decimalValue()))
+                .isEqualByComparingTo("10333.33");
+        assertThat(pecas.subtract(antes.get("faturamentoPecasMesAtual").decimalValue()))
+                .isEqualByComparingTo("2000.00");
+        assertThat(metricas.get("faturamentoMesAtual").decimalValue()).isEqualByComparingTo(maoDeObra.add(pecas));
+        assertThat(metricas.get("comissaoPercentualMaoDeObra").decimalValue()).isEqualByComparingTo("1");
+        assertThat(metricas.get("comissaoPercentualPecas").decimalValue()).isEqualByComparingTo("1");
+
+        BigDecimal comissaoMaoDeObra = metricas.get("comissaoMaoDeObraMesAtual").decimalValue();
+        BigDecimal comissaoPecas = metricas.get("comissaoPecasMesAtual").decimalValue();
+        assertThat(comissaoMaoDeObra).isEqualByComparingTo(comissaoEsperada(maoDeObra, "1"));
+        assertThat(comissaoPecas).isEqualByComparingTo(comissaoEsperada(pecas, "1"));
+        assertThat(metricas.get("comissaoMesAtual").decimalValue())
+                .isEqualByComparingTo(comissaoMaoDeObra.add(comissaoPecas));
+        assertThat(comissaoMaoDeObra.scale()).isLessThanOrEqualTo(2);
 
         configuracaoRepository.saveAndFlush(Configuracao.builder()
-                .chave("COMISSAO_PERCENTUAL")
+                .chave("COMISSAO_PERCENTUAL_PECAS")
                 .valor("2.5")
                 .descricao("teste")
                 .build());
 
         JsonNode depois = buscarMetricas();
-        assertThat(depois.get("comissaoPercentual").decimalValue()).isEqualByComparingTo("2.5");
-        assertThat(depois.get("comissaoMesAtual").decimalValue())
-                .isEqualByComparingTo(comissaoEsperada(faturamento, "2.5"));
+        assertThat(depois.get("comissaoPercentualMaoDeObra").decimalValue()).isEqualByComparingTo("1");
+        assertThat(depois.get("comissaoPercentualPecas").decimalValue()).isEqualByComparingTo("2.5");
+        assertThat(depois.get("comissaoPecasMesAtual").decimalValue())
+                .isEqualByComparingTo(comissaoEsperada(pecas, "2.5"));
     }
 
     @Test
@@ -244,24 +261,31 @@ class DashboardControllerTest {
     }
 
     @Test
-    @DisplayName("Faturamento de um mês soma só as OS faturadas naquele mês, pela data de faturamento")
+    @DisplayName("Faturamento de um mês soma só as OS faturadas naquele mês, separando mão de obra e peças")
     void deveSomarFaturadoDoMesEscolhido() throws Exception {
-        faturar(criarOs("DSH1B01", EtapaOrdemServico.ENTREGUE, "1000.00"), LocalDate.of(2020, 3, 5));
-        faturar(criarOs("DSH1B02", EtapaOrdemServico.ENTREGUE, "333.33"), LocalDate.of(2020, 3, 31));
-        faturar(criarOs("DSH1B03", EtapaOrdemServico.ENTREGUE, "500.00"), LocalDate.of(2020, 4, 1));
+        faturar(criarOs("DSH1B01", EtapaOrdemServico.ENTREGUE, "1000.00", "500.00"), LocalDate.of(2020, 3, 5));
+        faturar(criarOs("DSH1B02", EtapaOrdemServico.ENTREGUE, "333.33", "0.00"), LocalDate.of(2020, 3, 31));
+        faturar(criarOs("DSH1B03", EtapaOrdemServico.ENTREGUE, "500.00", "100.00"), LocalDate.of(2020, 4, 1));
         criarOs("DSH1B04", EtapaOrdemServico.ENTREGUE, "200.00"); // não faturada
 
         JsonNode marco = buscarFaturamento(2020, 3);
 
-        assertThat(marco.get("total").decimalValue()).isEqualByComparingTo("1333.33");
+        assertThat(marco.get("total").decimalValue()).isEqualByComparingTo("1833.33");
         assertThat(marco.get("quantidade").asLong()).isEqualTo(2);
-        assertThat(marco.get("comissaoPercentual").decimalValue()).isEqualByComparingTo("2");
-        assertThat(marco.get("comissao").decimalValue()).isEqualByComparingTo("26.67");
+        assertThat(marco.get("totalMaoDeObra").decimalValue()).isEqualByComparingTo("1333.33");
+        assertThat(marco.get("totalPecas").decimalValue()).isEqualByComparingTo("500.00");
+        assertThat(marco.get("percentualMaoDeObra").decimalValue()).isEqualByComparingTo("1");
+        assertThat(marco.get("percentualPecas").decimalValue()).isEqualByComparingTo("1");
+        assertThat(marco.get("comissaoMaoDeObra").decimalValue()).isEqualByComparingTo("13.33");
+        assertThat(marco.get("comissaoPecas").decimalValue()).isEqualByComparingTo("5.00");
+        assertThat(marco.get("comissao").decimalValue()).isEqualByComparingTo("18.33");
         assertThat(marco.get("totalGeral").decimalValue())
                 .isEqualByComparingTo(buscarMetricas().get("totalFaturadoGeral").decimalValue())
-                .isGreaterThanOrEqualTo(new BigDecimal("1833.33"));
+                .isGreaterThanOrEqualTo(new BigDecimal("2433.33"));
 
-        assertThat(buscarFaturamento(2020, 4).get("total").decimalValue()).isEqualByComparingTo("500.00");
+        JsonNode abril = buscarFaturamento(2020, 4);
+        assertThat(abril.get("total").decimalValue()).isEqualByComparingTo("600.00");
+        assertThat(abril.get("totalPecas").decimalValue()).isEqualByComparingTo("100.00");
     }
 
     @Test
@@ -279,6 +303,8 @@ class DashboardControllerTest {
         JsonNode vazio = buscarFaturamento(2018, 1);
         assertThat(vazio.get("total").decimalValue()).isEqualByComparingTo("0");
         assertThat(vazio.get("quantidade").asLong()).isZero();
+        assertThat(vazio.get("comissaoMaoDeObra").decimalValue()).isEqualByComparingTo("0");
+        assertThat(vazio.get("comissaoPecas").decimalValue()).isEqualByComparingTo("0");
         assertThat(vazio.get("comissao").decimalValue()).isEqualByComparingTo("0");
 
         Long id = criarOs("DSH1B06", EtapaOrdemServico.ENTREGUE, "900.00");
@@ -291,19 +317,22 @@ class DashboardControllerTest {
     }
 
     @Test
-    @DisplayName("Comissão do mês usa o percentual configurado")
+    @DisplayName("Comissão do mês usa o percentual configurado de cada parte")
     void deveUsarPercentualConfiguradoNaComissaoDoMes() throws Exception {
-        faturar(criarOs("DSH1B07", EtapaOrdemServico.ENTREGUE, "10000.00"), LocalDate.of(2017, 6, 15));
+        faturar(criarOs("DSH1B07", EtapaOrdemServico.ENTREGUE, "10000.00", "4000.00"), LocalDate.of(2017, 6, 15));
         configuracaoRepository.saveAndFlush(Configuracao.builder()
-                .chave("COMISSAO_PERCENTUAL")
+                .chave("COMISSAO_PERCENTUAL_MAO_DE_OBRA")
                 .valor("2.5")
                 .descricao("teste")
                 .build());
 
         JsonNode junho = buscarFaturamento(2017, 6);
 
-        assertThat(junho.get("comissaoPercentual").decimalValue()).isEqualByComparingTo("2.5");
-        assertThat(junho.get("comissao").decimalValue()).isEqualByComparingTo("250.00");
+        assertThat(junho.get("percentualMaoDeObra").decimalValue()).isEqualByComparingTo("2.5");
+        assertThat(junho.get("percentualPecas").decimalValue()).isEqualByComparingTo("1");
+        assertThat(junho.get("comissaoMaoDeObra").decimalValue()).isEqualByComparingTo("250.00");
+        assertThat(junho.get("comissaoPecas").decimalValue()).isEqualByComparingTo("40.00");
+        assertThat(junho.get("comissao").decimalValue()).isEqualByComparingTo("290.00");
     }
 
     @Test

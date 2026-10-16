@@ -252,7 +252,7 @@ public class ImportadorPlanilhaService {
                     .veiculo(veiculo)
                     .tipoServico(tipoServico)
                     .etapa(etapa)
-                    .valorOrcamento(valorOrcamento != null ? valorOrcamento : BigDecimal.ZERO)
+                    .valorMaoDeObra(valorOrcamento != null ? valorOrcamento : BigDecimal.ZERO)
                     .faturado(Boolean.TRUE.equals(faturado))
                     .dataFaturamento(Boolean.TRUE.equals(faturado) ? (dataSaida != null ? dataSaida : entradaEfetiva) : null)
                     .dataEntrada(entradaEfetiva)

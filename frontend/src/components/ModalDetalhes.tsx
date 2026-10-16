@@ -11,6 +11,7 @@ import { api } from '../services/api';
 import { PlacaBadge } from './PlacaBadge';
 import { hojeNaOficina, rotuloMesLongo } from '../utils/meses';
 import { useDialogo } from '../utils/acessibilidade';
+import { lerMoeda, mascararMoeda, paraCampoMoeda } from '../utils/moeda';
 import {
   X,
   Clock,
@@ -89,7 +90,8 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
 
   // Edição de Orçamento
   const [editandoOrcamento, setEditandoOrcamento] = useState(false);
-  const [novoValor, setNovoValor] = useState('');
+  const [novaMaoDeObra, setNovaMaoDeObra] = useState('0,00');
+  const [novasPecas, setNovasPecas] = useState('0,00');
   const [justificativaOrcamento, setJustificativaOrcamento] = useState('');
   const [salvandoOrcamento, setSalvandoOrcamento] = useState(false);
 
@@ -119,7 +121,8 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
       setFaturado(Boolean(data.faturado));
       setDataFaturamento(data.dataFaturamento || '');
       setNumeroNf(data.numeroNf || '');
-      setNovoValor(data.valorOrcamento ? String(data.valorOrcamento) : '0');
+      setNovaMaoDeObra(paraCampoMoeda(data.valorMaoDeObra));
+      setNovasPecas(paraCampoMoeda(data.valorPecas));
     } catch (err: any) {
       setErro(err.message || 'Erro ao carregar detalhes da ordem de serviço.');
     } finally {
@@ -195,8 +198,12 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
     if (!ordem) return;
     setSalvandoOrcamento(true);
     try {
-      const valorNum = Number(novoValor.replace(/\./g, '').replace(',', '.')) || 0;
-      const atualizada = await api.atualizarOrcamento(ordem.id, valorNum, justificativaOrcamento.trim() || undefined);
+      const atualizada = await api.atualizarOrcamento(
+        ordem.id,
+        lerMoeda(novaMaoDeObra),
+        lerMoeda(novasPecas),
+        justificativaOrcamento.trim() || undefined
+      );
       setOrdem(atualizada);
       onAtualizada(atualizada);
       setEditandoOrcamento(false);
@@ -613,6 +620,9 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                   <p className="text-base font-placa tabular-nums font-bold text-verde mt-1">
                     {formatarMoeda(ordem.valorOrcamento)}
                   </p>
+                  <p className="text-[11px] text-aco mt-0.5">
+                    Mão de obra {formatarMoeda(ordem.valorMaoDeObra)} · Peças {formatarMoeda(ordem.valorPecas)}
+                  </p>
                 </div>
               </div>
 
@@ -937,32 +947,66 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                       className="flex items-center gap-1.5 text-xs text-mercosul hover:text-mercosul font-semibold px-3 py-1.5 rounded-lg bg-mercosul/10 border border-mercosul/40"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
-                      <span>Alterar Valor</span>
+                      <span>Alterar Valores</span>
                     </button>
                   )}
                 </div>
 
                 {!editandoOrcamento ? (
-                  <div className="text-2xl font-placa tabular-nums font-bold text-verde">
-                    {formatarMoeda(ordem.valorOrcamento)}
+                  <div className="space-y-2">
+                    <div className="text-2xl font-placa tabular-nums font-bold text-verde">
+                      {formatarMoeda(ordem.valorOrcamento)}
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-aco">
+                      <span>
+                        Mão de obra{' '}
+                        <strong className="font-placa tabular-nums text-grafite">{formatarMoeda(ordem.valorMaoDeObra)}</strong>
+                      </span>
+                      <span>
+                        Peças{' '}
+                        <strong className="font-placa tabular-nums text-grafite">{formatarMoeda(ordem.valorPecas)}</strong>
+                      </span>
+                    </div>
                   </div>
                 ) : (
                   <form onSubmit={handleSalvarOrcamento} className="space-y-3 pt-2">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label htmlFor="detalhes-novo-valor" className="block text-xs font-semibold text-grafite mb-1">
-                          Novo Valor (R$) *
+                        <label htmlFor="detalhes-nova-mao-de-obra" className="block text-xs font-semibold text-grafite mb-1">
+                          Mão de Obra (R$) *
                         </label>
                         <input
                           type="text"
+                          inputMode="numeric"
                           required
-                          value={novoValor}
-                          id="detalhes-novo-valor"
-                          onChange={(e) => setNovoValor(e.target.value)}
-                          placeholder="Ex: 1500.00"
+                          value={novaMaoDeObra}
+                          id="detalhes-nova-mao-de-obra"
+                          onChange={(e) => setNovaMaoDeObra(mascararMoeda(e.target.value))}
                           className="w-full bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs font-placa tabular-nums font-bold text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
                         />
                       </div>
+                      <div>
+                        <label htmlFor="detalhes-novas-pecas" className="block text-xs font-semibold text-grafite mb-1">
+                          Peças (R$) *
+                        </label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          required
+                          value={novasPecas}
+                          id="detalhes-novas-pecas"
+                          onChange={(e) => setNovasPecas(mascararMoeda(e.target.value))}
+                          className="w-full bg-etiqueta border border-trilho rounded-xl px-3 py-2 text-xs font-placa tabular-nums font-bold text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-aco">
+                      Total do orçamento:{' '}
+                      <strong className="font-placa tabular-nums text-verde">
+                        {formatarMoeda(lerMoeda(novaMaoDeObra) + lerMoeda(novasPecas))}
+                      </strong>
+                    </p>
+                    <div className="grid grid-cols-1 gap-3">
                       <div>
                         <label htmlFor="detalhes-justificativa" className="block text-xs font-semibold text-grafite mb-1">
                           Justificativa da Mudança (Opcional)
@@ -984,7 +1028,7 @@ export const ModalDetalhes: React.FC<ModalDetalhesProps> = ({
                         disabled={salvandoOrcamento}
                         className="px-4 py-1.5 bg-verde hover:bg-verde/90 text-sobre-cor rounded-lg text-xs font-bold transition-all disabled:opacity-50"
                       >
-                        {salvandoOrcamento ? 'Salvando...' : 'Salvar Novo Valor'}
+                        {salvandoOrcamento ? 'Salvando...' : 'Salvar Valores'}
                       </button>
                       <button
                         type="button"

@@ -3,6 +3,7 @@ import { Origem, TipoServico, BuscarPlacaResultado, EtapaOrdemServico } from '..
 import { api } from '../services/api';
 import { PlacaBadge } from './PlacaBadge';
 import { useDialogo } from '../utils/acessibilidade';
+import { formatarMoeda, lerMoeda, mascararMoeda } from '../utils/moeda';
 import {
   X,
   Car,
@@ -36,7 +37,8 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
   const [origemId, setOrigemId] = useState<number | undefined>(origens[0]?.id);
   const [tipoServicoId, setTipoServicoId] = useState<number | undefined>(tiposServico[0]?.id);
   const [etapa, setEtapa] = useState<EtapaOrdemServico>('AGUARDANDO_ORCAMENTO');
-  const [valorOrcamento, setValorOrcamento] = useState<string>('0,00');
+  const [valorMaoDeObra, setValorMaoDeObra] = useState<string>('0,00');
+  const [valorPecas, setValorPecas] = useState<string>('0,00');
   const [dataEntrada, setDataEntrada] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
@@ -81,14 +83,6 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
     setPlaca(limpa);
   };
 
-  const handleValorChange = (val: string) => {
-    const apenasDigitos = val.replace(/\D/g, '');
-    const centavos = Number(apenasDigitos) / 100;
-    setValorOrcamento(
-      centavos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    );
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (resultadoPlaca?.possuiOsAtiva) {
@@ -99,8 +93,6 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
     setSalvando(true);
     setErro(null);
 
-    const valorNum = Number(valorOrcamento.replace(/\./g, '').replace(',', '.')) || 0;
-
     try {
       const novaOs = await api.registrarEntrada({
         placa,
@@ -108,7 +100,8 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
         origemId,
         tipoServicoId,
         etapa,
-        valorOrcamento: valorNum,
+        valorMaoDeObra: lerMoeda(valorMaoDeObra),
+        valorPecas: lerMoeda(valorPecas),
         dataEntrada,
         observacoes: observacoes.trim() || undefined,
       });
@@ -273,7 +266,7 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
             </div>
           </div>
 
-          {/* Grid: Etapa Inicial e Orçamento */}
+          {/* Grid: Etapa Inicial, mão de obra e peças */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="entrada-etapa" className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider">
@@ -293,9 +286,9 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
             </div>
 
             <div>
-              <label htmlFor="entrada-valor" className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider flex items-center gap-1">
+              <label htmlFor="entrada-mao-de-obra" className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider flex items-center gap-1">
                 <DollarSign className="w-3.5 h-3.5 text-verde" />
-                Valor Orçado (R$)
+                Mão de Obra (R$)
               </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-placa tabular-nums font-bold text-aco">
@@ -303,11 +296,42 @@ export const ModalEntrada: React.FC<ModalEntradaProps> = ({
                 </span>
                 <input
                   type="text"
-                  value={valorOrcamento}
-                  id="entrada-valor"
-                  onChange={(e) => handleValorChange(e.target.value)}
+                  inputMode="numeric"
+                  value={valorMaoDeObra}
+                  id="entrada-mao-de-obra"
+                  onChange={(e) => setValorMaoDeObra(mascararMoeda(e.target.value))}
                   className="w-full bg-parede/60 border border-trilho rounded-xl pl-10 pr-3.5 py-2.5 text-sm font-placa tabular-nums font-bold text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
                 />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="entrada-pecas" className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider flex items-center gap-1">
+                <DollarSign className="w-3.5 h-3.5 text-verde" />
+                Peças (R$)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-placa tabular-nums font-bold text-aco">
+                  R$
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={valorPecas}
+                  id="entrada-pecas"
+                  onChange={(e) => setValorPecas(mascararMoeda(e.target.value))}
+                  className="w-full bg-parede/60 border border-trilho rounded-xl pl-10 pr-3.5 py-2.5 text-sm font-placa tabular-nums font-bold text-grafite focus:outline-none focus:ring-2 focus:ring-mercosul"
+                />
+              </div>
+            </div>
+            <div>
+              <span className="block text-xs font-semibold text-grafite mb-1.5 uppercase tracking-wider">
+                Valor Orçado (soma)
+              </span>
+              <div className="w-full bg-parede/30 border border-trilho rounded-xl px-3.5 py-2.5 text-sm font-placa tabular-nums font-bold text-verde">
+                {formatarMoeda(lerMoeda(valorMaoDeObra) + lerMoeda(valorPecas))}
               </div>
             </div>
           </div>
