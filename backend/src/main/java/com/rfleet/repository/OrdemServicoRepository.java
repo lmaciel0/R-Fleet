@@ -51,6 +51,16 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
            "AND os.dataFaturamento >= :inicio AND os.dataFaturamento <= :fim")
     FaturamentoAgregado somarFaturadoEntre(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 
+    /**
+     * Previsão: OS entregues no período (pela data de saída) que ainda não foram faturadas.
+     */
+    @Query("SELECT new com.rfleet.dto.FaturamentoAgregado(SUM(os.valorMaoDeObra), SUM(os.valorPecas), COUNT(os)) " +
+           "FROM OrdemServico os " +
+           "WHERE os.ativo = true AND os.etapa = com.rfleet.domain.EtapaOrdemServico.ENTREGUE " +
+           "AND (os.faturado = false OR os.faturado IS NULL) " +
+           "AND os.dataSaida >= :inicio AND os.dataSaida <= :fim")
+    FaturamentoAgregado somarAFaturarEntre(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
     @Query("SELECT new com.rfleet.dto.FaturamentoAgregado(SUM(os.valorMaoDeObra), SUM(os.valorPecas), COUNT(os)) " +
            "FROM OrdemServico os WHERE os.ativo = true AND os.faturado = true")
     FaturamentoAgregado somarFaturadoGeral();

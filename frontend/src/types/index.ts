@@ -111,6 +111,9 @@ export interface FaturamentoMes {
   comissaoPecas: number;
   comissao: number;
   totalGeral: number;
+  aFaturarQuantidade: number;
+  aFaturarTotal: number;
+  aFaturarComissao: number;
 }
 
 export interface BuscarPlacaResultado {

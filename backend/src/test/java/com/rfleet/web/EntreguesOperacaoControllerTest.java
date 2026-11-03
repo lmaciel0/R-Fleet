@@ -80,6 +80,12 @@ class EntreguesOperacaoControllerTest {
         ordemServicoRepository.saveAndFlush(os);
     }
 
+    private void faturarDireto(Long id) {
+        OrdemServico os = ordemServicoRepository.findById(id).orElseThrow();
+        os.setFaturado(true);
+        ordemServicoRepository.saveAndFlush(os);
+    }
+
     private List<String> placasListadas(MockHttpServletRequestBuilder requisicao) throws Exception {
         MvcResult result = mockMvc.perform(requisicao.header("Authorization", "Bearer " + tokenJwt))
                 .andExpect(status().isOk())
@@ -99,6 +105,8 @@ class EntreguesOperacaoControllerTest {
 
         Long ultimoDiaMesAnterior = criarOs("HST1A01", EtapaOrdemServico.ENTREGUE);
         definirDataSaida(ultimoDiaMesAnterior, inicioMes.minusDays(1));
+        // Só o entregue já faturado sai da operação
+        faturarDireto(ultimoDiaMesAnterior);
 
         Long primeiroDiaMesAtual = criarOs("HST1A02", EtapaOrdemServico.ENTREGUE);
         definirDataSaida(primeiroDiaMesAtual, inicioMes);
@@ -118,6 +126,63 @@ class EntreguesOperacaoControllerTest {
                 .param("termo", "HST1A"));
 
         assertThat(semFiltro).containsExactlyInAnyOrder("HST1A01", "HST1A02", "HST1A03", "HST1A04");
+    }
+
+    @Test
+    @DisplayName("Entregue não faturado de mês anterior permanece na operação")
+    void deveManterNaoFaturadoDeMesAnteriorNaOperacao() throws Exception {
+        LocalDate inicioMes = DataOficina.inicioDoMesCorrente();
+
+        Long mesAnterior = criarOs("HST1B01", EtapaOrdemServico.ENTREGUE);
+        definirDataSaida(mesAnterior, inicioMes.minusDays(1));
+
+        Long doisMesesAtras = criarOs("HST1B02", EtapaOrdemServico.ENTREGUE);
+        definirDataSaida(doisMesesAtras, inicioMes.minusMonths(2));
+
+        List<String> operacao = placasListadas(get("/api/ordens-servico")
+                .param("termo", "HST1B")
+                .param("ocultarEntreguesAnteriores", "true"));
+
+        assertThat(operacao).containsExactlyInAnyOrder("HST1B01", "HST1B02");
+    }
+
+    @Test
+    @DisplayName("Ao faturar, o entregue de mês anterior sai da operação")
+    void deveSairDaOperacaoAoFaturar() throws Exception {
+        Long id = criarOs("HST1C01", EtapaOrdemServico.ENTREGUE);
+        definirDataSaida(id, DataOficina.inicioDoMesCorrente().minusDays(1));
+
+        List<String> antes = placasListadas(get("/api/ordens-servico")
+                .param("termo", "HST1C")
+                .param("ocultarEntreguesAnteriores", "true"));
+
+        assertThat(antes).containsExactly("HST1C01");
+
+        faturarDireto(id);
+
+        List<String> depois = placasListadas(get("/api/ordens-servico")
+                .param("termo", "HST1C")
+                .param("ocultarEntreguesAnteriores", "true"));
+
+        assertThat(depois).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Exportação CSV da operação inclui entregue não faturado de mês anterior")
+    void deveExportarCsvComNaoFaturadoDeMesAnterior() throws Exception {
+        Long id = criarOs("HST1D01", EtapaOrdemServico.ENTREGUE);
+        definirDataSaida(id, DataOficina.inicioDoMesCorrente().minusDays(1));
+
+        MvcResult result = mockMvc.perform(get("/api/exportacao/ordens-servico")
+                        .header("Authorization", "Bearer " + tokenJwt)
+                        .param("formato", "csv")
+                        .param("termo", "HST1D")
+                        .param("ocultarEntreguesAnteriores", "true"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String csv = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        assertThat(csv).contains("HST1D01");
     }
 
     @Test

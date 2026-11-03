@@ -49,6 +49,20 @@ export const CardFaturamentoMes: React.FC<CardFaturamentoMesProps> = ({ mes, onE
 
   const percentual = (valor: number) => `${valor.toLocaleString('pt-BR')}%`;
 
+  const nadaAFaturar = faturamento !== null && faturamento.aFaturarQuantidade === 0;
+
+  const textoAFaturar = faturamento
+    ? nadaAFaturar
+      ? 'Nada a faturar neste mês'
+      : `A faturar: ${faturamento.aFaturarQuantidade} OS · ${formatarMoeda(faturamento.aFaturarTotal)}`
+    : '';
+
+  const textoComissaoPrevista = faturamento
+    ? nadaAFaturar
+      ? 'Nada a faturar neste mês'
+      : `Prevista a faturar: ${formatarMoeda(faturamento.aFaturarComissao)}`
+    : '';
+
   const linhaComissao = (
     Icone: LucideIcon,
     parte: string,
@@ -80,7 +94,7 @@ export const CardFaturamentoMes: React.FC<CardFaturamentoMesProps> = ({ mes, onE
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" aria-busy={faturamento === null}>
       <p role="status" className="sr-only">
         {faturamento
-          ? `Faturado em ${rotulo}: ${formatarMoeda(faturamento.total)}. Comissão total: ${formatarMoeda(faturamento.comissao)}.`
+          ? `Faturado em ${rotulo}: ${formatarMoeda(faturamento.total)}. Comissão total: ${formatarMoeda(faturamento.comissao)}. ${textoAFaturar}${nadaAFaturar ? '.' : `. Comissão prevista a faturar: ${formatarMoeda(faturamento.aFaturarComissao)}.`}`
           : `Carregando o faturamento de ${rotulo}.`}
       </p>
       <div className="bg-etiqueta border border-trilho rounded-2xl p-4">
@@ -104,6 +118,24 @@ export const CardFaturamentoMes: React.FC<CardFaturamentoMesProps> = ({ mes, onE
             </span>
           ) : (
             <Esqueleto className="h-3 w-56 max-w-full" />
+          )}
+        </div>
+        <div className="text-xs text-aco mt-1 min-h-4">
+          {faturamento ? (
+            nadaAFaturar ? (
+              <span>{textoAFaturar}</span>
+            ) : (
+              <span>
+                A faturar:{' '}
+                <strong className="font-placa tabular-nums text-grafite">
+                  {faturamento.aFaturarQuantidade} OS
+                </strong>
+                {' · '}
+                <strong className="font-placa tabular-nums text-grafite">{formatarMoeda(faturamento.aFaturarTotal)}</strong>
+              </span>
+            )
+          ) : (
+            <Esqueleto className="h-3 w-44 max-w-full" />
           )}
         </div>
       </div>
@@ -135,6 +167,22 @@ export const CardFaturamentoMes: React.FC<CardFaturamentoMesProps> = ({ mes, onE
             faturamento?.totalPecas,
             faturamento?.comissaoPecas
           )}
+          <div className="flex items-start justify-between gap-3 min-h-4 text-xs text-aco">
+            {faturamento ? (
+              nadaAFaturar ? (
+                <span>{textoComissaoPrevista}</span>
+              ) : (
+                <span>
+                  Prevista a faturar:{' '}
+                  <strong className="font-placa tabular-nums text-grafite">
+                    {formatarMoeda(faturamento.aFaturarComissao)}
+                  </strong>
+                </span>
+              )
+            ) : (
+              <Esqueleto className="h-3 w-44 max-w-full" />
+            )}
+          </div>
         </div>
       </div>
     </div>

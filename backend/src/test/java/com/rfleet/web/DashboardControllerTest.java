@@ -239,6 +239,8 @@ class DashboardControllerTest {
         OrdemServico antiga = ordemServicoRepository.findById(mesPassado).orElseThrow();
         antiga.setDataSaida(DataOficina.inicioDoMesCorrente().minusDays(1));
         ordemServicoRepository.saveAndFlush(antiga);
+        // Só o entregue de mês anterior já faturado deixa de contar (data antiga: não altera o mês corrente)
+        faturar(mesPassado, LocalDate.of(2020, 3, 5));
 
         assertThat(buscarMetricas().get("distribuicaoPorEtapa").get("ENTREGUE").asLong()).isEqualTo(antes);
 
@@ -248,6 +250,27 @@ class DashboardControllerTest {
         ordemServicoRepository.saveAndFlush(atual);
 
         assertThat(buscarMetricas().get("distribuicaoPorEtapa").get("ENTREGUE").asLong()).isEqualTo(antes + 1);
+    }
+
+    @Test
+    @DisplayName("Entregue não faturado de mês anterior continua na coluna Entregue do dashboard")
+    void deveContarNaoFaturadoDeMesAnterior() throws Exception {
+        long antes = buscarMetricas().get("distribuicaoPorEtapa").get("ENTREGUE").asLong();
+
+        Long id = criarOs("DSH1A08", EtapaOrdemServico.ENTREGUE, "100.00");
+        definirDataSaida(id, DataOficina.inicioDoMesCorrente().minusDays(1));
+
+        assertThat(buscarMetricas().get("distribuicaoPorEtapa").get("ENTREGUE").asLong()).isEqualTo(antes + 1);
+
+        faturar(id, LocalDate.of(2020, 3, 5));
+
+        assertThat(buscarMetricas().get("distribuicaoPorEtapa").get("ENTREGUE").asLong()).isEqualTo(antes);
+    }
+
+    private void definirDataSaida(Long id, LocalDate dataSaida) {
+        OrdemServico os = ordemServicoRepository.findById(id).orElseThrow();
+        os.setDataSaida(dataSaida);
+        ordemServicoRepository.saveAndFlush(os);
     }
 
     private JsonNode buscarFaturamento(int ano, int mes) throws Exception {
@@ -314,6 +337,64 @@ class DashboardControllerTest {
         ordemServicoRepository.saveAndFlush(os);
 
         assertThat(buscarFaturamento(2018, 2).get("quantidade").asLong()).isZero();
+    }
+
+    @Test
+    @DisplayName("Previsão a faturar do mês soma as entregues no mês que ainda não foram faturadas")
+    void deveSomarAFaturarDoMes() throws Exception {
+        definirDataSaida(criarOs("DSH1C01", EtapaOrdemServico.ENTREGUE, "1000.00", "500.00"), LocalDate.of(2020, 6, 10));
+        definirDataSaida(criarOs("DSH1C02", EtapaOrdemServico.ENTREGUE, "200.00", "0.00"), LocalDate.of(2020, 6, 30));
+        definirDataSaida(criarOs("DSH1C03", EtapaOrdemServico.ENTREGUE, "300.00", "0.00"), LocalDate.of(2020, 7, 1)); // fora do mês
+        Long faturada = criarOs("DSH1C04", EtapaOrdemServico.ENTREGUE, "400.00", "0.00");
+        definirDataSaida(faturada, LocalDate.of(2020, 6, 15));
+        faturar(faturada, LocalDate.of(2020, 6, 20)); // já faturada: fora da previsão
+
+        JsonNode junho = buscarFaturamento(2020, 6);
+
+        assertThat(junho.get("aFaturarQuantidade").asLong()).isEqualTo(2);
+        assertThat(junho.get("aFaturarTotal").decimalValue()).isEqualByComparingTo("1700.00");
+        assertThat(junho.get("aFaturarComissao").decimalValue()).isEqualByComparingTo("17.00");
+    }
+
+    @Test
+    @DisplayName("Ao faturar, a OS sai da previsão do mês de saída e conta no mês do faturamento")
+    void deveTirarDaPrevisaoAoFaturar() throws Exception {
+        Long id = criarOs("DSH1C05", EtapaOrdemServico.ENTREGUE, "800.00");
+        definirDataSaida(id, LocalDate.of(2020, 8, 20));
+
+        JsonNode antes = buscarFaturamento(2020, 8);
+        assertThat(antes.get("aFaturarQuantidade").asLong()).isEqualTo(1);
+        assertThat(antes.get("aFaturarTotal").decimalValue()).isEqualByComparingTo("800.00");
+
+        faturar(id, LocalDate.of(2020, 9, 5));
+
+        JsonNode agosto = buscarFaturamento(2020, 8);
+        assertThat(agosto.get("aFaturarQuantidade").asLong()).isZero();
+        assertThat(agosto.get("aFaturarTotal").decimalValue()).isEqualByComparingTo("0");
+        assertThat(agosto.get("total").decimalValue()).isEqualByComparingTo("0");
+        assertThat(buscarFaturamento(2020, 9).get("total").decimalValue()).isEqualByComparingTo("800.00");
+    }
+
+    @Test
+    @DisplayName("OS arquivada não entra na previsão a faturar")
+    void deveIgnorarArquivadaNaPrevisao() throws Exception {
+        Long id = criarOs("DSH1C06", EtapaOrdemServico.ENTREGUE, "600.00");
+        OrdemServico os = ordemServicoRepository.findById(id).orElseThrow();
+        os.setDataSaida(LocalDate.of(2020, 10, 10));
+        os.setAtivo(false);
+        ordemServicoRepository.saveAndFlush(os);
+
+        assertThat(buscarFaturamento(2020, 10).get("aFaturarQuantidade").asLong()).isZero();
+    }
+
+    @Test
+    @DisplayName("Mês sem OS a faturar devolve previsão zerada, sem nulos")
+    void deveDevolverPrevisaoZeradaEmMesVazio() throws Exception {
+        JsonNode vazio = buscarFaturamento(2019, 1);
+
+        assertThat(vazio.get("aFaturarQuantidade").asLong()).isZero();
+        assertThat(vazio.get("aFaturarTotal").decimalValue()).isEqualByComparingTo("0");
+        assertThat(vazio.get("aFaturarComissao").decimalValue()).isEqualByComparingTo("0");
     }
 
     @Test
