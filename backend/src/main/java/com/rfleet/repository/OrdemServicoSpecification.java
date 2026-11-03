@@ -107,12 +107,15 @@ public class OrdemServicoSpecification {
                 predicates.add(cb.lessThanOrEqualTo(root.get("dataSaida"), filtro.dataSaidaFim()));
             }
 
-            // 11. Operação atual: oculta entregues com saída antes do mês corrente
+            // 11. Operação atual: oculta entregues faturados com saída antes do mês corrente;
+            // entregue não faturado permanece até ser faturado
             if (Boolean.TRUE.equals(filtro.ocultarEntreguesAnteriores())) {
                 predicates.add(cb.or(
                         cb.notEqual(root.get("etapa"), EtapaOrdemServico.ENTREGUE),
                         cb.isNull(root.get("dataSaida")),
-                        cb.greaterThanOrEqualTo(root.get("dataSaida"), inicioMesCorrente)
+                        cb.greaterThanOrEqualTo(root.get("dataSaida"), inicioMesCorrente),
+                        cb.isNull(root.get("faturado")),
+                        cb.isFalse(root.<Boolean>get("faturado"))
                 ));
             }
 

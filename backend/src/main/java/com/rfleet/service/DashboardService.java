@@ -81,7 +81,8 @@ public class DashboardService {
 
         long totalNaoFaturadas = todasAtivas.size() - totalFaturadas;
 
-        // Distribuição por Etapa (todas as 7 etapas inicializadas; Entregue só do mês corrente, como no Kanban)
+        // Distribuição por Etapa (todas as 7 etapas inicializadas; Entregue do mês corrente
+        // mais o entregue não faturado de mês anterior, como no Kanban)
         Map<EtapaOrdemServico, Long> distribuicaoEtapas = new EnumMap<>(EtapaOrdemServico.class);
         for (EtapaOrdemServico etapa : EtapaOrdemServico.values()) {
             distribuicaoEtapas.put(etapa, 0L);
@@ -124,7 +125,8 @@ public class DashboardService {
 
     /**
      * Faturado no mês escolhido (OS ativas com faturado = true e data de faturamento dentro do mês),
-     * mais a comissão sobre ele e o total faturado de todos os meses.
+     * mais a comissão sobre ele e o total faturado de todos os meses. Inclui a previsão do mês:
+     * OS entregues no mês (pela data de saída) que ainda não foram faturadas, com a comissão prevista.
      */
     @Transactional(readOnly = true)
     public FaturamentoMesDTO obterFaturamentoDoMes(int ano, int mes) {
@@ -135,6 +137,7 @@ public class DashboardService {
         FaturamentoAgregado doMes = ordemServicoRepository.somarFaturadoEntre(anoMes.atDay(1), anoMes.atEndOfMonth());
         FaturamentoAgregado geral = ordemServicoRepository.somarFaturadoGeral();
         Comissao comissao = calcularComissao(doMes);
+        FaturamentoAgregado aFaturar = ordemServicoRepository.somarAFaturarEntre(anoMes.atDay(1), anoMes.atEndOfMonth());
 
         return new FaturamentoMesDTO(
                 doMes.total(),
@@ -146,7 +149,10 @@ public class DashboardService {
                 comissao.maoDeObra(),
                 comissao.pecas(),
                 comissao.total(),
-                geral.total()
+                geral.total(),
+                aFaturar.quantidade(),
+                aFaturar.total(),
+                calcularComissao(aFaturar).total()
         );
     }
 
@@ -177,12 +183,13 @@ public class DashboardService {
     }
 
     /**
-     * Mesmo critério do filtro ocultarEntreguesAnteriores: entregue com saída antes do mês corrente.
+     * Mesmo critério do filtro ocultarEntreguesAnteriores: entregue e faturado com saída antes do mês corrente.
      */
     private static boolean entregueEmMesAnterior(OrdemServico os, LocalDate inicioMes) {
         return os.getEtapa() == EtapaOrdemServico.ENTREGUE
                 && os.getDataSaida() != null
-                && os.getDataSaida().isBefore(inicioMes);
+                && os.getDataSaida().isBefore(inicioMes)
+                && Boolean.TRUE.equals(os.getFaturado());
     }
 
     private BigDecimal obterPercentual(String chave) {
